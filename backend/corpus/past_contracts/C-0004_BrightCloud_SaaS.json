@@ -1,0 +1,34 @@
+{
+  "id": "C-0004",
+  "vendor": "BrightCloud Analytics",
+  "type": "SaaS_MSA",
+  "parties": ["BrightCloud Analytics", "Acme Holdings"],
+  "signed_at": "2024-11-08",
+  "approval_outcome": "auto_approved",
+  "risk_score": 27,
+  "clauses": [
+    {
+      "number": "4.1",
+      "title": "Service Levels",
+      "text": "BrightCloud warrants 99.9% monthly uptime, with service credits of 10% of monthly fees for each 0.1% below the SLA."
+    },
+    {
+      "number": "7.1",
+      "title": "Limitation of Liability",
+      "text": "Each party's aggregate liability shall not exceed two times (2x) the fees paid by Customer in the twelve (12) months preceding the claim."
+    },
+    {
+      "number": "9.1",
+      "title": "Data Protection",
+      "text": "BrightCloud maintains SOC 2 Type II certification and processes personal data in accordance with the GDPR. A Data Processing Addendum is incorporated by reference."
+    },
+    {
+      "number": "11.1",
+      "title": "Termination",
+      "text": "Either party may terminate this Agreement for material breach with thirty (30) days written notice and opportunity to cure."
+    }
+  ],
+  "risk_findings": [
+    {"clause_ref": "7.1", "risk": "Liability cap is symmetric and within industry norm", "severity": "Low"}
+  ]
+}

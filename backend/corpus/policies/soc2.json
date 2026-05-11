@@ -1,0 +1,46 @@
+{
+  "framework": "SOC2",
+  "description": "AICPA Trust Services Criteria — contract requirements for vendors processing customer data systems.",
+  "snippets": [
+    {
+      "requirement": "Security Certification",
+      "severity": "high",
+      "text": "Vendor must maintain a current SOC 2 Type II report covering the Security Trust Services Criterion, with the report covering at least the most recent twelve (12) month period and made available to Customer upon request."
+    },
+    {
+      "requirement": "Access Controls",
+      "severity": "high",
+      "text": "Vendor must implement role-based access controls, multi-factor authentication for privileged access, and quarterly access reviews. Any access to Customer data must be logged and retained for at least one (1) year."
+    },
+    {
+      "requirement": "Change Management",
+      "severity": "medium",
+      "text": "Vendor must follow a documented change management process that includes peer review, testing in non-production environments, and rollback procedures for all changes to systems handling Customer data."
+    },
+    {
+      "requirement": "Incident Response",
+      "severity": "high",
+      "text": "Vendor must maintain an incident response plan and notify Customer of any security incident affecting Customer data within seventy-two (72) hours of detection."
+    },
+    {
+      "requirement": "Encryption",
+      "severity": "critical",
+      "text": "Customer data must be encrypted in transit using TLS 1.2 or higher and at rest using AES-256 or equivalent. Encryption keys must be managed in a dedicated key management system."
+    },
+    {
+      "requirement": "Vendor Risk Management",
+      "severity": "medium",
+      "text": "Vendor must perform annual risk assessments of its own subprocessors that handle Customer data, and disclose its subprocessor list to Customer."
+    },
+    {
+      "requirement": "Logging and Monitoring",
+      "severity": "medium",
+      "text": "Vendor must collect, monitor, and retain security-relevant logs for systems handling Customer data, with log retention of at least one (1) year and alerting on anomalous events."
+    },
+    {
+      "requirement": "Business Continuity",
+      "severity": "medium",
+      "text": "Vendor must maintain a business continuity and disaster recovery plan with documented Recovery Time Objective (RTO) and Recovery Point Objective (RPO), tested at least annually."
+    }
+  ]
+}

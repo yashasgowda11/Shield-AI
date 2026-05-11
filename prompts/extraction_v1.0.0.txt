@@ -1,0 +1,31 @@
+Extract the following structured information from the contract text below.
+
+Required output fields (return JSON matching the provided schema):
+
+- parties: every legal entity that is a party to this agreement, with role assigned
+  from the enum (Vendor, Customer, Licensor, Licensee, Discloser, Recipient, Buyer,
+  Seller, Other). Use "Other" only if none of the named roles fit.
+- effective_date: ISO format YYYY-MM-DD if a specific date is stated, else null.
+  Do not invent a date if only a phrase like "Effective Date" is referenced.
+- term: human-readable description of the contract length (e.g. "2 years from
+  Effective Date", "1 year auto-renewing"). Null if not stated.
+- payment_terms: short normalized form (e.g. "Net 30", "Net 60", "Due on receipt").
+  Null if no payment terms are present (e.g. NDAs).
+- governing_law: jurisdiction (e.g. "State of Delaware", "England and Wales").
+  Null if not stated.
+- obligations: material obligations only (i.e. things a party MUST do or REFRAIN
+  from doing). Skip recitals, definitions, and boilerplate. For each, attach the
+  clause_ref (clause number) where it appears, e.g. "1.2", "7.1". If a single
+  obligation spans multiple clauses, cite the primary one.
+- summary: two or three sentences in plain English describing the deal.
+
+Strict rules:
+- If a field is not stated or cannot be determined from the text, use null.
+- Do NOT infer or invent details that aren't in the text.
+- Do NOT include obligations from sections that are merely definitional.
+- Quote clause numbers exactly as they appear (e.g. "7.2" not "Section 7.2").
+
+Contract text:
+---
+{contract_text}
+---

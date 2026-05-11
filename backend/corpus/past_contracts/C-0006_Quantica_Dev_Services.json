@@ -1,0 +1,35 @@
+{
+  "id": "C-0006",
+  "vendor": "Quantica Engineering Ltd.",
+  "type": "Professional_Services",
+  "parties": ["Quantica Engineering Ltd.", "Acme Holdings"],
+  "signed_at": "2024-07-30",
+  "approval_outcome": "legal_review_required",
+  "risk_score": 67,
+  "clauses": [
+    {
+      "number": "2.1",
+      "title": "Statement of Work",
+      "text": "Quantica shall perform engineering services as described in mutually agreed Statements of Work."
+    },
+    {
+      "number": "5.2",
+      "title": "Intellectual Property",
+      "text": "All Work Product shall be the sole property of Quantica. Customer is granted a limited, non-exclusive, revocable license to use the Work Product for its internal business purposes."
+    },
+    {
+      "number": "8.1",
+      "title": "Indemnification",
+      "text": "Customer shall indemnify, defend, and hold Quantica harmless from any and all third-party claims, including those arising from Quantica's own negligence."
+    },
+    {
+      "number": "10.2",
+      "title": "Confidentiality",
+      "text": "Each party agrees to protect the other party's Confidential Information for a period of three (3) years following disclosure."
+    }
+  ],
+  "risk_findings": [
+    {"clause_ref": "5.2", "risk": "All IP retained by vendor; customer has revocable license only", "severity": "High"},
+    {"clause_ref": "8.1", "risk": "Indemnification covers vendor's own negligence", "severity": "Critical"}
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "id": "C-0001",
+  "vendor": "DataSync Inc.",
+  "type": "SaaS_MSA",
+  "parties": ["DataSync Inc.", "Acme Holdings"],
+  "signed_at": "2024-08-22",
+  "approval_outcome": "legal_review_required",
+  "risk_score": 73,
+  "clauses": [
+    {
+      "number": "5.1",
+      "title": "Service Levels",
+      "text": "DataSync warrants 99.5% uptime measured monthly, excluding scheduled maintenance windows of up to four (4) hours per week."
+    },
+    {
+      "number": "7.2",
+      "title": "Limitation of Liability",
+      "text": "DataSync's aggregate liability under this Agreement shall not exceed the lesser of (i) fees paid by Customer in the three (3) months preceding the claim or (ii) ten thousand US dollars ($10,000)."
+    },
+    {
+      "number": "9.1",
+      "title": "Data Processing",
+      "text": "DataSync will process Customer Data solely to provide the Services. Customer represents and warrants that it has obtained all necessary consents from data subjects."
+    },
+    {
+      "number": "11.3",
+      "title": "Termination for Convenience",
+      "text": "DataSync may terminate this Agreement at any time upon thirty (30) days written notice. Customer may terminate only at the end of the then-current Term upon ninety (90) days notice."
+    }
+  ],
+  "risk_findings": [
+    {"clause_ref": "7.2", "risk": "Liability cap below industry norm (3 months / $10K)", "severity": "Medium"},
+    {"clause_ref": "9.1", "risk": "Burden of obtaining data subject consent shifted entirely to Customer", "severity": "High"},
+    {"clause_ref": "11.3", "risk": "Asymmetric termination rights favoring vendor", "severity": "Medium"}
+  ]
+}

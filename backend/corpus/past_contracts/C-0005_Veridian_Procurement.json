@@ -1,0 +1,35 @@
+{
+  "id": "C-0005",
+  "vendor": "Veridian Supply Co.",
+  "type": "Procurement",
+  "parties": ["Veridian Supply Co.", "Acme Holdings"],
+  "signed_at": "2024-10-19",
+  "approval_outcome": "manager_review_completed",
+  "risk_score": 51,
+  "clauses": [
+    {
+      "number": "1.1",
+      "title": "Scope",
+      "text": "Vendor shall supply office equipment and consumables as set forth in Schedule A."
+    },
+    {
+      "number": "1.3",
+      "title": "Payment Terms",
+      "text": "Customer shall pay invoiced amounts within sixty (60) days of receipt. Late payments accrue interest at 1.5% per month."
+    },
+    {
+      "number": "1.4",
+      "title": "Liability",
+      "text": "Vendor's aggregate liability shall not exceed the fees paid in the twelve (12) months preceding the claim."
+    },
+    {
+      "number": "1.6",
+      "title": "Data Handling",
+      "text": "Vendor will not collect personal data of Customer's employees beyond what is necessary for invoicing."
+    }
+  ],
+  "risk_findings": [
+    {"clause_ref": "1.3", "risk": "Net 60 payment terms longer than standard Net 30", "severity": "Medium"},
+    {"clause_ref": "1.6", "risk": "No GDPR data subject rights language despite EU operations", "severity": "Medium"}
+  ]
+}

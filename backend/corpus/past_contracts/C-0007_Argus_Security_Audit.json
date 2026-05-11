@@ -1,0 +1,32 @@
+{
+  "id": "C-0007",
+  "vendor": "Argus Security Audit Inc.",
+  "type": "Professional_Services",
+  "parties": ["Argus Security Audit Inc.", "Acme Holdings"],
+  "signed_at": "2025-01-15",
+  "approval_outcome": "auto_approved",
+  "risk_score": 22,
+  "clauses": [
+    {
+      "number": "1.1",
+      "title": "Scope",
+      "text": "Argus shall perform a SOC 2 Type II readiness assessment and produce a written report."
+    },
+    {
+      "number": "3.2",
+      "title": "Limitation of Liability",
+      "text": "Each party's aggregate liability shall not exceed the fees paid in the twelve (12) months preceding the claim, except for breaches of confidentiality or indemnification obligations."
+    },
+    {
+      "number": "4.1",
+      "title": "Confidentiality",
+      "text": "Argus shall maintain Customer's Confidential Information in strict confidence, with obligations surviving termination for five (5) years."
+    },
+    {
+      "number": "6.1",
+      "title": "Termination",
+      "text": "Either party may terminate this Agreement upon thirty (30) days written notice. Customer shall pay for services performed through the effective date of termination."
+    }
+  ],
+  "risk_findings": []
+}

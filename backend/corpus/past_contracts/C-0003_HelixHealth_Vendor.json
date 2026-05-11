@@ -1,0 +1,36 @@
+{
+  "id": "C-0003",
+  "vendor": "Helix Health Systems",
+  "type": "Vendor_Services",
+  "parties": ["Helix Health Systems", "Acme Healthcare LLC"],
+  "signed_at": "2024-06-04",
+  "approval_outcome": "rejected",
+  "risk_score": 88,
+  "clauses": [
+    {
+      "number": "3.1",
+      "title": "Scope",
+      "text": "Vendor shall provide patient analytics services, including the processing of protected health information."
+    },
+    {
+      "number": "7.2",
+      "title": "Liability",
+      "text": "Customer assumes unlimited liability for all claims arising from Vendor's services. Vendor's liability is capped at one US dollar ($1.00)."
+    },
+    {
+      "number": "8.1",
+      "title": "Termination",
+      "text": "Vendor may terminate this Agreement at any time without cause and without notice. Customer may terminate only with three hundred sixty-five (365) days written notice."
+    },
+    {
+      "number": "9.1",
+      "title": "Data Handling",
+      "text": "Vendor will process Customer data in accordance with industry best practices. No specific compliance framework is warranted."
+    }
+  ],
+  "risk_findings": [
+    {"clause_ref": "7.2", "risk": "Unlimited liability assumed by Customer; vendor liability capped at $1", "severity": "Critical"},
+    {"clause_ref": "8.1", "risk": "Asymmetric termination rights; customer locked in for 365 days", "severity": "High"},
+    {"clause_ref": "9.1", "risk": "Missing HIPAA Business Associate Agreement language despite PHI processing", "severity": "Critical"}
+  ]
+}

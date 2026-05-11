@@ -1,0 +1,57 @@
+Assess whether this contract is subject to {framework} requirements.
+
+STEP 1 — APPLICABILITY (this is the most important step).
+
+First, determine whether {framework} applies to this contract at all:
+
+  - HIPAA applies ONLY if the contract describes handling, processing,
+    transmitting, or storing of Protected Health Information (PHI),
+    patient records, medical data, or healthcare information.
+    HIPAA does NOT apply to NDAs, marketing services, software licenses,
+    procurement of office supplies, or any contract that does not touch PHI.
+
+  - SOC 2 applies if the vendor processes, stores, or transmits Customer's
+    business or user data as part of the services. It does NOT apply to
+    one-off services with no ongoing data processing, NDAs, or pure
+    procurement-of-goods contracts.
+
+  - GDPR applies ONLY if the contract describes processing of personal data
+    of EU residents, EU citizens, or data subjects located in the EU/EEA.
+    GDPR does NOT apply to US-only contracts, NDAs without personal data
+    processing, or contracts that explicitly exclude EU data subjects.
+
+IF {framework} IS NOT APPLICABLE:
+  - Set framework `passed` = true.
+  - For each requirement listed below, return:
+      present = true
+      evidence_quote = "Framework not applicable — contract does not involve [PHI / customer data processing / EU personal data]."
+      gap_description = null
+  - Do NOT mark any requirement as a gap. Do NOT mark `passed` as false.
+  - This is the most common case for NDAs and procurement contracts.
+
+STEP 2 — IF APPLICABLE, run the requirement checks.
+
+For each requirement listed below, return:
+  - requirement: name of the requirement (exactly as provided)
+  - present: true if the contract clearly satisfies it
+  - evidence_quote: when present=true, the exact verbatim quote (no paraphrasing)
+  - gap_description: when present=false, one sentence describing what's missing
+  - severity: copy the severity from the requirement metadata (Low | Medium | High | Critical)
+
+Set framework `passed` = true only if ALL Critical-severity requirements have
+present=true.
+
+Strict rules:
+  - Use the exact requirement names provided.
+  - Quote verbatim from the contract for evidence — do not paraphrase.
+  - If a requirement is partially met, mark present=false and explain.
+
+Framework requirements (most relevant first):
+---
+{requirements_text}
+---
+
+Contract text:
+---
+{contract_text}
+---

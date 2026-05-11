@@ -1,0 +1,32 @@
+{
+  "id": "C-0002",
+  "vendor": "Northwind Logistics Co.",
+  "type": "NDA",
+  "parties": ["Northwind Logistics Co.", "Acme Holdings"],
+  "signed_at": "2024-09-12",
+  "approval_outcome": "auto_approved",
+  "risk_score": 18,
+  "clauses": [
+    {
+      "number": "1.1",
+      "title": "Definition of Confidential Information",
+      "text": "‘Confidential Information’ means non-public business, technical, or financial information disclosed by either party, marked confidential or that should reasonably be understood to be confidential."
+    },
+    {
+      "number": "1.2",
+      "title": "Obligations",
+      "text": "Each party shall protect Confidential Information using the same degree of care as it uses for its own confidential information, but in no event less than reasonable care."
+    },
+    {
+      "number": "1.3",
+      "title": "Term",
+      "text": "This Agreement shall remain in effect for two (2) years from the Effective Date and may be terminated by either party with thirty (30) days notice."
+    },
+    {
+      "number": "1.4",
+      "title": "Governing Law",
+      "text": "This Agreement shall be governed by the laws of the State of Delaware."
+    }
+  ],
+  "risk_findings": []
+}

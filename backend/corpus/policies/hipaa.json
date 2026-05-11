@@ -1,0 +1,46 @@
+{
+  "framework": "HIPAA",
+  "description": "Health Insurance Portability and Accountability Act — contract requirements for vendors handling Protected Health Information (PHI).",
+  "snippets": [
+    {
+      "requirement": "Business Associate Agreement (BAA)",
+      "severity": "critical",
+      "text": "Any contract under which a vendor creates, receives, maintains, or transmits PHI on behalf of a covered entity must include a Business Associate Agreement (BAA) as required by 45 CFR §164.504(e). The BAA must explicitly identify the vendor as a Business Associate."
+    },
+    {
+      "requirement": "Permitted Uses and Disclosures",
+      "severity": "critical",
+      "text": "The contract must specify the permitted and required uses and disclosures of PHI by the Business Associate, and prohibit any further use or disclosure not permitted by law."
+    },
+    {
+      "requirement": "Safeguards for PHI",
+      "severity": "high",
+      "text": "The Business Associate must agree to implement appropriate administrative, physical, and technical safeguards that reasonably and appropriately protect the confidentiality, integrity, and availability of PHI, including encryption at rest and in transit."
+    },
+    {
+      "requirement": "Breach Notification",
+      "severity": "critical",
+      "text": "The Business Associate must report any breach of unsecured PHI to the covered entity without unreasonable delay and in no case later than 60 days after discovery, per 45 CFR §164.410."
+    },
+    {
+      "requirement": "Subcontractor Agreements",
+      "severity": "high",
+      "text": "The Business Associate must ensure that any subcontractor that creates, receives, maintains, or transmits PHI on its behalf agrees in writing to the same restrictions and conditions that apply to the Business Associate."
+    },
+    {
+      "requirement": "Right to Audit",
+      "severity": "medium",
+      "text": "The covered entity must retain the right to audit the Business Associate's compliance with the BAA, including access to the Business Associate's books, records, and policies relating to PHI."
+    },
+    {
+      "requirement": "Return or Destruction of PHI",
+      "severity": "high",
+      "text": "Upon termination of the contract, the Business Associate must return or destroy all PHI received from the covered entity, or if neither is feasible, extend the protections of the BAA to the retained PHI."
+    },
+    {
+      "requirement": "Individual Rights",
+      "severity": "medium",
+      "text": "The Business Associate must make PHI available to the covered entity to enable individuals to exercise their rights to access, amend, and obtain an accounting of disclosures of their PHI."
+    }
+  ]
+}

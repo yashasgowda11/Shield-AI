@@ -1,0 +1,101 @@
+# Shield AI — three-container stack.
+#
+# Backend, frontend, and Lobster Trap each run as their own container on a
+# shared internal network. Persistent data (SQLite DB, embedding cache,
+# uploaded files) lives in named volumes so container restarts don't lose
+# state.
+#
+# Usage:
+#   cp .env.example .env   # fill in GEMINI_API_KEY
+#   make docker-build && make docker-up
+#   make docker-logs       # tail combined logs
+#   make docker-down       # stop everything
+#
+# Hostnames inside the compose network:
+#   - lobstertrap:8080
+#   - backend:8000
+#   - frontend:8501
+#
+# Externally exposed ports (host → container):
+#   - 8000   backend API
+#   - 8501   Streamlit UI
+#   - 8080   Lobster Trap dashboard — ONLY if EXPOSE_LOBSTERTRAP=true is set.
+#            Production default is internal-only.
+
+services:
+  lobstertrap:
+    build:
+      context: .
+      dockerfile: lobstertrap.Dockerfile
+    container_name: shield-lobstertrap
+    restart: unless-stopped
+    # Dashboard reachable on the host at http://localhost:8080/_lobstertrap/
+    # but bound to 127.0.0.1 so it's NEVER exposed to the public internet.
+    # For production, comment this whole `ports:` block — the backend reaches
+    # Lobster Trap by its DNS name `lobstertrap:8080` on the private network.
+    ports:
+      - "127.0.0.1:8080:8080"
+    networks:
+      - shield-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/_lobstertrap/ || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: shield-backend
+    restart: unless-stopped
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY:?GEMINI_API_KEY required — set it in .env}
+      - GEMINI_MODEL_PRO=${GEMINI_MODEL_PRO:-gemini-2.5-flash-lite}
+      - GEMINI_MODEL_FLASH=${GEMINI_MODEL_FLASH:-gemini-2.5-flash-lite}
+      - LOBSTERTRAP_URL=http://lobstertrap:8080
+      - LOBSTERTRAP_TIMEOUT_SEC=${LOBSTERTRAP_TIMEOUT_SEC:-5}
+      - DATABASE_URL=sqlite:////data/shield.db
+    ports:
+      - "8000:8000"
+    volumes:
+      - shield_data:/data
+      - shield_uploads:/app/backend/uploads
+      - shield_rag_cache:/app/backend/rag/cache
+    depends_on:
+      lobstertrap:
+        condition: service_started   # offline detector fallback if LT isn't ready
+    networks:
+      - shield-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/health || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend.Dockerfile
+    container_name: shield-frontend
+    restart: unless-stopped
+    environment:
+      - BACKEND_URL=http://backend:8000
+    ports:
+      - "8501:8501"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - shield-net
+
+networks:
+  shield-net:
+    driver: bridge
+
+volumes:
+  shield_data:
+  shield_uploads:
+  shield_rag_cache:

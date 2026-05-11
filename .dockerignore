@@ -1,0 +1,29 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+.mypy_cache
+.venv
+venv
+
+# Local dev artifacts
+.env
+*.db
+*.db-journal
+logs/
+backend/uploads/
+backend/rag/cache/
+
+# Workspace files
+.git
+.gitignore
+.streamlit/secrets.toml
+
+# Editor / OS
+.DS_Store
+.vscode
+.idea
+
+# Existing local lobstertrap clone if any
+lobstertrap

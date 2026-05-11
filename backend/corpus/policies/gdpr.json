@@ -1,0 +1,51 @@
+{
+  "framework": "GDPR",
+  "description": "EU General Data Protection Regulation — contract requirements for vendors acting as Data Processors.",
+  "snippets": [
+    {
+      "requirement": "Data Processing Agreement (DPA)",
+      "severity": "critical",
+      "text": "Where the vendor processes personal data on behalf of the Customer, the contract must include or incorporate a Data Processing Agreement that meets the requirements of Article 28 of the GDPR."
+    },
+    {
+      "requirement": "Lawful Basis and Purpose Limitation",
+      "severity": "critical",
+      "text": "The DPA must specify the subject matter, duration, nature, and purpose of processing; the type of personal data; categories of data subjects; and the obligations and rights of the Customer as Controller."
+    },
+    {
+      "requirement": "Data Subject Rights",
+      "severity": "high",
+      "text": "Vendor must assist the Customer in fulfilling data subject rights under Articles 15–22, including access, rectification, erasure, restriction, portability, and objection, within timeframes that allow Customer to respond within one (1) month."
+    },
+    {
+      "requirement": "Data Breach Notification",
+      "severity": "critical",
+      "text": "Vendor must notify Customer of any personal data breach without undue delay and in no case later than 72 hours after becoming aware, in line with Article 33."
+    },
+    {
+      "requirement": "Sub-processor Approval",
+      "severity": "high",
+      "text": "Vendor must obtain prior written authorization (general or specific) from Customer before engaging any sub-processor, and must impose data protection obligations on sub-processors equivalent to those in the DPA."
+    },
+    {
+      "requirement": "International Data Transfers",
+      "severity": "high",
+      "text": "Any transfer of personal data outside the European Economic Area must be subject to an appropriate safeguard under Chapter V, such as Standard Contractual Clauses or an adequacy decision."
+    },
+    {
+      "requirement": "Security of Processing",
+      "severity": "high",
+      "text": "Vendor must implement appropriate technical and organisational measures to ensure a level of security appropriate to the risk, taking into account the state of the art and the nature of processing (Article 32)."
+    },
+    {
+      "requirement": "Records of Processing",
+      "severity": "medium",
+      "text": "Vendor must maintain a record of all categories of processing activities carried out on behalf of Customer and make it available to supervisory authorities on request (Article 30)."
+    },
+    {
+      "requirement": "Return or Deletion",
+      "severity": "high",
+      "text": "Upon termination of the contract, Vendor must, at the Customer's choice, delete or return all personal data and delete existing copies, unless storage is required by Union or Member State law."
+    }
+  ]
+}
