@@ -22,9 +22,75 @@ from backend.agents import compliance as compliance_agent
 from backend.agents import extraction as extraction_agent
 from backend.agents import recommendation as recommendation_agent
 from backend.agents import risk as risk_agent
-from backend.models import Contract
+from backend.models import AgentOutput, Contract
 
 logger = logging.getLogger(__name__)
+
+
+def _index_contract_to_rag(db: Session, contract: Contract) -> int:
+    """Index a processed contract's clauses into the Pinecone contracts namespace.
+
+    Extracts vendor name from Agent 1's output and risk findings from Agent 2's
+    output, then calls upsert_contract_clauses so future uploads can use this
+    contract as a RAG comparator.
+
+    This is intentionally a best-effort operation — failures are logged but do
+    not affect the contract's final status.
+
+    Returns:
+        Number of vectors upserted (0 on failure or nothing to index).
+    """
+    from backend.rag.ingest import upsert_contract_clauses
+
+    clauses = contract.clauses or []
+    if not clauses:
+        logger.warning("_index_contract_to_rag: no clauses on contract %s", contract.id)
+        return 0
+
+    # ---- Vendor name from Agent 1 (extraction) ----
+    vendor = "unknown"
+    extraction_row = (
+        db.query(AgentOutput)
+        .filter_by(contract_id=contract.id, agent_name="extraction")
+        .order_by(AgentOutput.created_at.desc())
+        .first()
+    )
+    if extraction_row and extraction_row.output:
+        parties = extraction_row.output.get("parties") or []
+        if parties:
+            vendor = parties[0].get("name") or "unknown"
+
+    # ---- Risk findings + score from Agent 2 (risk) ----
+    risk_findings: list[dict] = []
+    risk_score: int | None = None
+    risk_row = (
+        db.query(AgentOutput)
+        .filter_by(contract_id=contract.id, agent_name="risk")
+        .order_by(AgentOutput.created_at.desc())
+        .first()
+    )
+    if risk_row and risk_row.output:
+        risk_findings = risk_row.output.get("findings") or []
+        raw_score = risk_row.output.get("score")
+        if raw_score is not None:
+            try:
+                risk_score = int(raw_score)
+            except (TypeError, ValueError):
+                pass
+
+    logger.info(
+        "Indexing contract %s into Pinecone RAG — vendor='%s' clauses=%d risk_score=%s",
+        contract.id, vendor, len(clauses), risk_score,
+    )
+
+    return upsert_contract_clauses(
+        contract_id=contract.id,
+        vendor=vendor,
+        clauses=clauses,
+        risk_findings=risk_findings,
+        approval_outcome=contract.status,
+        risk_score=risk_score,
+    )
 
 
 def run_pipeline(db: Session, contract_id: int) -> dict[str, Any]:
@@ -124,6 +190,19 @@ def run_pipeline(db: Session, contract_id: int) -> dict[str, Any]:
         )
         db.rollback()
 
+    # ---- Index into Pinecone RAG (best-effort, non-fatal) ----
+    # Run after the status commit so the approval_outcome stored in Pinecone
+    # metadata reflects the AI recommendation (approved / manager_review / etc.).
+    rag_vectors = 0
+    if ran:  # at least one agent succeeded — worth indexing
+        try:
+            rag_vectors = _index_contract_to_rag(db, contract)
+        except Exception:
+            logger.exception(
+                "RAG indexing failed for contract %s (non-fatal — pipeline result unaffected)",
+                contract_id,
+            )
+
     # ---- Audit log ----
     try:
         audit.log(
@@ -136,6 +215,7 @@ def run_pipeline(db: Session, contract_id: int) -> dict[str, Any]:
                 "agents_failed": list(errors.keys()) or None,
                 "durations_ms": durations_ms,
                 "final_status": contract.status,
+                "rag_vectors_indexed": rag_vectors,
             },
         )
     except Exception:
@@ -144,8 +224,8 @@ def run_pipeline(db: Session, contract_id: int) -> dict[str, Any]:
         )
 
     logger.info(
-        "run_pipeline finished for contract %s — ran=%s errors=%s status=%s",
-        contract_id, ran, list(errors.keys()), contract.status,
+        "run_pipeline finished for contract %s — ran=%s errors=%s status=%s rag_vectors=%d",
+        contract_id, ran, list(errors.keys()), contract.status, rag_vectors,
     )
 
     return {
@@ -154,4 +234,5 @@ def run_pipeline(db: Session, contract_id: int) -> dict[str, Any]:
         "errors": errors,
         "durations_ms": durations_ms,
         "final_status": contract.status,
+        "rag_vectors_indexed": rag_vectors,
     }

@@ -143,15 +143,35 @@ def upsert_contract_clauses(
     vendor: str,
     clauses: list[dict],
     risk_findings: list[dict] | None = None,
+    approval_outcome: str = "processed",
+    risk_score: int | None = None,
 ) -> int:
     """Add an uploaded contract's clauses to the Pinecone contracts namespace.
 
-    Called after a contract is approved so future risk comparisons can use it.
-    Returns the number of vectors upserted.
+    Called automatically after the agent pipeline finishes so every processed
+    contract becomes a comparator for future risk assessments.
+
+    Args:
+        contract_id:      DB primary key of the contract.
+        vendor:           Vendor name extracted by Agent 1.
+        clauses:          Segmented clause list from contract.clauses.
+        risk_findings:    Finding dicts from Agent 2's risk output (optional).
+        approval_outcome: Final AI recommendation status (e.g. "approved",
+                          "manager_review", "legal_review", "rejected").
+        risk_score:       Overall risk score from Agent 2 (optional).
+
+    Returns:
+        Number of vectors upserted (0 if index not loaded or no clauses).
     """
     ns = INDICES.get("contracts")
     if ns is None:
-        logger.warning("Contracts index not initialised — skipping upsert for contract %s", contract_id)
+        logger.warning(
+            "Contracts index not initialised — skipping upsert for contract %s", contract_id
+        )
+        return 0
+
+    if not clauses:
+        logger.warning("No clauses to index for contract %s", contract_id)
         return 0
 
     findings = risk_findings or []
@@ -159,7 +179,9 @@ def upsert_contract_clauses(
 
     for clause in clauses:
         embed_text = f"[{clause.get('title', '')}] {clause.get('text', '')}"
-        clause_findings = [f for f in findings if f.get("clause_ref") == clause.get("number")]
+        clause_findings = [
+            f for f in findings if f.get("clause_ref") == clause.get("number")
+        ]
         vid = _vector_id("contracts", f"uploaded_{contract_id}", str(clause.get("number", 0)))
         items.append((vid, embed_text, {
             "source": "contracts",
@@ -169,19 +191,34 @@ def upsert_contract_clauses(
             "clause_number": str(clause.get("number", "")),
             "clause_title": clause.get("title", ""),
             "clause_text": clause.get("text", "")[:1000],
-            "approval_outcome": "approved",
-            "risk_score": "",
+            "approval_outcome": approval_outcome,
+            "risk_score": str(risk_score) if risk_score is not None else "",
             "findings_for_clause": json.dumps(clause_findings),
         }))
 
     if not items:
         return 0
 
-    texts = [t for _, t, _ in items]
-    embeddings = embed_documents(texts)
-    vectors = [
-        {"id": vid, "values": embeddings[i].tolist(), "metadata": meta}
-        for i, (vid, _, meta) in enumerate(items)
-    ]
-    ns.upsert(vectors)
-    return len(vectors)
+    logger.info(
+        "Embedding %d clause vectors for contract %s (vendor='%s', outcome='%s') → Pinecone",
+        len(items), contract_id, vendor, approval_outcome,
+    )
+
+    try:
+        texts = [t for _, t, _ in items]
+        embeddings = embed_documents(texts)
+        vectors = [
+            {"id": vid, "values": embeddings[i].tolist(), "metadata": meta}
+            for i, (vid, _, meta) in enumerate(items)
+        ]
+        ns.upsert(vectors)
+        logger.info(
+            "Successfully indexed %d clause vectors for contract %s into Pinecone",
+            len(vectors), contract_id,
+        )
+        return len(vectors)
+    except Exception as exc:
+        logger.exception(
+            "Failed to upsert contract %s clauses to Pinecone: %s", contract_id, exc
+        )
+        raise
