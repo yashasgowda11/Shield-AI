@@ -109,3 +109,27 @@ class FrameworkResult(BaseModel):
 class ComplianceResult(BaseModel):
     """Output of Agent 3."""
     frameworks: list[FrameworkResult]
+
+
+# ============================================================================
+# Contract Q&A (Ask Shield AI — per-contract mode)
+# ============================================================================
+
+class ClauseCitation(BaseModel):
+    number: str = Field(description="Clause number, e.g. '7.2'")
+    title: str = Field(description="Clause title as it appears in the contract")
+    relevance: str = Field(
+        description="How relevant this clause is to the answer: high | medium | low",
+    )
+
+
+class ContractQAResult(BaseModel):
+    """Output of the contract Q&A agent — grounded answer + clause citations."""
+    answer: str = Field(description="Concise answer with §N.N inline citations")
+    cited_clauses: list[ClauseCitation] = Field(
+        description="Clauses that ground the answer, in order of relevance",
+    )
+    confidence: float = Field(
+        ge=0.0, le=1.0,
+        description="0-1 confidence the answer is correct and complete",
+    )

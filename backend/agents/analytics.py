@@ -26,15 +26,36 @@ logger = logging.getLogger(__name__)
 AGENT_NAME = "analytics"
 PROMPT_VERSION = "v1.0.0"
 
-_PROMPT_PATH = Path(__file__).resolve().parents[2] / "prompts" / f"analytics_{PROMPT_VERSION}.txt"
-_PROMPT_TEMPLATE = _PROMPT_PATH.read_text(encoding="utf-8")
+# Dialect-specific prompts. We pick at runtime based on the bound DB engine
+# so the same agent code works against SQLite (local dev) and PostgreSQL
+# (Cloud Run / production). Cloud Run's SQL grammar is incompatible with
+# SQLite's and vice-versa — wrong dialect → "unrecognized token" errors.
+_PROMPTS_DIR = Path(__file__).resolve().parents[2] / "prompts"
+_PG_PROMPT = (_PROMPTS_DIR / f"analytics_{PROMPT_VERSION}.txt").read_text(encoding="utf-8")
+_SQLITE_PROMPT = (_PROMPTS_DIR / f"analytics_sqlite_{PROMPT_VERSION}.txt").read_text(encoding="utf-8")
 
-SYSTEM_INSTRUCTION = (
+_SYSTEM_PG = (
     "You are Shield AI's analytics agent. You translate natural-language "
     "questions about the contracts corpus into safe, read-only PostgreSQL queries. "
     "You never write SQL that modifies data. You always include a LIMIT. "
     "You always use PostgreSQL JSON operators (->> and ->) — never SQLite's json_extract()."
 )
+_SYSTEM_SQLITE = (
+    "You are Shield AI's analytics agent. You translate natural-language "
+    "questions about the contracts corpus into safe, read-only SQLite queries. "
+    "You never write SQL that modifies data. You always include a LIMIT. "
+    "You always use SQLite's json_extract / json_each — never PostgreSQL's ->> "
+    "or :: casts."
+)
+
+
+def _select_prompt(db: Session) -> tuple[str, str]:
+    """Pick the (template, system_instruction) pair matching the bound dialect."""
+    name = (db.bind.dialect.name if db.bind is not None else "").lower()
+    if name.startswith("postgres"):
+        return _PG_PROMPT, _SYSTEM_PG
+    # Fall back to SQLite for sqlite, sqlite-in-memory, or unknown.
+    return _SQLITE_PROMPT, _SYSTEM_SQLITE
 
 ALLOWED_TABLES = {
     "contracts", "agent_outputs", "decisions",
@@ -113,14 +134,19 @@ def is_safe_sql(sql: str) -> tuple[bool, str | None]:
     return True, None
 
 
-def nl_to_sql(question: str) -> AnalyticsResponse:
-    """Generate SQL for a question. No execution, just translation."""
-    prompt = _PROMPT_TEMPLATE.replace("{question}", question)
+def nl_to_sql(question: str, db: Session) -> AnalyticsResponse:
+    """Generate SQL for a question. No execution, just translation.
+
+    The prompt + system instruction are picked based on the bound DB dialect
+    so SQLite and PostgreSQL targets each get syntactically valid SQL.
+    """
+    template, system = _select_prompt(db)
+    prompt = template.replace("{question}", question)
     return generate_json(
         prompt=prompt,
         schema=AnalyticsResponse,
         model=MODEL_FLASH,
-        system=SYSTEM_INSTRUCTION,
+        system=system,
     )
 
 
@@ -138,10 +164,11 @@ def run(db: Session, question: str) -> dict[str, Any]:
           "prompt_hash": str | None,
         }
     """
-    p_hash = hash_prompt(_PROMPT_TEMPLATE.replace("{question}", question), system=SYSTEM_INSTRUCTION)
+    template, system = _select_prompt(db)
+    p_hash = hash_prompt(template.replace("{question}", question), system=system)
 
     try:
-        response = nl_to_sql(question)
+        response = nl_to_sql(question, db)
     except Exception as e:
         logger.exception("Analytics agent failed during NL→SQL translation")
         return {
