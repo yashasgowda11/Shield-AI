@@ -238,6 +238,7 @@ def delete_contract(
     filename = contract.filename
     gcs_uri = contract.gcs_uri
     file_hash = contract.file_hash
+    clauses = list(contract.clauses or [])   # capture before ORM object is deleted
 
     # Write a deletion audit entry BEFORE deleting so the trail is complete
     try:
@@ -270,7 +271,20 @@ def delete_contract(
         logger.exception("Database delete failed for contract %d: %s", contract_id, exc)
         raise HTTPException(status_code=500, detail=f"Delete failed: {exc}")
 
-    # Delete the GCS blob (best-effort — don't fail the request if GCS is unavailable)
+    # Delete Pinecone vectors (best-effort — only uploaded contracts have vectors;
+    # corpus contracts use a different ID prefix and are never deleted here)
+    pinecone_deleted = 0
+    try:
+        from backend.rag.ingest import delete_contract_vectors
+        pinecone_deleted = delete_contract_vectors(contract_id, clauses)
+    except Exception:
+        logger.exception(
+            "Pinecone vector delete failed for contract %d (non-fatal — DB row already removed)",
+            contract_id,
+        )
+
+    # Delete the GCS blob (best-effort)
+    gcs_deleted = False
     if gcs_uri and GCS_BUCKET_NAME:
         try:
             blob_name = gcs_uri.replace(f"gs://{GCS_BUCKET_NAME}/", "")
@@ -278,6 +292,7 @@ def delete_contract(
             blob = bucket.blob(blob_name)
             if blob.exists():
                 blob.delete()
+                gcs_deleted = True
                 logger.info("Deleted GCS blob: %s", blob_name)
             else:
                 logger.warning("GCS blob not found (already deleted?): %s", blob_name)
@@ -287,10 +302,17 @@ def delete_contract(
                 contract_id,
             )
 
+    logger.info(
+        "Contract %d fully deleted — db=True gcs=%s pinecone_vectors=%d",
+        contract_id, gcs_deleted, pinecone_deleted,
+    )
+
     return {
         "deleted": True,
         "contract_id": contract_id,
         "filename": filename,
+        "pinecone_vectors_removed": pinecone_deleted,
+        "gcs_deleted": gcs_deleted,
     }
 
 

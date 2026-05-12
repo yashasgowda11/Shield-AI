@@ -138,6 +138,49 @@ def _build_policies_index() -> PineconeNamespace:
     return ns
 
 
+def delete_contract_vectors(contract_id: int, clauses: list[dict]) -> int:
+    """Remove an uploaded contract's clause vectors from Pinecone.
+
+    Uses the same deterministic ID formula as upsert_contract_clauses so the
+    IDs are guaranteed to match what was stored.
+
+    Args:
+        contract_id: DB primary key of the contract.
+        clauses:     Clause list from contract.clauses (needs clause numbers).
+
+    Returns:
+        Number of vector IDs submitted for deletion (0 if index not loaded).
+    """
+    ns = INDICES.get("contracts")
+    if ns is None:
+        logger.warning(
+            "Contracts index not initialised — skipping Pinecone delete for contract %s",
+            contract_id,
+        )
+        return 0
+
+    if not clauses:
+        logger.warning("No clauses found for contract %s — nothing to delete from Pinecone", contract_id)
+        return 0
+
+    ids = [
+        _vector_id("contracts", f"uploaded_{contract_id}", str(clause.get("number", 0)))
+        for clause in clauses
+    ]
+
+    try:
+        ns.delete(ids)
+        logger.info(
+            "Deleted %d Pinecone vectors for contract %s", len(ids), contract_id
+        )
+        return len(ids)
+    except Exception as exc:
+        logger.exception(
+            "Pinecone vector delete failed for contract %s: %s", contract_id, exc
+        )
+        raise
+
+
 def upsert_contract_clauses(
     contract_id: int,
     vendor: str,

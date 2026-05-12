@@ -88,6 +88,19 @@ class PineconeNamespace:
             for match in resp.get("matches", [])
         ]
 
+    def delete(self, ids: list[str]) -> None:
+        """Delete vectors by ID from this namespace."""
+        if not ids:
+            return
+        idx = _get_index()
+        # Pinecone delete accepts up to 1000 IDs per call
+        batch_size = 1000
+        for i in range(0, len(ids), batch_size):
+            batch = ids[i : i + batch_size]
+            idx.delete(ids=batch, namespace=self.namespace)
+        self._count = max(0, self._count - len(ids))
+        logger.info("Deleted %d vectors from namespace '%s'", len(ids), self.namespace)
+
     def count(self) -> int:
         """Live vector count from Pinecone stats."""
         try:
