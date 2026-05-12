@@ -5,7 +5,6 @@ Pages import via:
     sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))
     from utils import api_get, api_post, current_role, can, gate, render_file_preview
 """
-import base64
 import os
 from pathlib import Path
 
@@ -90,42 +89,36 @@ def render_file_preview(
     suffix = Path(filename).suffix.lower()
 
     if suffix == ".pdf":
-        with st.spinner("Loading PDF preview…"):
-            try:
-                r = api_get(f"/contracts/{contract_id}/file")
-            except Exception as exc:
-                st.warning(f"Could not reach backend to load preview: {exc}")
-                return
-
-        if r.status_code != 200:
-            st.warning(
-                f"Preview unavailable (HTTP {r.status_code}). "
-                "Download the file to view it."
-            )
-            return
-
-        b64 = base64.b64encode(r.content).decode()
+        # Point the iframe directly at the backend URL.
+        # Chrome blocks data: URIs in iframes (CSP), but allows http(s):// URLs.
+        file_url = f"{BACKEND_URL}/contracts/{contract_id}/file"
         pdf_html = f"""
         <iframe
-            src="data:application/pdf;base64,{b64}#toolbar=1&navpanes=0"
+            src="{file_url}"
             width="100%"
             height="{height}px"
-            style="border: 1px solid #e0e0e0; border-radius: 6px;">
-            <p>Your browser does not support PDF preview.
-               <a href="data:application/pdf;base64,{b64}"
-                  download="{filename}">Download PDF</a>
+            style="border:1px solid #e0e0e0; border-radius:6px;"
+            type="application/pdf">
+            <p style="padding:16px">
+                Your browser cannot render this PDF inline.
+                <a href="{file_url}" target="_blank">Open in new tab</a>
             </p>
         </iframe>
         """
         components.html(pdf_html, height=height + 20, scrolling=False)
 
-        # Also offer a download button below the preview
-        st.download_button(
-            label="⬇️  Download PDF",
-            data=r.content,
-            file_name=filename,
-            mime="application/pdf",
-        )
+        # Download button as a fallback / convenience
+        try:
+            r = api_get(f"/contracts/{contract_id}/file")
+            if r.status_code == 200:
+                st.download_button(
+                    label="⬇️  Download PDF",
+                    data=r.content,
+                    file_name=filename,
+                    mime="application/pdf",
+                )
+        except Exception:
+            st.markdown(f"[⬇️ Download PDF]({file_url})")
 
     else:
         # DOCX — no browser-native viewer
