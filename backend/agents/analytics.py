@@ -1,7 +1,7 @@
 """Agent 6 — Analytics ("Ask Shield AI") — Gemini text-to-SQL.
 
 Translates natural-language questions about the contracts corpus into SQL,
-runs them against a READ-ONLY view of the SQLite DB, returns rows.
+runs them against a READ-ONLY view of the PostgreSQL DB, returns rows.
 
 Safety layers (each one is a hard stop, not advisory):
   1. The Pydantic schema only allows {sql, explanation} as output.
@@ -31,8 +31,9 @@ _PROMPT_TEMPLATE = _PROMPT_PATH.read_text(encoding="utf-8")
 
 SYSTEM_INSTRUCTION = (
     "You are Shield AI's analytics agent. You translate natural-language "
-    "questions about the contracts corpus into safe, read-only SQLite queries. "
-    "You never write SQL that modifies data. You always include a LIMIT."
+    "questions about the contracts corpus into safe, read-only PostgreSQL queries. "
+    "You never write SQL that modifies data. You always include a LIMIT. "
+    "You always use PostgreSQL JSON operators (->> and ->) — never SQLite's json_extract()."
 )
 
 ALLOWED_TABLES = {
@@ -50,7 +51,7 @@ MAX_ROWS = 200
 
 
 class AnalyticsResponse(BaseModel):
-    sql: str = Field(description="The SQLite query to run")
+    sql: str = Field(description="The PostgreSQL query to run (use ->> and -> for JSON, never json_extract)")
     explanation: str = Field(description="One sentence describing what's being queried")
 
 
@@ -78,7 +79,7 @@ def is_safe_sql(sql: str) -> tuple[bool, str | None]:
     if ";" in body:
         return False, "multiple statements not allowed"
 
-    # Reject PRAGMA and sqlite_master snooping
+    # Reject SQLite-specific snooping keywords (belt-and-suspenders; we're on PG)
     if "PRAGMA" in upper or "SQLITE_MASTER" in upper or "SQLITE_SCHEMA" in upper:
         return False, "PRAGMA / sqlite_master access not allowed"
 
@@ -169,7 +170,7 @@ def run(db: Session, question: str) -> dict[str, Any]:
     for r in raw_rows:
         d: dict[str, Any] = {}
         for k, v in zip(col_names, r):
-            # SQLite JSON fields come back as strings; try to parse for nicer rendering
+            # JSON columns may come back as strings; try to parse for nicer rendering
             if isinstance(v, str) and v.startswith(("{", "[")):
                 try:
                     d[k] = json.loads(v)
