@@ -2,10 +2,11 @@
 
 Renders, after upload:
   - Quarantined → red panel with the matched injection text
-  - Extracted   → green panel + Agent 1 (extraction) + Agent 2 (risk) + Agent 3 (compliance)
+  - Extracted   → progress bar while agents run in background, then results
 """
 import json
 import sys
+import time
 import pathlib
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))
@@ -146,10 +147,126 @@ def render_compliance(block: dict) -> None:
 
 # ---- Upload widget ----
 
+# Terminal statuses: pipeline is done (success or human decision)
+_PIPELINE_DONE = {
+    "processed", "manager_review", "legal_review",
+    "approved", "rejected", "quarantined",
+}
+# How long to poll before giving up (seconds)
+_POLL_TIMEOUT = 180
+_POLL_INTERVAL = 3  # seconds between status checks
+
+
+def _poll_until_done(contract_id: int) -> dict:
+    """Poll GET /contracts/{id} until the pipeline finishes or timeout."""
+    stages = [
+        ("🔍 Agent 1 — Extracting parties, dates, obligations…", 0.20),
+        ("⚠️  Agent 2 — Assessing clause-level risk…",          0.45),
+        ("📋 Agent 3 — Checking compliance frameworks…",         0.70),
+        ("🎯 Agent 5 — Generating approval recommendation…",     0.90),
+        ("⏳ Finalising…",                                        0.95),
+    ]
+    stage_idx = 0
+    elapsed = 0
+
+    status_text = st.empty()
+    prog_bar = st.progress(0.05)
+
+    while elapsed < _POLL_TIMEOUT:
+        detail = api_get(f"/contracts/{contract_id}").json()
+        current = detail.get("status", "")
+
+        if current in _PIPELINE_DONE:
+            prog_bar.progress(1.0)
+            status_text.empty()
+            return detail
+
+        # Advance the displayed stage message
+        if stage_idx < len(stages):
+            label, frac = stages[stage_idx]
+            status_text.info(label)
+            prog_bar.progress(frac)
+            stage_idx += 1
+
+        time.sleep(_POLL_INTERVAL)
+        elapsed += _POLL_INTERVAL
+
+    # Timed out — return whatever we have
+    prog_bar.progress(1.0)
+    status_text.warning(
+        "⏰ Agents are taking longer than expected. "
+        "Check the **Review Queue** in a minute."
+    )
+    return api_get(f"/contracts/{contract_id}").json()
+
+
+def _render_results(body: dict, detail: dict) -> None:
+    """Render agent outputs for a successfully processed contract."""
+    st.success(f"✅  Pipeline complete (status: **{detail['status']}**)")
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Clauses", body["n_clauses"])
+    c2.metric("Characters", f"{body['char_count']:,}")
+    c3.metric("Document type", body["metadata"].get("type", "?"))
+
+    agent_outputs = detail.get("agent_outputs") or {}
+
+    if "extraction" in agent_outputs:
+        render_extraction(agent_outputs["extraction"])
+
+    if "risk" in agent_outputs:
+        render_risk(agent_outputs["risk"])
+
+    if "compliance" in agent_outputs:
+        render_compliance(agent_outputs["compliance"])
+
+    # Agent 5 — recommendation (rules-based, deterministic)
+    decisions = detail.get("decisions") or []
+    ai_decision = next(
+        (d for d in decisions if (d.get("reviewer_role") or "").startswith("agent:")),
+        None,
+    )
+    if ai_decision:
+        st.subheader("🎯  Agent 5 — Approval Recommendation")
+        label, color = RECOMMENDATION_BADGE.get(
+            ai_decision["recommendation"],
+            (ai_decision["recommendation"], "off"),
+        )
+        c1, c2 = st.columns([1, 3])
+        c1.metric("Recommendation", label, delta_color=color)
+        c2.info(ai_decision.get("reasoning") or "")
+        st.caption(
+            "Decision is **rules-based** — no LLM in the approval path. "
+            "Reasoning text is templated."
+        )
+
+    # Extracted clauses (for reference)
+    st.subheader("📑  Extracted clauses")
+    for clause in detail.get("clauses") or []:
+        with st.expander(f"§ {clause['number']}  —  {clause['title']}"):
+            st.write(clause["text"] or "_(empty)_")
+
+    # Audit-ready report download
+    st.subheader("📋  Audit report")
+    try:
+        report = api_get(f"/contracts/{body['id']}/audit-report").json()
+        st.download_button(
+            "📥 Download audit report (JSON)",
+            data=json.dumps(report, indent=2),
+            file_name=f"shield_audit_contract_{body['id']}.json",
+            mime="application/json",
+            help="Compiled audit-ready report — every agent prompt hash, "
+                 "every decision, every security event, every audit log entry.",
+        )
+        with st.expander("Preview report contents"):
+            st.json(report)
+    except Exception as e:
+        st.caption(f"Audit report unavailable: {e}")
+
+
 uploaded = st.file_uploader(
     "Drop a PDF or DOCX here",
     type=["pdf", "docx"],
-    help="Pipeline: extract → security gate → segment → Agents 1/2/3.",
+    help="Pipeline: extract → security gate → segment → Agents 1/2/3/5 (async).",
 )
 
 if uploaded is not None:
@@ -159,7 +276,8 @@ if uploaded is not None:
         else "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     )
 
-    with st.spinner(f"Processing **{uploaded.name}**…  (extraction + security + 3 agents — ~30s)"):
+    # Step 1: upload + security gate (~4s)
+    with st.spinner(f"Uploading **{uploaded.name}** and running security gate…"):
         r = api_post(
             "/contracts/upload",
             files={"file": (uploaded.name, uploaded.getvalue(), mime)},
@@ -200,74 +318,26 @@ if uploaded is not None:
                 if d.get("description"):
                     st.markdown(f"**Notes:** {d['description']}")
 
-    # ---- Processed (clean) ----
+    # ---- Clean — poll while agents run in background ----
     else:
-        st.success(f"✅  Uploaded and processed (status: **{body['status']}**)")
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Clauses", body["n_clauses"])
-        c2.metric("Characters", f"{body['char_count']:,}")
-        c3.metric("Document type", body["metadata"].get("type", "?"))
-
-        detail = api_get(f"/contracts/{body['id']}").json()
-        agent_outputs = detail.get("agent_outputs") or {}
-
-        if "extraction" in agent_outputs:
-            render_extraction(agent_outputs["extraction"])
-
-        if "risk" in agent_outputs:
-            render_risk(agent_outputs["risk"])
-
-        if "compliance" in agent_outputs:
-            render_compliance(agent_outputs["compliance"])
-
-        # Agent 5 — recommendation (rules-based, deterministic)
-        decisions = detail.get("decisions") or []
-        ai_decision = next(
-            (d for d in decisions if (d.get("reviewer_role") or "").startswith("agent:")),
-            None,
+        st.info(
+            f"✅ Security gate passed — **{body['n_clauses']} clauses** extracted. "
+            "AI agents are now running in the background…"
         )
-        if ai_decision:
-            st.subheader("🎯  Agent 5 — Approval Recommendation")
-            label, color = RECOMMENDATION_BADGE.get(
-                ai_decision["recommendation"],
-                (ai_decision["recommendation"], "off"),
-            )
-            c1, c2 = st.columns([1, 3])
-            c1.metric("Recommendation", label, delta_color=color)
-            c2.info(ai_decision.get("reasoning") or "")
-            st.caption(
-                "Decision is **rules-based** — no LLM in the approval path. "
-                "Reasoning text is templated."
-            )
 
-        # Pipeline errors (if any agent failed)
-        pipeline = body.get("pipeline") or {}
-        if pipeline.get("errors"):
-            st.warning("Some agents failed:")
-            st.json(pipeline["errors"])
+        # Step 2: poll until agents finish
+        detail = _poll_until_done(body["id"])
 
-        # Extracted clauses (for reference)
-        st.subheader("📑  Extracted clauses")
-        for clause in detail.get("clauses") or []:
-            with st.expander(f"§ {clause['number']}  —  {clause['title']}"):
-                st.write(clause["text"] or "_(empty)_")
-
-        # Audit-ready report download
-        st.subheader("📋  Audit report")
-        try:
-            report = api_get(f"/contracts/{body['id']}/audit-report").json()
-            st.download_button(
-                "📥 Download audit report (JSON)",
-                data=json.dumps(report, indent=2),
-                file_name=f"shield_audit_contract_{body['id']}.json",
-                mime="application/json",
-                help="Compiled audit-ready report — every agent prompt hash, "
-                     "every decision, every security event, every audit log entry.",
+        if detail.get("status") in _PIPELINE_DONE - {"quarantined"}:
+            _render_results(body, detail)
+        elif detail.get("status") == "quarantined":
+            # Shouldn't happen (gate already passed), but handle defensively
+            st.error("Contract was quarantined during agent processing.")
+        else:
+            st.warning(
+                f"Pipeline still running (status: **{detail.get('status')}**). "
+                "You can track progress in the **Review Queue**."
             )
-            with st.expander("Preview report contents"):
-                st.json(report)
-        except Exception as e:
-            st.caption(f"Audit report unavailable: {e}")
 
 # ---- Recent uploads ----
 st.divider()

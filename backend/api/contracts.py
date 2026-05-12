@@ -5,14 +5,14 @@ import logging
 import os
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, UploadFile, File, Form
 from google.cloud import storage as gcs
 from google.oauth2 import service_account
 from sqlalchemy.orm import Session
 
 from datetime import datetime
 
-from backend.db import get_db
+from backend.db import get_db, SessionLocal
 from backend.models import AgentOutput, AuditLog, Contract, Decision
 from backend import audit
 from backend.extractors import extract_text
@@ -23,6 +23,22 @@ from backend.orchestrator import run_pipeline
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+
+def _run_pipeline_background(contract_id: int) -> None:
+    """Run the agent pipeline in a background task with its own DB session.
+
+    BackgroundTasks execute after the response has been sent, so the request's
+    DB session is already closed. We open a fresh session here instead.
+    """
+    db = SessionLocal()
+    try:
+        run_pipeline(db, contract_id)
+    except Exception:
+        logger.exception("Background pipeline failed for contract %d", contract_id)
+    finally:
+        db.close()
+
 
 # GCS bucket for uploaded contract files.
 # Auth strategy (in priority order):
@@ -140,10 +156,21 @@ def get_contract(contract_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/{contract_id}/process")
-def process_contract(contract_id: int, db: Session = Depends(get_db)):
-    """Manually re-run the agent pipeline. Useful when iterating on prompts
-    or recovering from a partial failure."""
-    return run_pipeline(db, contract_id)
+def process_contract(
+    contract_id: int,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
+    """Kick off the agent pipeline in the background.
+
+    Returns immediately with {"contract_id": ..., "queued": true}.
+    Poll GET /contracts/{id} for status changes.
+    """
+    contract = db.query(Contract).filter(Contract.id == contract_id).first()
+    if not contract:
+        raise HTTPException(status_code=404, detail="Contract not found")
+    background_tasks.add_task(_run_pipeline_background, contract_id)
+    return {"contract_id": contract_id, "queued": True, "current_status": contract.status}
 
 
 @router.get("/{contract_id}/audit-report")
@@ -283,22 +310,29 @@ def make_human_decision(
 
 @router.post("/upload")
 async def upload_contract(
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     actor: str = Form("user:Procurement Analyst"),
     db: Session = Depends(get_db),
 ):
     """Upload a contract PDF or DOCX.
 
-    Pipeline (in strict order — security gate is BEFORE extraction outputs
-    are returned to the user, and BEFORE any agent runs):
-      1. Validate extension
-      2. Persist bytes + compute SHA-256
+    The endpoint returns in ~4 s after the security gate passes.
+    The AI agent pipeline (Agents 1-3 + 5) runs asynchronously in the
+    background.  Poll GET /contracts/{id} until status leaves 'extracted'.
+
+    Pipeline (synchronous — all happen before the HTTP response):
+      1. Validate extension + size
+      2. Upload bytes to GCS + compute SHA-256
       3. Create Contract row (status='uploading')
       4. Extract text
       5. Pre-LLM security gate
       6. If unclean → status='quarantined', return early
       7. Segment clauses
-      8. status='extracted'
+      8. status='extracted'  ← response sent here
+
+    Background (after response):
+      9. Agents 1 (extraction) → 2 (risk) → 3 (compliance) → 5 (recommendation)
     """
     suffix = Path(file.filename).suffix.lower()
     if suffix not in {".pdf", ".docx"}:
@@ -404,22 +438,16 @@ async def upload_contract(
         after={"n_clauses": len(clauses), "char_count": len(raw_text)},
     )
 
-    # Run agent pipeline synchronously. Failures here don't fail the upload —
-    # the contract is still in 'extracted' state and can be re-processed via
-    # POST /contracts/{id}/process.
-    pipeline_result: dict | None = None
-    try:
-        pipeline_result = run_pipeline(db, contract.id)
-    except Exception as e:
-        logger.exception("Agent pipeline crashed; upload still succeeded")
-        pipeline_result = {"error": str(e)}
+    # Launch the agent pipeline in the background — response returns here.
+    # The pipeline creates its own DB session (see _run_pipeline_background).
+    background_tasks.add_task(_run_pipeline_background, contract.id)
+    logger.info("Contract %d queued for background processing", contract.id)
 
     return {
         "id": contract.id,
-        "status": contract.status,
+        "status": "extracted",
         "filename": file.filename,
         "n_clauses": len(clauses),
         "char_count": len(raw_text),
         "metadata": meta,
-        "pipeline": pipeline_result,
     }
