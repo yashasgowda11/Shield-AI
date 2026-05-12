@@ -108,33 +108,56 @@ def run(db: Session, contract_id: int, clauses: list[dict]) -> RiskAssessment:
             "Running Agent 2 (risk) on contract %s with %d clauses",
             contract_id, len(clauses),
         )
-        result = generate_json(
-            prompt=prompt,
-            schema=RiskAssessment,
-            model=MODEL_PRO,
-            system=SYSTEM_INSTRUCTION,
+
+        # ---- LLM call ----
+        try:
+            result = generate_json(
+                prompt=prompt,
+                schema=RiskAssessment,
+                model=MODEL_PRO,
+                system=SYSTEM_INSTRUCTION,
+            )
+        except Exception as exc:
+            logger.exception(
+                "Agent 2 (risk) LLM call failed for contract %s: %s",
+                contract_id, exc,
+            )
+            raise
+
+    # ---- Persist to DB ----
+    try:
+        output_dict = json.loads(result.model_dump_json())
+        db.add(AgentOutput(
+            contract_id=contract_id,
+            agent_name=AGENT_NAME,
+            output=output_dict,
+            confidence=None,
+            prompt_hash=p_hash,
+        ))
+        db.commit()
+    except Exception as exc:
+        logger.exception(
+            "Agent 2 (risk) DB persist failed for contract %s: %s",
+            contract_id, exc,
         )
+        db.rollback()
+        raise
 
-    output_dict = json.loads(result.model_dump_json())
-    db.add(AgentOutput(
-        contract_id=contract_id,
-        agent_name=AGENT_NAME,
-        output=output_dict,
-        confidence=None,
-        prompt_hash=p_hash,
-    ))
-    db.commit()
+    # ---- Audit log ----
+    try:
+        audit.log(
+            db,
+            actor=f"agent:{AGENT_NAME}",
+            action="assess",
+            resource=f"contract:{contract_id}",
+            after={
+                "score": result.score,
+                "n_findings": len(result.findings),
+                "prompt_hash": p_hash,
+                "prompt_version": PROMPT_VERSION,
+            },
+        )
+    except Exception:
+        logger.exception("Agent 2 audit log failed for contract %s (non-fatal)", contract_id)
 
-    audit.log(
-        db,
-        actor=f"agent:{AGENT_NAME}",
-        action="assess",
-        resource=f"contract:{contract_id}",
-        after={
-            "score": result.score,
-            "n_findings": len(result.findings),
-            "prompt_hash": p_hash,
-            "prompt_version": PROMPT_VERSION,
-        },
-    )
     return result

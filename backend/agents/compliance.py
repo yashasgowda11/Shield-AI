@@ -118,25 +118,39 @@ def run(db: Session, contract_id: int, raw_text: str) -> ComplianceResult:
 
     final = ComplianceResult(frameworks=framework_results)
 
-    output_dict = json.loads(final.model_dump_json())
-    db.add(AgentOutput(
-        contract_id=contract_id,
-        agent_name=AGENT_NAME,
-        output=output_dict,
-        confidence=None,
-        prompt_hash=";".join(prompt_hashes) if prompt_hashes else None,
-    ))
-    db.commit()
+    # ---- Persist to DB ----
+    try:
+        output_dict = json.loads(final.model_dump_json())
+        db.add(AgentOutput(
+            contract_id=contract_id,
+            agent_name=AGENT_NAME,
+            output=output_dict,
+            confidence=None,
+            prompt_hash=";".join(prompt_hashes) if prompt_hashes else None,
+        ))
+        db.commit()
+    except Exception as exc:
+        logger.exception(
+            "Agent 3 (compliance) DB persist failed for contract %s: %s",
+            contract_id, exc,
+        )
+        db.rollback()
+        raise
 
-    audit.log(
-        db,
-        actor=f"agent:{AGENT_NAME}",
-        action="check",
-        resource=f"contract:{contract_id}",
-        after={
-            "frameworks_checked": [f.framework for f in framework_results],
-            "frameworks_passed": [f.framework for f in framework_results if f.passed],
-            "prompt_version": PROMPT_VERSION,
-        },
-    )
+    # ---- Audit log ----
+    try:
+        audit.log(
+            db,
+            actor=f"agent:{AGENT_NAME}",
+            action="check",
+            resource=f"contract:{contract_id}",
+            after={
+                "frameworks_checked": [f.framework for f in framework_results],
+                "frameworks_passed": [f.framework for f in framework_results if f.passed],
+                "prompt_version": PROMPT_VERSION,
+            },
+        )
+    except Exception:
+        logger.exception("Agent 3 audit log failed for contract %s (non-fatal)", contract_id)
+
     return final

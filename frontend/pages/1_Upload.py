@@ -33,6 +33,7 @@ STATUS_EMOJI = {
     "quarantined": "🔴",
     "uploading": "🟡",
     "extraction_failed": "⚫",
+    "pipeline_failed": "⚫",
     "approved": "✅",
     "rejected": "❌",
     "manager_review": "🟠",
@@ -149,7 +150,7 @@ def render_compliance(block: dict) -> None:
 
 # Terminal statuses: pipeline is done (success or human decision)
 _PIPELINE_DONE = {
-    "processed", "manager_review", "legal_review",
+    "processed", "pipeline_failed", "manager_review", "legal_review",
     "approved", "rejected", "quarantined",
 }
 # How long to poll before giving up (seconds)

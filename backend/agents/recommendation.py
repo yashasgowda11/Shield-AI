@@ -122,40 +122,85 @@ def _decide(
 
 def run(db: Session, contract_id: int) -> Decision:
     """Execute Agent 5. Reads upstream outputs, persists Decision, updates status."""
-    risk = _latest_output(db, contract_id, "risk")
-    compliance = _latest_output(db, contract_id, "compliance")
-    sec_events = _security_events(db, contract_id)
 
-    recommendation, reasoning = _decide(risk, compliance, sec_events)
+    # ---- Read upstream outputs (non-fatal if missing — decision tree handles None) ----
+    try:
+        risk = _latest_output(db, contract_id, "risk")
+        compliance = _latest_output(db, contract_id, "compliance")
+        sec_events = _security_events(db, contract_id)
+    except Exception as exc:
+        logger.exception(
+            "Agent 5 (recommendation) failed to read upstream outputs for contract %s: %s",
+            contract_id, exc,
+        )
+        raise
 
-    decision = Decision(
-        contract_id=contract_id,
-        recommendation=recommendation,
-        reasoning=reasoning,
-        reviewer_role=f"agent:{AGENT_NAME}",
-    )
-    db.add(decision)
+    if risk is None:
+        logger.warning(
+            "Agent 5: no risk output found for contract %s — defaulting score to 0",
+            contract_id,
+        )
+    if compliance is None:
+        logger.warning(
+            "Agent 5: no compliance output found for contract %s — skipping framework checks",
+            contract_id,
+        )
 
-    contract = db.query(Contract).filter_by(id=contract_id).first()
-    new_status = RECOMMENDATION_TO_STATUS.get(recommendation)
-    if contract and new_status:
-        contract.status = new_status
+    # ---- Decision logic (pure, no I/O) ----
+    try:
+        recommendation, reasoning = _decide(risk, compliance, sec_events)
+    except Exception as exc:
+        logger.exception(
+            "Agent 5 decision logic raised unexpectedly for contract %s: %s",
+            contract_id, exc,
+        )
+        raise
 
-    db.commit()
-    db.refresh(decision)
+    # ---- Persist Decision + update contract status ----
+    try:
+        decision = Decision(
+            contract_id=contract_id,
+            recommendation=recommendation,
+            reasoning=reasoning,
+            reviewer_role=f"agent:{AGENT_NAME}",
+        )
+        db.add(decision)
 
-    audit.log(
-        db,
-        actor=f"agent:{AGENT_NAME}",
-        action="recommend",
-        resource=f"contract:{contract_id}",
-        after={
-            "recommendation": recommendation,
-            "reasoning": reasoning,
-            "risk_score": (risk or {}).get("score"),
-            "new_status": contract.status if contract else None,
-        },
-    )
+        contract = db.query(Contract).filter_by(id=contract_id).first()
+        if contract is None:
+            raise ValueError(f"Contract {contract_id} not found when persisting decision")
+
+        new_status = RECOMMENDATION_TO_STATUS.get(recommendation)
+        if new_status:
+            contract.status = new_status
+
+        db.commit()
+        db.refresh(decision)
+    except Exception as exc:
+        logger.exception(
+            "Agent 5 (recommendation) DB persist failed for contract %s: %s",
+            contract_id, exc,
+        )
+        db.rollback()
+        raise
+
+    # ---- Audit log ----
+    try:
+        audit.log(
+            db,
+            actor=f"agent:{AGENT_NAME}",
+            action="recommend",
+            resource=f"contract:{contract_id}",
+            after={
+                "recommendation": recommendation,
+                "reasoning": reasoning,
+                "risk_score": (risk or {}).get("score"),
+                "new_status": contract.status if contract else None,
+            },
+        )
+    except Exception:
+        logger.exception("Agent 5 audit log failed for contract %s (non-fatal)", contract_id)
+
     logger.info(
         "Agent 5 (recommendation) on contract %s → %s (status now %s)",
         contract_id, recommendation, contract.status if contract else "?",

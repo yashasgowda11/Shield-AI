@@ -58,34 +58,56 @@ def run(
 
     logger.info("Running Agent 1 (extraction) on contract %s", contract_id)
 
-    result: ExtractionResult = generate_json(
-        prompt=prompt,
-        schema=ExtractionResult,
-        model=MODEL_FLASH,
-        system=SYSTEM_INSTRUCTION,
-    )
+    # ---- LLM call ----
+    try:
+        result: ExtractionResult = generate_json(
+            prompt=prompt,
+            schema=ExtractionResult,
+            model=MODEL_FLASH,
+            system=SYSTEM_INSTRUCTION,
+        )
+    except Exception as exc:
+        logger.exception(
+            "Agent 1 (extraction) LLM call failed for contract %s: %s",
+            contract_id, exc,
+        )
+        raise
 
-    # Persist
-    output_dict = json.loads(result.model_dump_json())
-    db.add(AgentOutput(
-        contract_id=contract_id,
-        agent_name=AGENT_NAME,
-        output=output_dict,
-        confidence=None,  # Agent 1 doesn't self-report confidence yet
-        prompt_hash=p_hash,
-    ))
-    db.commit()
+    # ---- Persist to DB ----
+    try:
+        output_dict = json.loads(result.model_dump_json())
+        db.add(AgentOutput(
+            contract_id=contract_id,
+            agent_name=AGENT_NAME,
+            output=output_dict,
+            confidence=None,
+            prompt_hash=p_hash,
+        ))
+        db.commit()
+    except Exception as exc:
+        logger.exception(
+            "Agent 1 (extraction) DB persist failed for contract %s: %s",
+            contract_id, exc,
+        )
+        db.rollback()
+        raise
 
-    audit.log(
-        db,
-        actor=f"agent:{AGENT_NAME}",
-        action="extract",
-        resource=f"contract:{contract_id}",
-        after={
-            "n_parties": len(result.parties),
-            "n_obligations": len(result.obligations),
-            "prompt_hash": p_hash,
-            "prompt_version": PROMPT_VERSION,
-        },
-    )
+    # ---- Audit log ----
+    try:
+        audit.log(
+            db,
+            actor=f"agent:{AGENT_NAME}",
+            action="extract",
+            resource=f"contract:{contract_id}",
+            after={
+                "n_parties": len(result.parties),
+                "n_obligations": len(result.obligations),
+                "prompt_hash": p_hash,
+                "prompt_version": PROMPT_VERSION,
+            },
+        )
+    except Exception:
+        # Audit failure must never block the agent result
+        logger.exception("Agent 1 audit log failed for contract %s (non-fatal)", contract_id)
+
     return result
