@@ -26,6 +26,11 @@ def api_post(path: str, **kwargs):
         return client.post(path, **kwargs)
 
 
+def api_delete(path: str, **kwargs):
+    with httpx.Client(base_url=BACKEND_URL, timeout=30.0) as client:
+        return client.delete(path, **kwargs)
+
+
 def health_check() -> bool:
     try:
         r = api_get("/health")
@@ -37,7 +42,7 @@ def health_check() -> bool:
 # ---- Role-gating ----
 
 PERMISSIONS = {
-    "Procurement Analyst": {"upload", "view"},
+    "Procurement Analyst": {"upload", "view", "delete"},
     "Legal Reviewer": {"view", "approve_legal", "reject"},
     "Compliance Officer": {"view", "approve_manager", "reject"},
     "Executive": {"view"},
@@ -70,6 +75,7 @@ def render_file_preview(
     filename: str,
     raw_text: str | None = None,
     height: int = 700,
+    key_suffix: str = "",
 ) -> None:
     """Render an inline file preview inside the calling page.
 
@@ -113,7 +119,7 @@ def render_file_preview(
                 input=r.content,
                 width=700,
                 height=height,
-                key=f"pdf_preview_{contract_id}",
+                key=f"pdf_preview_{contract_id}_{key_suffix}",
             )
         except Exception as exc:
             st.warning(f"PDF render failed: {exc}")
@@ -123,7 +129,7 @@ def render_file_preview(
             data=r.content,
             file_name=filename,
             mime="application/pdf",
-            key=f"pdf_dl_{contract_id}",
+            key=f"pdf_dl_{contract_id}_{key_suffix}",
         )
 
     else:
@@ -141,6 +147,7 @@ def render_file_preview(
                     file_name=filename,
                     mime="application/vnd.openxmlformats-officedocument"
                          ".wordprocessingml.document",
+                    key=f"docx_dl_{contract_id}_{key_suffix}",
                 )
         except Exception:
             pass  # download button is optional — don't crash the page

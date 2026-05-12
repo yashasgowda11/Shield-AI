@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 
 from backend.db import get_db, SessionLocal
-from backend.models import AgentOutput, AuditLog, Contract, Decision
+from backend.models import AgentOutput, AuditLog, Contract, Decision, SecurityEvent
 from backend import audit
 from backend.extractors import extract_text
 from backend.segmentation import segment_clauses
@@ -211,6 +211,87 @@ def get_contract_file(contract_id: int, db: Session = Depends(get_db)):
             "Content-Length": str(len(file_bytes)),
         },
     )
+
+
+@router.delete("/{contract_id}")
+def delete_contract(
+    contract_id: int,
+    actor: str = "user:Procurement Analyst",
+    db: Session = Depends(get_db),
+):
+    """Delete a contract and all its associated data.
+
+    Deletes (in order):
+      1. agent_outputs, decisions, security_events  (child rows)
+      2. The GCS blob (best-effort — skipped if blob not found or no GCS configured)
+      3. The contract row itself
+
+    Audit logs referencing this contract are intentionally kept — they form
+    the immutable governance trail and must survive the contract deletion.
+
+    Returns 404 if the contract does not exist.
+    """
+    contract = db.query(Contract).filter(Contract.id == contract_id).first()
+    if not contract:
+        raise HTTPException(status_code=404, detail="Contract not found")
+
+    filename = contract.filename
+    gcs_uri = contract.gcs_uri
+    file_hash = contract.file_hash
+
+    # Write a deletion audit entry BEFORE deleting so the trail is complete
+    try:
+        audit.log(
+            db,
+            actor=actor,
+            action="delete",
+            resource=f"contract:{contract_id}",
+            before={
+                "filename": filename,
+                "status": contract.status,
+                "hash_prefix": (file_hash or "")[:12],
+                "gcs_uri": gcs_uri,
+            },
+            after=None,
+        )
+    except Exception:
+        logger.exception("Audit log failed before deleting contract %d (continuing)", contract_id)
+
+    # Delete child rows (audit_logs are kept)
+    try:
+        db.query(AgentOutput).filter(AgentOutput.contract_id == contract_id).delete()
+        db.query(Decision).filter(Decision.contract_id == contract_id).delete()
+        db.query(SecurityEvent).filter(SecurityEvent.contract_id == contract_id).delete()
+        db.delete(contract)
+        db.commit()
+        logger.info("Deleted contract %d (%s) from database", contract_id, filename)
+    except Exception as exc:
+        db.rollback()
+        logger.exception("Database delete failed for contract %d: %s", contract_id, exc)
+        raise HTTPException(status_code=500, detail=f"Delete failed: {exc}")
+
+    # Delete the GCS blob (best-effort — don't fail the request if GCS is unavailable)
+    if gcs_uri and GCS_BUCKET_NAME:
+        try:
+            blob_name = gcs_uri.replace(f"gs://{GCS_BUCKET_NAME}/", "")
+            bucket = _get_bucket()
+            blob = bucket.blob(blob_name)
+            if blob.exists():
+                blob.delete()
+                logger.info("Deleted GCS blob: %s", blob_name)
+            else:
+                logger.warning("GCS blob not found (already deleted?): %s", blob_name)
+        except Exception:
+            logger.exception(
+                "GCS blob delete failed for contract %d (non-fatal — DB row already removed)",
+                contract_id,
+            )
+
+    return {
+        "deleted": True,
+        "contract_id": contract_id,
+        "filename": filename,
+    }
 
 
 @router.post("/{contract_id}/process")

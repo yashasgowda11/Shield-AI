@@ -12,7 +12,7 @@ import pathlib
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))
 
 import streamlit as st
-from utils import api_get, api_post, current_role, gate, render_file_preview
+from utils import api_get, api_post, api_delete, can, current_role, gate, render_file_preview
 
 st.title("📄 Upload Contract")
 st.caption(f"Active role: **{current_role()}**")
@@ -389,9 +389,111 @@ except Exception as e:
 if not contracts:
     st.caption("No contracts uploaded yet.")
 else:
-    for c in contracts[:10]:
-        cols = st.columns([3, 2, 2, 2])
-        cols[0].write(f"**{c['filename']}**")
-        cols[1].write(f"{STATUS_EMOJI.get(c['status'], '⚪')} {c['status']}")
-        cols[2].write(f"{c['n_clauses']} clauses")
-        cols[3].caption((c["uploaded_at"] or "")[:19].replace("T", " "))
+    for c in contracts[:15]:
+        contract_id = c["id"]
+        status_icon = STATUS_EMOJI.get(c["status"], "⚪")
+        uploaded = (c.get("uploaded_at") or "")[:19].replace("T", " ")
+
+        with st.expander(
+            f"{status_icon} **{c['filename']}**  ·  {c['status']}  ·  "
+            f"{c['n_clauses']} clauses  ·  {uploaded} UTC",
+            expanded=False,
+        ):
+            # Header row: metadata + delete button
+            head_cols = st.columns([4, 1])
+            head_cols[0].caption(
+                f"Contract ID: **{contract_id}**  ·  "
+                f"Uploaded: {uploaded} UTC"
+            )
+
+            # Delete button — Procurement Analyst only
+            if can("delete"):
+                if head_cols[1].button(
+                    "🗑️ Delete",
+                    key=f"del_{contract_id}",
+                    type="secondary",
+                    help="Permanently delete this contract and all its analysis data.",
+                ):
+                    # Confirm via session state flag
+                    st.session_state[f"confirm_del_{contract_id}"] = True
+
+            # Confirmation dialog
+            if st.session_state.get(f"confirm_del_{contract_id}"):
+                st.warning(
+                    f"⚠️ Delete **{c['filename']}**? "
+                    "This removes the file, all agent outputs, and decisions. "
+                    "Audit logs are kept."
+                )
+                conf_cols = st.columns(2)
+                if conf_cols[0].button("Yes, delete", key=f"yes_del_{contract_id}", type="primary"):
+                    r = api_delete(
+                        f"/contracts/{contract_id}",
+                        params={"actor": f"user:{current_role()}"},
+                    )
+                    if r.status_code == 200:
+                        st.success(f"✅ Contract #{contract_id} deleted.")
+                        st.session_state.pop(f"confirm_del_{contract_id}", None)
+                        st.rerun()
+                    else:
+                        st.error(f"Delete failed (HTTP {r.status_code}): {r.text}")
+                if conf_cols[1].button("Cancel", key=f"cancel_del_{contract_id}"):
+                    st.session_state.pop(f"confirm_del_{contract_id}", None)
+                    st.rerun()
+
+            # Tabs: Preview | Analysis
+            tab_preview, tab_analysis = st.tabs(["📄 Preview", "📊 Analysis"])
+
+            with tab_preview:
+                # Fetch detail lazily — only when this expander is open
+                detail = api_get(f"/contracts/{contract_id}").json()
+                render_file_preview(
+                    contract_id=contract_id,
+                    filename=c["filename"],
+                    raw_text=detail.get("raw_text"),
+                    key_suffix=f"recent_{contract_id}",
+                )
+
+            with tab_analysis:
+                detail = api_get(f"/contracts/{contract_id}").json()
+                agent_outputs = detail.get("agent_outputs") or {}
+
+                if not agent_outputs:
+                    if c["status"] in ("extracted", "uploading"):
+                        st.info("⏳ Agents are still running — check back in a moment.")
+                    else:
+                        st.caption("No agent outputs yet.")
+                else:
+                    if "extraction" in agent_outputs:
+                        render_extraction(agent_outputs["extraction"])
+                    if "risk" in agent_outputs:
+                        render_risk(agent_outputs["risk"])
+                    if "compliance" in agent_outputs:
+                        render_compliance(agent_outputs["compliance"])
+
+                    decisions = detail.get("decisions") or []
+                    ai_decision = next(
+                        (d for d in decisions if (d.get("reviewer_role") or "").startswith("agent:")),
+                        None,
+                    )
+                    if ai_decision:
+                        st.subheader("🎯  Agent 5 — Recommendation")
+                        label, color = RECOMMENDATION_BADGE.get(
+                            ai_decision["recommendation"],
+                            (ai_decision["recommendation"], "off"),
+                        )
+                        c1, c2 = st.columns([1, 3])
+                        c1.metric("Recommendation", label, delta_color=color)
+                        c2.info(ai_decision.get("reasoning") or "")
+
+                # Audit report download
+                try:
+                    report = api_get(f"/contracts/{contract_id}/audit-report").json()
+                    st.download_button(
+                        "📥 Download audit report",
+                        data=json.dumps(report, indent=2),
+                        file_name=f"shield_audit_contract_{contract_id}.json",
+                        mime="application/json",
+                        key=f"dl_report_{contract_id}",
+                    )
+                except Exception:
+                    pass
