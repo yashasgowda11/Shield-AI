@@ -4,8 +4,8 @@ __pycache__/
 *.egg-info/
 .pytest_cache/
 .claude
-keys/
 
+gen-lang-client-0285486889-9c2e514142c4.json
 # Virtual environments
 .venv/
 venv/
