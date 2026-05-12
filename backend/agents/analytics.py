@@ -83,12 +83,32 @@ def is_safe_sql(sql: str) -> tuple[bool, str | None]:
     if "PRAGMA" in upper or "SQLITE_MASTER" in upper or "SQLITE_SCHEMA" in upper:
         return False, "PRAGMA / sqlite_master access not allowed"
 
+    # PostgreSQL set-returning functions that are legal in a FROM / JOIN clause.
+    # These are NOT table names — whitelisting them prevents false positives.
+    PG_SRF_ALLOWLIST = {
+        "json_array_elements",
+        "jsonb_array_elements",
+        "json_array_elements_text",
+        "jsonb_array_elements_text",
+        "json_each",
+        "jsonb_each",
+        "json_each_text",
+        "jsonb_each_text",
+        "json_object_keys",
+        "jsonb_object_keys",
+        "unnest",
+        "generate_series",
+        "lateral",  # LATERAL keyword appears where a table name would
+    }
+
     # Lightweight table-name check — every FROM/JOIN target must be in ALLOWED_TABLES
-    # (tolerates aliases like "FROM contracts c")
+    # or a whitelisted PG set-returning function.
+    # Tolerates aliases like "FROM contracts c" and "FROM json_array_elements(...) fw".
     tokens = re.findall(r"\b(?:FROM|JOIN)\s+([A-Za-z_][A-Za-z0-9_]*)", upper)
     for t in tokens:
-        if t.lower() not in ALLOWED_TABLES:
-            return False, f"table not allowed: {t.lower()}"
+        tl = t.lower()
+        if tl not in ALLOWED_TABLES and tl not in PG_SRF_ALLOWLIST:
+            return False, f"table not allowed: {tl}"
 
     return True, None
 
