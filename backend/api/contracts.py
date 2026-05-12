@@ -74,10 +74,25 @@ def _get_bucket() -> gcs.Bucket:
 
 
 def _upload_to_gcs(file_bytes: bytes, blob_name: str) -> str:
-    """Upload bytes to GCS. Returns the gs:// URI."""
+    """Upload bytes to GCS. Returns the gs:// URI.
+
+    Blob names are SHA-256 derived, so if the blob already exists it is
+    guaranteed to have identical content — skip the upload rather than
+    attempting an overwrite (which requires storage.objects.delete permission).
+    """
     bucket = _get_bucket()
     blob = bucket.blob(blob_name)
+    try:
+        if blob.exists():
+            logger.info("GCS blob already exists, skipping upload (dedup): %s", blob_name)
+            return f"gs://{GCS_BUCKET_NAME}/{blob_name}"
+    except Exception:
+        # If we can't check existence, proceed with upload and let it fail
+        # with a clear error rather than silently swallowing.
+        logger.warning("Could not check GCS blob existence for %s — attempting upload anyway", blob_name)
+
     blob.upload_from_string(file_bytes)
+    logger.info("Uploaded %d bytes to GCS: %s", len(file_bytes), blob_name)
     return f"gs://{GCS_BUCKET_NAME}/{blob_name}"
 
 
