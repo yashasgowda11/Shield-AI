@@ -405,6 +405,40 @@ async def upload_contract(
         raise HTTPException(status_code=400, detail="Empty file")
     file_hash = hashlib.sha256(file_bytes).hexdigest()
 
+    # ---- Duplicate detection ----
+    # If a contract with this exact SHA-256 already exists, return it immediately
+    # without re-processing. The frontend will redirect to the existing report.
+    existing = (
+        db.query(Contract)
+        .filter(Contract.file_hash == file_hash)
+        .order_by(Contract.uploaded_at.desc())
+        .first()
+    )
+    if existing:
+        logger.info(
+            "Duplicate upload detected — file_hash=%s matches contract %d (%s)",
+            file_hash[:12], existing.id, existing.filename,
+        )
+        audit.log(
+            db,
+            actor=actor,
+            action="upload_duplicate",
+            resource=f"contract:{existing.id}",
+            after={"filename": file.filename, "hash_prefix": file_hash[:12]},
+        )
+        return {
+            "id": existing.id,
+            "status": "duplicate",
+            "filename": file.filename,
+            "existing_filename": existing.filename,
+            "existing_status": existing.status,
+            "uploaded_at": existing.uploaded_at.isoformat() if existing.uploaded_at else None,
+            "message": (
+                f"This file has already been uploaded as '{existing.filename}' "
+                f"(contract #{existing.id}) with status '{existing.status}'."
+            ),
+        }
+
     # Upload to GCS — blob name is hash + suffix so identical files dedup naturally
     blob_name = f"contracts/{file_hash}{suffix}"
     try:

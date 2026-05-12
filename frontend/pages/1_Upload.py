@@ -202,12 +202,18 @@ def _poll_until_done(contract_id: int) -> dict:
 
 
 def _render_results(body: dict, detail: dict) -> None:
-    """Render agent outputs for a successfully processed contract."""
+    """Render agent outputs for a successfully processed contract.
+
+    body may be a fresh upload response or a duplicate stub — fall back to
+    detail (fetched from GET /contracts/{id}) for metrics when body is sparse.
+    """
     st.success(f"✅  Pipeline complete (status: **{detail['status']}**)")
     c1, c2, c3 = st.columns(3)
-    c1.metric("Clauses", body["n_clauses"])
-    c2.metric("Characters", f"{body['char_count']:,}")
-    c3.metric("Document type", body["metadata"].get("type", "?"))
+    clauses = detail.get("clauses") or []
+    raw_text = detail.get("raw_text") or ""
+    c1.metric("Clauses", body.get("n_clauses", len(clauses)))
+    c2.metric("Characters", f"{body.get('char_count', len(raw_text)):,}")
+    c3.metric("Document type", (body.get("metadata") or {}).get("type", "?"))
 
     # ---- File preview ----
     with st.expander("📄  Preview original document", expanded=False):
@@ -302,6 +308,28 @@ if uploaded is not None:
         st.stop()
 
     body = r.json()
+
+    # ---- Duplicate file ----
+    if body["status"] == "duplicate":
+        st.warning(
+            f"⚠️ **This file has already been uploaded.**\n\n"
+            f"The content is identical to **{body['existing_filename']}** "
+            f"(Contract #{body['id']}, uploaded {(body.get('uploaded_at') or '')[:19].replace('T', ' ')} UTC).\n\n"
+            f"Current status: **{body['existing_status']}**"
+        )
+        st.info("Showing the existing report below — no re-processing needed.")
+
+        # Load and render the existing contract's full report
+        detail = api_get(f"/contracts/{body['id']}").json()
+        current_status = detail.get("status", "")
+
+        # If pipeline is still running, poll until done
+        if current_status == "extracted":
+            st.caption("Pipeline is still running for the original upload — waiting for it to finish…")
+            detail = _poll_until_done(body["id"])
+
+        _render_results(body, detail)
+        st.stop()
 
     # ---- Quarantined ----
     if body["status"] == "quarantined":
