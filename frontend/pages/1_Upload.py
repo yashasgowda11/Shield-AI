@@ -12,7 +12,7 @@ import pathlib
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))
 
 import streamlit as st
-from utils import api_get, api_post, current_role, gate
+from utils import api_get, api_post, current_role, gate, render_file_preview
 
 st.title("📄 Upload Contract")
 st.caption(f"Active role: **{current_role()}**")
@@ -208,6 +208,14 @@ def _render_results(body: dict, detail: dict) -> None:
     c1.metric("Clauses", body["n_clauses"])
     c2.metric("Characters", f"{body['char_count']:,}")
     c3.metric("Document type", body["metadata"].get("type", "?"))
+
+    # ---- File preview ----
+    with st.expander("📄  Preview original document", expanded=False):
+        render_file_preview(
+            contract_id=body["id"],
+            filename=body["filename"],
+            raw_text=detail.get("raw_text"),
+        )
 
     agent_outputs = detail.get("agent_outputs") or {}
 

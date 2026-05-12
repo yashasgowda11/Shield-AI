@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, UploadFile, File, Form
+from fastapi.responses import Response as FileResponse
 from google.cloud import storage as gcs
 from google.oauth2 import service_account
 from sqlalchemy.orm import Session
@@ -153,6 +154,48 @@ def get_contract(contract_id: int, db: Session = Depends(get_db)):
             for e in contract.security_events
         ],
     }
+
+
+@router.get("/{contract_id}/file")
+def get_contract_file(contract_id: int, db: Session = Depends(get_db)):
+    """Stream the original contract file (PDF or DOCX) from GCS.
+
+    Returns the raw bytes with the correct Content-Type so browsers and
+    Streamlit's iframe preview can render PDFs inline.
+    """
+    contract = db.query(Contract).filter(Contract.id == contract_id).first()
+    if not contract:
+        raise HTTPException(status_code=404, detail="Contract not found")
+    if not contract.gcs_uri:
+        raise HTTPException(
+            status_code=404,
+            detail="No file stored for this contract (upload may predate GCS storage)",
+        )
+
+    blob_name = contract.gcs_uri.replace(f"gs://{GCS_BUCKET_NAME}/", "")
+    try:
+        bucket = _get_bucket()
+        blob = bucket.blob(blob_name)
+        file_bytes = blob.download_as_bytes()
+    except Exception as exc:
+        logger.exception("Failed to fetch contract %d from GCS (%s): %s", contract_id, blob_name, exc)
+        raise HTTPException(status_code=503, detail=f"File unavailable: {exc}")
+
+    suffix = Path(contract.filename).suffix.lower()
+    content_type = (
+        "application/pdf"
+        if suffix == ".pdf"
+        else "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    )
+
+    return FileResponse(
+        content=file_bytes,
+        media_type=content_type,
+        headers={
+            "Content-Disposition": f'inline; filename="{contract.filename}"',
+            "Content-Length": str(len(file_bytes)),
+        },
+    )
 
 
 @router.post("/{contract_id}/process")

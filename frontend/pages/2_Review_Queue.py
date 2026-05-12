@@ -13,7 +13,7 @@ import pathlib
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))
 
 import streamlit as st
-from utils import api_get, api_post, can, current_role
+from utils import api_get, api_post, can, current_role, render_file_preview
 
 st.title("✅ Review Queue")
 role = current_role()
@@ -101,6 +101,14 @@ for c in items:
                 for fw in comp["frameworks"]
             )
             st.markdown(f"**Compliance:** {line}")
+
+        # ---- File preview ----
+        with st.expander("📄  Preview original document"):
+            render_file_preview(
+                contract_id=contract_id,
+                filename=c["filename"],
+                raw_text=detail.get("raw_text"),
+            )
 
         # Actions
         approve_perm = "approve_legal" if c["status"] == "legal_review" else "approve_manager"
