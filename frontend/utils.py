@@ -10,7 +10,6 @@ from pathlib import Path
 
 import httpx
 import streamlit as st
-import streamlit.components.v1 as components
 
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
@@ -89,36 +88,43 @@ def render_file_preview(
     suffix = Path(filename).suffix.lower()
 
     if suffix == ".pdf":
-        # Point the iframe directly at the backend URL.
-        # Chrome blocks data: URIs in iframes (CSP), but allows http(s):// URLs.
-        file_url = f"{BACKEND_URL}/contracts/{contract_id}/file"
-        pdf_html = f"""
-        <iframe
-            src="{file_url}"
-            width="100%"
-            height="{height}px"
-            style="border:1px solid #e0e0e0; border-radius:6px;"
-            type="application/pdf">
-            <p style="padding:16px">
-                Your browser cannot render this PDF inline.
-                <a href="{file_url}" target="_blank">Open in new tab</a>
-            </p>
-        </iframe>
-        """
-        components.html(pdf_html, height=height + 20, scrolling=False)
+        # Fetch bytes server-side (Streamlit process → backend) then render
+        # via streamlit-pdf-viewer (pdf.js under the hood).
+        # This avoids the cross-origin iframe problem: st.components.v1.html
+        # runs inside Streamlit's sandboxed iframe on port 8501, so a nested
+        # iframe pointing to localhost:8000 is blocked by the browser.
+        with st.spinner("Loading PDF preview…"):
+            try:
+                r = api_get(f"/contracts/{contract_id}/file")
+            except Exception as exc:
+                st.warning(f"Could not reach backend to load preview: {exc}")
+                return
 
-        # Download button as a fallback / convenience
+        if r.status_code != 200:
+            st.warning(
+                f"Preview unavailable (HTTP {r.status_code}). "
+                "Download the file to view it."
+            )
+            return
+
         try:
-            r = api_get(f"/contracts/{contract_id}/file")
-            if r.status_code == 200:
-                st.download_button(
-                    label="⬇️  Download PDF",
-                    data=r.content,
-                    file_name=filename,
-                    mime="application/pdf",
-                )
-        except Exception:
-            st.markdown(f"[⬇️ Download PDF]({file_url})")
+            from streamlit_pdf_viewer import pdf_viewer
+            pdf_viewer(
+                input=r.content,
+                width=700,
+                height=height,
+                key=f"pdf_preview_{contract_id}",
+            )
+        except Exception as exc:
+            st.warning(f"PDF render failed: {exc}")
+
+        st.download_button(
+            label="⬇️  Download PDF",
+            data=r.content,
+            file_name=filename,
+            mime="application/pdf",
+            key=f"pdf_dl_{contract_id}",
+        )
 
     else:
         # DOCX — no browser-native viewer
