@@ -1,0 +1,28 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: shield-frontend
+  annotations:
+    run.googleapis.com/ingress: all
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: "0"
+        autoscaling.knative.dev/maxScale: "2"
+        run.googleapis.com/cpu-throttling: "true"
+    spec:
+      containerConcurrency: 20
+      timeoutSeconds: 120
+      containers:
+        - image: us-central1-docker.pkg.dev/gen-lang-client-0285486889/shield-ai/shield-frontend:latest
+          ports:
+            - containerPort: 8501
+          resources:
+            limits:
+              memory: 512Mi
+              cpu: "1"
+          env:
+            # Set to the Cloud Run backend service URL after first backend deploy
+            - name: BACKEND_URL
+              value: "https://shield-backend-XXXX-uc.a.run.app"

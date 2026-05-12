@@ -1,0 +1,61 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: shield-backend
+  annotations:
+    run.googleapis.com/ingress: all
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: "0"
+        autoscaling.knative.dev/maxScale: "3"
+        run.googleapis.com/cpu-throttling: "true"
+    spec:
+      serviceAccountName: shield-ai-backend@gen-lang-client-0285486889.iam.gserviceaccount.com
+      containerConcurrency: 10
+      timeoutSeconds: 300
+      containers:
+        - image: us-central1-docker.pkg.dev/gen-lang-client-0285486889/shield-ai/shield-backend:latest
+          ports:
+            - containerPort: 8000
+          resources:
+            limits:
+              memory: 1Gi
+              cpu: "1"
+          env:
+            - name: SKIP_RAG_INIT
+              value: "false"
+            - name: SHIELD_LOG_LEVEL
+              value: "INFO"
+            - name: GEMINI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: GEMINI_API_KEY
+                  key: latest
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: DATABASE_URL
+                  key: latest
+            - name: PINECONE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: PINECONE_API_KEY
+                  key: latest
+            - name: PINECONE_INDEX_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: PINECONE_INDEX_NAME
+                  key: latest
+            - name: GCS_BUCKET_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: GCS_BUCKET_NAME
+                  key: latest
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 30

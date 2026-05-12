@@ -1,5 +1,18 @@
 .PHONY: install backend backend-only frontend test demo-test clean \
-        docker-build docker-up docker-down docker-logs docker-rebuild docker-status
+        docker-build docker-up docker-down docker-logs docker-rebuild docker-status \
+        gcp-setup gcp-secrets gcp-build gcp-push gcp-deploy-backend gcp-deploy-frontend gcp-deploy gcp-logs
+
+# ── GCP config ────────────────────────────────────────────────────────────────
+GCP_PROJECT  ?= gen-lang-client-0285486889
+GCP_REGION   ?= us-central1
+AR_REPO      ?= shield-ai
+BACKEND_SVC  ?= shield-backend
+FRONTEND_SVC ?= shield-frontend
+SA_EMAIL     ?= shield-ai-backend@$(GCP_PROJECT).iam.gserviceaccount.com
+
+AR_HOST      := $(GCP_REGION)-docker.pkg.dev
+IMAGE_BACKEND  := $(AR_HOST)/$(GCP_PROJECT)/$(AR_REPO)/shield-backend
+IMAGE_FRONTEND := $(AR_HOST)/$(GCP_PROJECT)/$(AR_REPO)/shield-frontend
 
 install:
 	pip install -r requirements.txt
@@ -66,3 +79,136 @@ docker-logs:
 
 docker-status:
 	docker-compose ps
+
+# ─── Google Cloud Run deploy ──────────────────────────────────────────────────
+
+## One-time setup: enable APIs, create Artifact Registry repo, grant IAM roles
+gcp-setup:
+	@echo "Enabling GCP APIs..."
+	gcloud config set project $(GCP_PROJECT)
+	gcloud services enable \
+		run.googleapis.com \
+		artifactregistry.googleapis.com \
+		cloudbuild.googleapis.com \
+		secretmanager.googleapis.com \
+		sqladmin.googleapis.com \
+		storage.googleapis.com
+	@echo "Creating Artifact Registry repository..."
+	gcloud artifacts repositories create $(AR_REPO) \
+		--repository-format=docker \
+		--location=$(GCP_REGION) \
+		--description="Shield AI Docker images" || true
+	@echo "Granting Cloud Build service account roles..."
+	gcloud projects add-iam-policy-binding $(GCP_PROJECT) \
+		--member="serviceAccount:$$(gcloud projects describe $(GCP_PROJECT) --format='value(projectNumber)')@cloudbuild.gserviceaccount.com" \
+		--role="roles/run.admin"
+	gcloud projects add-iam-policy-binding $(GCP_PROJECT) \
+		--member="serviceAccount:$$(gcloud projects describe $(GCP_PROJECT) --format='value(projectNumber)')@cloudbuild.gserviceaccount.com" \
+		--role="roles/iam.serviceAccountUser"
+	gcloud projects add-iam-policy-binding $(GCP_PROJECT) \
+		--member="serviceAccount:$$(gcloud projects describe $(GCP_PROJECT) --format='value(projectNumber)')@cloudbuild.gserviceaccount.com" \
+		--role="roles/secretmanager.secretAccessor"
+	@echo "Granting backend service account Storage Object Admin..."
+	gcloud projects add-iam-policy-binding $(GCP_PROJECT) \
+		--member="serviceAccount:$(SA_EMAIL)" \
+		--role="roles/storage.objectAdmin"
+	@echo ""
+	@echo "✅  GCP setup complete."
+
+## Store secrets in Secret Manager (run once; reads from your local .env)
+gcp-secrets:
+	@echo "Storing secrets in Secret Manager..."
+	@for secret in GEMINI_API_KEY DATABASE_URL PINECONE_API_KEY PINECONE_INDEX_NAME GCS_BUCKET_NAME; do \
+		value=$$(grep "^$$secret=" .env | cut -d'=' -f2-); \
+		if [ -z "$$value" ]; then \
+			echo "  SKIP $$secret (not set in .env)"; \
+			continue; \
+		fi; \
+		echo "  $$secret"; \
+		echo -n "$$value" | gcloud secrets create $$secret \
+			--data-file=- --replication-policy=automatic 2>/dev/null || \
+		echo -n "$$value" | gcloud secrets versions add $$secret --data-file=-; \
+	done
+	gcloud secrets add-iam-policy-binding GEMINI_API_KEY \
+		--member="serviceAccount:$(SA_EMAIL)" --role="roles/secretmanager.secretAccessor" 2>/dev/null || true
+	gcloud secrets add-iam-policy-binding DATABASE_URL \
+		--member="serviceAccount:$(SA_EMAIL)" --role="roles/secretmanager.secretAccessor" 2>/dev/null || true
+	gcloud secrets add-iam-policy-binding PINECONE_API_KEY \
+		--member="serviceAccount:$(SA_EMAIL)" --role="roles/secretmanager.secretAccessor" 2>/dev/null || true
+	gcloud secrets add-iam-policy-binding PINECONE_INDEX_NAME \
+		--member="serviceAccount:$(SA_EMAIL)" --role="roles/secretmanager.secretAccessor" 2>/dev/null || true
+	gcloud secrets add-iam-policy-binding GCS_BUCKET_NAME \
+		--member="serviceAccount:$(SA_EMAIL)" --role="roles/secretmanager.secretAccessor" 2>/dev/null || true
+	@echo "✅  Secrets stored."
+
+## Authenticate Docker with Artifact Registry
+gcp-auth:
+	gcloud auth configure-docker $(AR_HOST)
+
+## Build both images locally and tag for Artifact Registry
+gcp-build: gcp-auth
+	docker build -t $(IMAGE_BACKEND):latest .
+	docker build -f frontend.Dockerfile -t $(IMAGE_FRONTEND):latest .
+
+## Push images to Artifact Registry
+gcp-push:
+	docker push $(IMAGE_BACKEND):latest
+	docker push $(IMAGE_FRONTEND):latest
+
+## Deploy backend to Cloud Run
+gcp-deploy-backend:
+	gcloud run deploy $(BACKEND_SVC) \
+		--image=$(IMAGE_BACKEND):latest \
+		--region=$(GCP_REGION) \
+		--platform=managed \
+		--allow-unauthenticated \
+		--port=8000 \
+		--memory=1Gi \
+		--cpu=1 \
+		--min-instances=0 \
+		--max-instances=3 \
+		--concurrency=10 \
+		--timeout=300 \
+		--service-account=$(SA_EMAIL) \
+		--set-env-vars=SKIP_RAG_INIT=false,SHIELD_LOG_LEVEL=INFO \
+		--set-secrets=GEMINI_API_KEY=GEMINI_API_KEY:latest,DATABASE_URL=DATABASE_URL:latest,PINECONE_API_KEY=PINECONE_API_KEY:latest,PINECONE_INDEX_NAME=PINECONE_INDEX_NAME:latest,GCS_BUCKET_NAME=GCS_BUCKET_NAME:latest
+	@echo "✅  Backend deployed."
+	@gcloud run services describe $(BACKEND_SVC) --region=$(GCP_REGION) --format='value(status.url)'
+
+## Deploy frontend to Cloud Run (auto-injects backend URL)
+gcp-deploy-frontend:
+	$(eval BACKEND_URL := $(shell gcloud run services describe $(BACKEND_SVC) \
+		--region=$(GCP_REGION) --format='value(status.url)'))
+	@echo "Backend URL: $(BACKEND_URL)"
+	gcloud run deploy $(FRONTEND_SVC) \
+		--image=$(IMAGE_FRONTEND):latest \
+		--region=$(GCP_REGION) \
+		--platform=managed \
+		--allow-unauthenticated \
+		--port=8501 \
+		--memory=512Mi \
+		--cpu=1 \
+		--min-instances=0 \
+		--max-instances=2 \
+		--concurrency=20 \
+		--timeout=120 \
+		--set-env-vars="BACKEND_URL=$(BACKEND_URL)"
+	@echo "✅  Frontend deployed."
+	@gcloud run services describe $(FRONTEND_SVC) --region=$(GCP_REGION) --format='value(status.url)'
+
+## Full build → push → deploy both services
+gcp-deploy: gcp-build gcp-push gcp-deploy-backend gcp-deploy-frontend
+	@echo ""
+	@echo "┌────────────────────────────────────────────────────────"
+	@echo "│  Shield AI deployed to Cloud Run"
+	@echo "│"
+	@echo "│  Backend:  $$(gcloud run services describe $(BACKEND_SVC) --region=$(GCP_REGION) --format='value(status.url)')"
+	@echo "│  Frontend: $$(gcloud run services describe $(FRONTEND_SVC) --region=$(GCP_REGION) --format='value(status.url)')"
+	@echo "└────────────────────────────────────────────────────────"
+
+## Tail Cloud Run logs
+gcp-logs-backend:
+	gcloud run services logs tail $(BACKEND_SVC) --region=$(GCP_REGION)
+
+gcp-logs-frontend:
+	gcloud run services logs tail $(FRONTEND_SVC) --region=$(GCP_REGION)
