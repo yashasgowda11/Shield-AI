@@ -4,6 +4,7 @@ __pycache__/
 *.egg-info/
 .pytest_cache/
 .claude
+keys/
 
 # Virtual environments
 .venv/
@@ -28,8 +29,9 @@ backend/rag/cache/
 # Uploaded contract files
 backend/uploads/
 
-# Dev orchestrator log output
-logs/
+# Log files — keep the directory, ignore the files inside
+logs/*.log
+logs/*.log.*
 
 # OS
 .DS_Store
