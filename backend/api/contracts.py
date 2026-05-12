@@ -2,9 +2,11 @@
 """
 import hashlib
 import logging
+import os
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from google.cloud import storage as gcs
 from sqlalchemy.orm import Session
 
 from datetime import datetime
@@ -19,12 +21,30 @@ from backend.orchestrator import run_pipeline
 
 logger = logging.getLogger(__name__)
 
-
 router = APIRouter()
 
-# Where uploaded files live on disk. Filename is the SHA-256 hash + original suffix.
-UPLOAD_DIR = Path(__file__).resolve().parents[1] / "uploads"
-UPLOAD_DIR.mkdir(exist_ok=True)
+# GCS bucket for uploaded contract files.
+# Set GCS_BUCKET_NAME in .env. The bucket must exist and the service account
+# running this app needs roles/storage.objectCreator on it.
+GCS_BUCKET_NAME = os.getenv("GCS_BUCKET_NAME", "")
+_gcs_client: gcs.Client | None = None
+
+
+def _get_bucket() -> gcs.Bucket:
+    global _gcs_client
+    if _gcs_client is None:
+        _gcs_client = gcs.Client()
+    if not GCS_BUCKET_NAME:
+        raise RuntimeError("GCS_BUCKET_NAME is not set in environment")
+    return _gcs_client.bucket(GCS_BUCKET_NAME)
+
+
+def _upload_to_gcs(file_bytes: bytes, blob_name: str) -> str:
+    """Upload bytes to GCS. Returns the gs:// URI."""
+    bucket = _get_bucket()
+    blob = bucket.blob(blob_name)
+    blob.upload_from_string(file_bytes)
+    return f"gs://{GCS_BUCKET_NAME}/{blob_name}"
 
 
 @router.get("/")
@@ -276,15 +296,20 @@ async def upload_contract(
         raise HTTPException(status_code=400, detail="Empty file")
     file_hash = hashlib.sha256(file_bytes).hexdigest()
 
-    # Persist file to disk
-    stored_path = UPLOAD_DIR / f"{file_hash}{suffix}"
-    stored_path.write_bytes(file_bytes)
+    # Upload to GCS — blob name is hash + suffix so identical files dedup naturally
+    blob_name = f"contracts/{file_hash}{suffix}"
+    try:
+        gcs_uri = _upload_to_gcs(file_bytes, blob_name)
+    except Exception as e:
+        logger.exception("GCS upload failed")
+        raise HTTPException(status_code=503, detail=f"File storage unavailable: {e}")
 
-    # Create row
+    # Create row — store GCS URI instead of local path
     contract = Contract(
         filename=file.filename,
         status="uploading",
         file_hash=file_hash,
+        gcs_uri=gcs_uri,
     )
     db.add(contract)
     db.commit()

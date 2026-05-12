@@ -1,107 +1,187 @@
-"""Build FAISS indices from corpus directories at startup.
+"""Build Pinecone indices from corpus directories at startup.
 
 Reads:
-  backend/corpus/past_contracts/*.json  → INDICES["contracts"]
-  backend/corpus/policies/*.json         → INDICES["policies"]
+  backend/corpus/past_contracts/*.json  → namespace "contracts"
+  backend/corpus/policies/*.json        → namespace "policies"
 
-Each clause / policy snippet becomes one indexed entry. Metadata travels with
-the entry so retrievers can return rich context (vendor, framework, severity, ...).
+Vectors are upserted with a deterministic ID derived from source + position.
+If the vectors are already present (same ID), Pinecone skips them — so
+restarting the backend never re-embeds or re-charges the API.
+
+Each clause / policy snippet becomes one indexed vector. Metadata travels
+with the vector so retrievers can return rich context (vendor, framework,
+severity, ...).
 """
+import hashlib
 import json
 import logging
 from pathlib import Path
 
-from backend.rag.cache import load_or_compute
-from backend.rag.embed import EMBEDDING_DIM, embed_documents
-from backend.rag.index import INDICES, FAISSIndex
+from backend.rag.embed import embed_documents
+from backend.rag.index import INDICES, PineconeNamespace
 
 logger = logging.getLogger(__name__)
 
 CORPUS_DIR = Path(__file__).resolve().parents[1] / "corpus"
 
 
+def _vector_id(namespace: str, *parts: str) -> str:
+    """Stable deterministic ID for a vector so upserts are idempotent."""
+    raw = f"{namespace}:" + ":".join(parts)
+    return hashlib.sha256(raw.encode()).hexdigest()[:32]
+
+
 def build_all_indices() -> dict[str, int]:
-    """Build all indices. Returns {name: count} for logging."""
+    """Build all indices. Returns {namespace: count} for logging."""
     INDICES["contracts"] = _build_contracts_index()
     INDICES["policies"] = _build_policies_index()
-    counts = {k: len(v) for k, v in INDICES.items()}
-    logger.info("RAG indices built: %s", counts)
+    counts = {k: v.count() for k, v in INDICES.items()}
+    logger.info("Pinecone indices ready: %s", counts)
     return counts
 
 
-def _build_contracts_index() -> FAISSIndex:
-    idx = FAISSIndex("contracts", dim=EMBEDDING_DIM)
-    items: list[tuple[str, dict]] = []
+def _build_contracts_index() -> PineconeNamespace:
+    ns = PineconeNamespace("contracts")
+    items: list[tuple[str, str, dict]] = []  # (vector_id, embed_text, metadata)
 
     for path in sorted((CORPUS_DIR / "past_contracts").glob("*.json")):
         with path.open() as f:
             doc = json.load(f)
         for clause in doc.get("clauses", []):
-            # Build the embedding text — title + body so semantic search works
-            # on both topic and content
             embed_text = f"[{clause['title']}] {clause['text']}"
-
-            # Attach risk findings for THIS clause to its metadata so the Risk
-            # Agent can show "this clause is similar to clause 7.2 of HelixHealth's
-            # contract, which was rated Critical for unlimited liability"
             findings = [
                 f for f in doc.get("risk_findings", [])
                 if f.get("clause_ref") == clause["number"]
             ]
-
-            items.append((embed_text, {
+            vid = _vector_id("contracts", doc["id"], str(clause["number"]))
+            items.append((vid, embed_text, {
                 "source": "contracts",
                 "contract_id": doc["id"],
                 "vendor": doc["vendor"],
                 "type": doc["type"],
-                "clause_number": clause["number"],
+                "clause_number": str(clause["number"]),
                 "clause_title": clause["title"],
-                "clause_text": clause["text"],
-                "approval_outcome": doc.get("approval_outcome"),
-                "risk_score": doc.get("risk_score"),
-                "findings_for_clause": findings,
+                "clause_text": clause["text"][:1000],  # Pinecone metadata limit
+                "approval_outcome": doc.get("approval_outcome", ""),
+                "risk_score": str(doc.get("risk_score", "")),
+                "findings_for_clause": json.dumps(findings),  # nested → JSON string
             }))
 
     if not items:
         logger.warning("No past contracts found in corpus")
-        return idx
+        return ns
 
-    texts = [t for t, _ in items]
-    metas = [m for _, m in items]
-    embeddings = load_or_compute("contracts", texts, embed_documents)
-    idx.add(embeddings, metas)
-    logger.info("Indexed %d clauses across %d past contracts",
-                len(items),
-                len({m['contract_id'] for m in metas}))
-    return idx
+    # Check live count — skip embedding if already indexed
+    existing = ns.count()
+    if existing >= len(items):
+        logger.info(
+            "Pinecone 'contracts' namespace already has %d vectors (corpus=%d) — skipping upsert",
+            existing, len(items),
+        )
+        return ns
+
+    logger.info("Embedding %d contract clauses and upserting to Pinecone...", len(items))
+    texts = [t for _, t, _ in items]
+    embeddings = embed_documents(texts)
+
+    vectors = [
+        {"id": vid, "values": embeddings[i].tolist(), "metadata": meta}
+        for i, (vid, _, meta) in enumerate(items)
+    ]
+    ns.upsert(vectors)
+    logger.info("Indexed %d clauses from %d past contracts",
+                len(items), len({m[2]["contract_id"] for m in items}))
+    return ns
 
 
-def _build_policies_index() -> FAISSIndex:
-    idx = FAISSIndex("policies", dim=EMBEDDING_DIM)
-    items: list[tuple[str, dict]] = []
+def _build_policies_index() -> PineconeNamespace:
+    ns = PineconeNamespace("policies")
+    items: list[tuple[str, str, dict]] = []
 
     for path in sorted((CORPUS_DIR / "policies").glob("*.json")):
         with path.open() as f:
             doc = json.load(f)
-        for snippet in doc.get("snippets", []):
+        for i, snippet in enumerate(doc.get("snippets", [])):
             embed_text = f"[{doc['framework']} - {snippet['requirement']}] {snippet['text']}"
-            items.append((embed_text, {
+            vid = _vector_id("policies", doc["framework"], str(i))
+            items.append((vid, embed_text, {
                 "source": "policies",
                 "framework": doc["framework"],
                 "requirement": snippet["requirement"],
                 "severity": snippet.get("severity", "medium"),
-                "text": snippet["text"],
+                "text": snippet["text"][:1000],
             }))
 
     if not items:
         logger.warning("No policy snippets found in corpus")
-        return idx
+        return ns
 
-    texts = [t for t, _ in items]
-    metas = [m for _, m in items]
-    embeddings = load_or_compute("policies", texts, embed_documents)
-    idx.add(embeddings, metas)
+    existing = ns.count()
+    if existing >= len(items):
+        logger.info(
+            "Pinecone 'policies' namespace already has %d vectors (corpus=%d) — skipping upsert",
+            existing, len(items),
+        )
+        return ns
+
+    logger.info("Embedding %d policy snippets and upserting to Pinecone...", len(items))
+    texts = [t for _, t, _ in items]
+    embeddings = embed_documents(texts)
+
+    vectors = [
+        {"id": vid, "values": embeddings[i].tolist(), "metadata": meta}
+        for i, (vid, _, meta) in enumerate(items)
+    ]
+    ns.upsert(vectors)
     logger.info("Indexed %d policy snippets across %d frameworks",
-                len(items),
-                len({m['framework'] for m in metas}))
-    return idx
+                len(items), len({m[2]["framework"] for m in items}))
+    return ns
+
+
+def upsert_contract_clauses(
+    contract_id: int,
+    vendor: str,
+    clauses: list[dict],
+    risk_findings: list[dict] | None = None,
+) -> int:
+    """Add an uploaded contract's clauses to the Pinecone contracts namespace.
+
+    Called after a contract is approved so future risk comparisons can use it.
+    Returns the number of vectors upserted.
+    """
+    ns = INDICES.get("contracts")
+    if ns is None:
+        logger.warning("Contracts index not initialised — skipping upsert for contract %s", contract_id)
+        return 0
+
+    findings = risk_findings or []
+    items: list[tuple[str, str, dict]] = []
+
+    for clause in clauses:
+        embed_text = f"[{clause.get('title', '')}] {clause.get('text', '')}"
+        clause_findings = [f for f in findings if f.get("clause_ref") == clause.get("number")]
+        vid = _vector_id("contracts", f"uploaded_{contract_id}", str(clause.get("number", 0)))
+        items.append((vid, embed_text, {
+            "source": "contracts",
+            "contract_id": f"uploaded_{contract_id}",
+            "vendor": vendor,
+            "type": "uploaded",
+            "clause_number": str(clause.get("number", "")),
+            "clause_title": clause.get("title", ""),
+            "clause_text": clause.get("text", "")[:1000],
+            "approval_outcome": "approved",
+            "risk_score": "",
+            "findings_for_clause": json.dumps(clause_findings),
+        }))
+
+    if not items:
+        return 0
+
+    texts = [t for _, t, _ in items]
+    embeddings = embed_documents(texts)
+    vectors = [
+        {"id": vid, "values": embeddings[i].tolist(), "metadata": meta}
+        for i, (vid, _, meta) in enumerate(items)
+    ]
+    ns.upsert(vectors)
+    return len(vectors)
