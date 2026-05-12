@@ -25,4 +25,4 @@ spec:
           env:
             # Set to the Cloud Run backend service URL after first backend deploy
             - name: BACKEND_URL
-              value: "https://shield-backend-XXXX-uc.a.run.app"
+              value: "https://shield-backend-aiffxvrl4q-uc.a.run.app"

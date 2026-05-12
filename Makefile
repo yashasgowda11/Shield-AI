@@ -125,9 +125,9 @@ gcp-secrets:
 			continue; \
 		fi; \
 		echo "  $$secret"; \
-		echo -n "$$value" | gcloud secrets create $$secret \
+		printf '%s' "$$value" | gcloud secrets create $$secret \
 			--data-file=- --replication-policy=automatic 2>/dev/null || \
-		echo -n "$$value" | gcloud secrets versions add $$secret --data-file=-; \
+		printf '%s' "$$value" | gcloud secrets versions add $$secret --data-file=-; \
 	done
 	gcloud secrets add-iam-policy-binding GEMINI_API_KEY \
 		--member="serviceAccount:$(SA_EMAIL)" --role="roles/secretmanager.secretAccessor" 2>/dev/null || true
@@ -146,9 +146,10 @@ gcp-auth:
 	gcloud auth configure-docker $(AR_HOST)
 
 ## Build both images locally and tag for Artifact Registry
+## --platform linux/amd64 required: Cloud Run only supports amd64 (Mac M-series builds arm64 by default)
 gcp-build: gcp-auth
-	docker build -t $(IMAGE_BACKEND):latest .
-	docker build -f frontend.Dockerfile -t $(IMAGE_FRONTEND):latest .
+	docker build --platform linux/amd64 -t $(IMAGE_BACKEND):latest .
+	docker build --platform linux/amd64 -f frontend.Dockerfile -t $(IMAGE_FRONTEND):latest .
 
 ## Push images to Artifact Registry
 gcp-push:
@@ -165,13 +166,14 @@ gcp-deploy-backend:
 		--port=8000 \
 		--memory=1Gi \
 		--cpu=1 \
-		--min-instances=0 \
+		--min-instances=1 \
 		--max-instances=3 \
 		--concurrency=10 \
 		--timeout=300 \
 		--service-account=$(SA_EMAIL) \
-		--set-env-vars=SKIP_RAG_INIT=false,SHIELD_LOG_LEVEL=INFO \
-		--set-secrets=GEMINI_API_KEY=GEMINI_API_KEY:latest,DATABASE_URL=DATABASE_URL:latest,PINECONE_API_KEY=PINECONE_API_KEY:latest,PINECONE_INDEX_NAME=PINECONE_INDEX_NAME:latest,GCS_BUCKET_NAME=GCS_BUCKET_NAME:latest
+		--set-env-vars=SKIP_RAG_INIT=true,SHIELD_LOG_LEVEL=INFO \
+		--set-secrets=GEMINI_API_KEY=GEMINI_API_KEY:latest,DATABASE_URL=DATABASE_URL:latest,PINECONE_API_KEY=PINECONE_API_KEY:latest,PINECONE_INDEX_NAME=PINECONE_INDEX_NAME:latest,GCS_BUCKET_NAME=GCS_BUCKET_NAME:latest \
+		--add-cloudsql-instances=gen-lang-client-0285486889:us-central1:free-trial-first-project
 	@echo "✅  Backend deployed."
 	@gcloud run services describe $(BACKEND_SVC) --region=$(GCP_REGION) --format='value(status.url)'
 
@@ -192,6 +194,7 @@ gcp-deploy-frontend:
 		--max-instances=2 \
 		--concurrency=20 \
 		--timeout=120 \
+		--service-account=$(SA_EMAIL) \
 		--set-env-vars="BACKEND_URL=$(BACKEND_URL)"
 	@echo "✅  Frontend deployed."
 	@gcloud run services describe $(FRONTEND_SVC) --region=$(GCP_REGION) --format='value(status.url)'

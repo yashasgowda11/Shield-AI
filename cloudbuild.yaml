@@ -68,6 +68,7 @@ steps:
       - --service-account=shield-ai-backend@$PROJECT_ID.iam.gserviceaccount.com
       - --set-env-vars=SKIP_RAG_INIT=false
       - --set-secrets=GEMINI_API_KEY=GEMINI_API_KEY:latest,DATABASE_URL=DATABASE_URL:latest,PINECONE_API_KEY=PINECONE_API_KEY:latest,PINECONE_INDEX_NAME=PINECONE_INDEX_NAME:latest,GCS_BUCKET_NAME=GCS_BUCKET_NAME:latest
+      - --add-cloudsql-instances=gen-lang-client-0285486889:us-central1:free-trial-first-project
     waitFor: [push-backend]
 
   # ── Frontend ───────────────────────────────────────────────────────────
