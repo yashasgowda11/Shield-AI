@@ -78,9 +78,9 @@ GCS_BUCKET_NAME=shield-ai-uploads
 GCS_SERVICE_ACCOUNT_KEY=/absolute/path/to/sa-key.json
 
 # ── Lobster Trap (prompt security proxy) ──────────────────────────────────────
-# Leave as-is — the backend falls back to offline detection if it can't connect
-LOBSTERTRAP_URL=http://localhost:8080
-LOBSTERTRAP_TIMEOUT_SEC=5
+# Shared Cloud Run deployment — works out of the box, no local setup needed
+LOBSTERTRAP_URL=https://shield-lobstertrap-aiffxvrl4q-uc.a.run.app
+LOBSTERTRAP_TIMEOUT_SEC=8
 ```
 
 ### What to get from your teammate

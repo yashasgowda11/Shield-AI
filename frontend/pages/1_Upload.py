@@ -333,34 +333,104 @@ if uploaded is not None:
 
     # ---- Quarantined ----
     if body["status"] == "quarantined":
+        scan_info = body.get("security_scan", {})
+        lt_used = scan_info.get("lt_used", False)
+
         st.error("🚨  Contract quarantined by the pre-LLM security gate")
+
+        layer_parts = []
+        if lt_used:
+            layer_parts.append("🪤 **Lobster Trap**")
+        layer_parts.append("🧱 **Offline detector**")
         st.caption(
-            "Suspicious content was detected **before any LLM was called**. "
+            f"Suspicious content detected **before any LLM was called**. "
+            f"Layers active: {' · '.join(layer_parts)}. "
             "This contract will not be processed further."
         )
-        st.subheader("Detected events")
-        for ev in body["security_events"]:
+
+        events = body.get("security_events", [])
+        st.subheader(f"Detected events ({len(events)})")
+
+        _SEV_ICON = {"critical": "🔴", "high": "🟠", "medium": "🟡", "low": "🟢"}
+        _SOURCE_LABEL = {
+            "lobstertrap": "🪤 Lobster Trap",
+            "offline_detector": "🧱 Offline detector",
+        }
+
+        for ev in events:
+            d = ev.get("details") or {}
+            source = d.get("source", "offline_detector")
+            sev = ev.get("severity", "high")
+            sev_icon = _SEV_ICON.get(sev, "⚪")
+            source_label = _SOURCE_LABEL.get(source, source)
+
             with st.expander(
-                f"⚠️  {ev['event_type']}  ·  severity: {ev['severity']}",
+                f"{sev_icon} **{ev['event_type']}**  ·  {source_label}  ·  severity: {sev}",
                 expanded=True,
             ):
-                d = ev["details"]
-                if d.get("matched_text"):
-                    st.markdown(f"**Matched text:** `{d['matched_text']}`")
-                if d.get("confidence") is not None:
-                    st.markdown(f"**Confidence:** {d['confidence']}")
-                if d.get("context"):
-                    st.markdown("**Context:**")
-                    st.code(d["context"])
-                if d.get("description"):
-                    st.markdown(f"**Notes:** {d['description']}")
+                if source == "lobstertrap":
+                    st.markdown("**Caught by:** 🪤 Lobster Trap (deep prompt inspection proxy)")
+
+                    if d.get("rule_name"):
+                        st.markdown(f"**Rule fired:** `{d['rule_name']}`")
+
+                    if d.get("deny_message"):
+                        st.markdown("**Deny message:**")
+                        st.code(d["deny_message"], language="text")
+                    elif d.get("matched_text"):
+                        st.markdown("**Matched text:**")
+                        st.code(d["matched_text"], language="text")
+
+                    if d.get("detected_flags"):
+                        st.markdown(
+                            "**Detected flags:** "
+                            + "  ·  ".join(f"`{f}`" for f in d["detected_flags"])
+                        )
+
+                    col_score, col_conf = st.columns(2)
+                    if d.get("risk_score") is not None:
+                        col_score.metric("LT risk score", f"{d['risk_score']:.2f}")
+                    if d.get("confidence") is not None:
+                        col_conf.metric("Confidence", f"{d['confidence']:.0%}")
+
+                    if d.get("request_id"):
+                        st.caption(
+                            f"Lobster Trap request ID: `{d['request_id']}`  "
+                            "— cross-reference in the LT dashboard at `/_lobstertrap/`"
+                        )
+
+                else:
+                    st.markdown("**Caught by:** 🧱 Offline pattern detector")
+
+                    if d.get("matched_text"):
+                        st.markdown("**Matched text:**")
+                        st.code(d["matched_text"], language="text")
+
+                    if d.get("context"):
+                        with st.expander("Surrounding context"):
+                            st.code(d["context"], language="text")
+
+                    if d.get("description"):
+                        st.info(d["description"])
+
+                    if d.get("confidence") is not None:
+                        st.caption(f"Confidence: {d['confidence']:.0%}")
 
     # ---- Clean — poll while agents run in background ----
     else:
-        st.info(
-            f"✅ Security gate passed — **{body['n_clauses']} clauses** extracted. "
-            "AI agents are now running in the background…"
+        scan_info = body.get("security_scan", {})
+        lt_used = scan_info.get("lt_used", False)
+
+        if lt_used:
+            scanner_line = "🪤 Lobster Trap + 🧱 Offline detector"
+        else:
+            scanner_line = "🧱 Offline detector _(Lobster Trap not reachable — using fallback)_"
+
+        st.success(
+            f"✅ Security gate cleared — **{body.get('n_clauses', '?')} clauses** extracted.  \n"
+            f"Scanned by: {scanner_line}"
         )
+        st.info("AI agents are now running in the background…")
 
         # Step 2: poll until agents finish
         detail = _poll_until_done(body["id"])

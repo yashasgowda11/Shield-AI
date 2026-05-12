@@ -27,13 +27,14 @@ COPY --from=build /src/configs /app/configs
 WORKDIR /app
 USER lobster
 
+# Cloud Run injects PORT at runtime (default 8080 for local dev).
+ENV PORT=8080
 EXPOSE 8080
 
 HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --retries=5 \
-    CMD wget -q --spider http://localhost:8080/_lobstertrap/ || exit 1
+    CMD wget -q --spider http://localhost:${PORT}/_lobstertrap/ || exit 1
 
-# `serve` defaults to --listen :8080 (binds 0.0.0.0:8080 — all interfaces).
-# Backend hop to Ollama at 11434 will fail (no Ollama in this image) but DPI
-# inspection runs first, which is all we need.
-ENTRYPOINT ["lobstertrap"]
-CMD ["serve"]
+# Use shell form so ${PORT} is expanded at runtime.
+# Backend hop to Ollama at 11434 will fail (no Ollama) but DPI inspection
+# runs first — which is all Shield AI needs.
+CMD ["sh", "-c", "lobstertrap serve --listen :${PORT}"]

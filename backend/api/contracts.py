@@ -19,6 +19,7 @@ from backend import audit
 from backend.extractors import extract_text
 from backend.segmentation import segment_clauses
 from backend.agents.security import scan as security_scan
+from backend import lobstertrap as lt_client
 from backend.orchestrator import run_pipeline
 
 logger = logging.getLogger(__name__)
@@ -592,7 +593,18 @@ async def upload_contract(
     db.commit()
 
     # CRITICAL: security gate runs BEFORE any LLM call.
+    lt_available = lt_client.is_available()
     scan_result = security_scan(db, contract.id, raw_text)
+
+    # Determine which layers actually ran based on event sources
+    sources_used = {ev["details"].get("source", "offline_detector") for ev in scan_result["events"]}
+    security_scan_info = {
+        "lt_available": lt_available,
+        "lt_used": "lobstertrap" in sources_used or lt_available,
+        "layers": sorted(sources_used) if sources_used else (
+            ["lobstertrap", "offline_detector"] if lt_available else ["offline_detector"]
+        ),
+    }
 
     if not scan_result["clean"]:
         contract.status = "quarantined"
@@ -606,6 +618,7 @@ async def upload_contract(
             after={
                 "status": "quarantined",
                 "events_detected": len(scan_result["events"]),
+                "lt_available": lt_available,
             },
         )
         return {
@@ -613,6 +626,7 @@ async def upload_contract(
             "status": "quarantined",
             "filename": file.filename,
             "security_events": scan_result["events"],
+            "security_scan": security_scan_info,
             "message": (
                 "Contract quarantined. The pre-LLM security gate detected "
                 "malicious or suspicious content."
@@ -645,4 +659,5 @@ async def upload_contract(
         "n_clauses": len(clauses),
         "char_count": len(raw_text),
         "metadata": meta,
+        "security_scan": security_scan_info,
     }

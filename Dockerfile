@@ -53,10 +53,10 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -fsS http://localhost:${PORT}/health || exit 1
 
-# Run migrations then start the server.
+# Start the server directly — migrations are run separately via:
+#   make gcp-migrate   (Cloud Run Job, one-off before each deploy)
 # Cloud Run sets PORT automatically; we pass it to uvicorn.
-CMD alembic upgrade head && \
-    uvicorn backend.main:app \
+CMD uvicorn backend.main:app \
         --host 0.0.0.0 \
         --port ${PORT} \
         --workers 1 \
