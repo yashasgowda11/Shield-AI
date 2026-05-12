@@ -19,6 +19,7 @@ class Contract(Base):
     uploaded_at = Column(DateTime, default=datetime.utcnow)
     raw_text = Column(Text)
     file_hash = Column(String, index=True)
+    gcs_uri = Column(String)   # gs://bucket/contracts/<hash>.<ext>
     clauses = Column(JSON)  # list of {number, title, text, page}
 
     agent_outputs = relationship("AgentOutput", back_populates="contract")
