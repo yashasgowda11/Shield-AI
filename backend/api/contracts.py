@@ -7,6 +7,7 @@ from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from google.cloud import storage as gcs
+from google.oauth2 import service_account
 from sqlalchemy.orm import Session
 
 from datetime import datetime
@@ -24,18 +25,34 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 # GCS bucket for uploaded contract files.
-# Set GCS_BUCKET_NAME in .env. The bucket must exist and the service account
-# running this app needs roles/storage.objectCreator on it.
+# Auth strategy (in priority order):
+#   1. GCS_SERVICE_ACCOUNT_KEY — path to a service account JSON key file.
+#      Use this for local dev and CI. Set in .env.
+#   2. Workload Identity (no key file) — on Cloud Run, attach the service
+#      account to the Cloud Run service and omit GCS_SERVICE_ACCOUNT_KEY.
+#      The client picks it up automatically from the metadata server.
 GCS_BUCKET_NAME = os.getenv("GCS_BUCKET_NAME", "")
+GCS_SERVICE_ACCOUNT_KEY = os.getenv("GCS_SERVICE_ACCOUNT_KEY", "")  # path to JSON key
 _gcs_client: gcs.Client | None = None
 
 
 def _get_bucket() -> gcs.Bucket:
     global _gcs_client
-    if _gcs_client is None:
-        _gcs_client = gcs.Client()
     if not GCS_BUCKET_NAME:
         raise RuntimeError("GCS_BUCKET_NAME is not set in environment")
+    if _gcs_client is None:
+        if GCS_SERVICE_ACCOUNT_KEY:
+            # Explicit service account key — local dev / CI
+            credentials = service_account.Credentials.from_service_account_file(
+                GCS_SERVICE_ACCOUNT_KEY,
+                scopes=["https://www.googleapis.com/auth/cloud-platform"],
+            )
+            _gcs_client = gcs.Client(credentials=credentials, project=credentials.project_id)
+            logger.info("GCS client initialised with service account key: %s", GCS_SERVICE_ACCOUNT_KEY)
+        else:
+            # Workload Identity on Cloud Run — no key file needed
+            _gcs_client = gcs.Client()
+            logger.info("GCS client initialised with Workload Identity (Cloud Run)")
     return _gcs_client.bucket(GCS_BUCKET_NAME)
 
 
