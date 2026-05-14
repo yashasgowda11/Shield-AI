@@ -6,7 +6,7 @@ import Topbar from "@/components/layout/Topbar";
 import StatusPill from "@/components/ui/StatusPill";
 import { api, type ContractSummary } from "@/lib/api";
 import { fmtDate } from "@/lib/utils";
-import { FileText, Search, ChevronLeft, ChevronRight, SlidersHorizontal } from "lucide-react";
+import { FileText, Search, ChevronLeft, ChevronRight, SlidersHorizontal, Trash2, AlertTriangle } from "lucide-react";
 
 const STATUS_OPTIONS = [
   { value: "",                label: "All statuses" },
@@ -55,11 +55,72 @@ function sortContracts(items: ContractSummary[], sort: string): ContractSummary[
   }
 }
 
+/* ── Delete confirmation modal ───────────────────────────────────────────── */
+function DeleteModal({
+  contract,
+  onConfirm,
+  onCancel,
+  deleting,
+}: {
+  contract: ContractSummary;
+  onConfirm: () => void;
+  onCancel: () => void;
+  deleting: boolean;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}>
+      <div className="rounded-2xl border p-6 w-full max-w-md fade-in-up"
+        style={{ background: "var(--bg-card)", borderColor: "var(--border)" }}>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="rounded-full p-2" style={{ background: "#EF444420" }}>
+            <AlertTriangle size={20} className="text-red-400" />
+          </div>
+          <h2 className="font-semibold text-base" style={{ color: "var(--text-primary)" }}>
+            Delete Contract
+          </h2>
+        </div>
+        <p className="text-sm mb-1" style={{ color: "var(--text-secondary)" }}>
+          Are you sure you want to permanently delete:
+        </p>
+        <p className="text-sm font-medium mb-4 truncate" style={{ color: "var(--text-primary)" }}>
+          {contract.filename}
+        </p>
+        <p className="text-xs mb-6 rounded-lg p-3" style={{ background: "#EF444410", color: "#EF4444", border: "1px solid #EF444430" }}>
+          This removes the contract, all extracted clauses, risk scores, and Pinecone vectors. This cannot be undone.
+        </p>
+        <div className="flex gap-3 justify-end">
+          <button
+            onClick={onCancel}
+            disabled={deleting}
+            className="px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50"
+            style={{ background: "var(--bg-surface)", color: "var(--text-secondary)", border: "1px solid var(--border)" }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={deleting}
+            className="px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 disabled:opacity-50"
+            style={{ background: "#EF4444", color: "#fff" }}
+          >
+            {deleting
+              ? <><div className="w-3.5 h-3.5 rounded-full border-2 border-white border-t-transparent spin" /> Deleting…</>
+              : <><Trash2 size={14} /> Delete</>}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ContractsPage() {
   const [contracts, setContracts] = useState<ContractSummary[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<ContractSummary | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Filters
   const [statusFilter, setStatusFilter] = useState("");
@@ -70,6 +131,22 @@ export default function ContractsPage() {
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await api.contracts.delete(deleteTarget.id, "Legal Reviewer");
+      setContracts(prev => prev.filter(c => c.id !== deleteTarget.id));
+      setTotal(prev => prev - 1);
+      setDeleteTarget(null);
+    } catch (e) {
+      setError(`Delete failed: ${String(e)}`);
+      setDeleteTarget(null);
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const load = useCallback(async (st: string, pg: number) => {
     setLoading(true);
@@ -111,6 +188,14 @@ export default function ContractsPage() {
 
   return (
     <>
+      {deleteTarget && (
+        <DeleteModal
+          contract={deleteTarget}
+          onConfirm={handleDelete}
+          onCancel={() => setDeleteTarget(null)}
+          deleting={deleting}
+        />
+      )}
       <Topbar title="Recent Uploads" />
       <main className="p-4 sm:p-6 flex flex-col gap-5 flex-1 overflow-y-auto min-h-0">
 
@@ -314,11 +399,21 @@ export default function ContractsPage() {
                       {c.uploaded_at ? fmtDate(c.uploaded_at) : "—"}
                     </td>
                     <td className="px-4 py-3">
-                      <Link href={`/contracts/${c.id}`}
-                        className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-opacity hover:opacity-80 inline-flex items-center gap-1"
-                        style={{ background: "var(--accent)", color: "#fff" }}>
-                        View →
-                      </Link>
+                      <div className="flex items-center gap-2">
+                        <Link href={`/contracts/${c.id}`}
+                          className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-opacity hover:opacity-80 inline-flex items-center gap-1"
+                          style={{ background: "var(--accent)", color: "#fff" }}>
+                          View →
+                        </Link>
+                        <button
+                          onClick={() => setDeleteTarget(c)}
+                          className="p-1.5 rounded-lg transition-colors hover:bg-red-400/20 group"
+                          title="Delete contract"
+                          style={{ color: "var(--text-muted)", border: "1px solid var(--border)" }}
+                        >
+                          <Trash2 size={13} className="group-hover:text-red-400 transition-colors" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );

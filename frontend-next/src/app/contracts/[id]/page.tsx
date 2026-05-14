@@ -7,7 +7,7 @@ import StatusPill from "@/components/ui/StatusPill";
 import { fmtDate, scoreColor } from "@/lib/utils";
 import type { ContractDetail, Decision, ScoringDetails } from "@/lib/api";
 
-const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000";
+const BACKEND = "/api/backend";
 
 type Tab = "score" | "extraction" | "risk" | "compliance" | "audit";
 

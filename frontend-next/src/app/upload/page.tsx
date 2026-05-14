@@ -6,7 +6,7 @@ import { useRole } from "@/hooks/useRole";
 import { api } from "@/lib/api";
 import { Upload, FileText, X, CheckCircle, AlertTriangle, ArrowUpRight } from "lucide-react";
 
-const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000";
+const BACKEND = "/api/backend";
 
 type FileResult = {
   filename: string;

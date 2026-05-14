@@ -5,7 +5,7 @@ import Topbar from "@/components/layout/Topbar";
 import { useRole } from "@/hooks/useRole";
 import { fmtDate } from "@/lib/utils";
 
-const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000";
+const BACKEND = "/api/backend";
 
 /* ─── Exact types matching the backend ──────────────────────────────────────── */
 

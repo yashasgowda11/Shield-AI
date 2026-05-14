@@ -22,6 +22,8 @@ spec:
             limits:
               memory: 512Mi
               cpu: "1"
-          # NEXT_PUBLIC_BACKEND_URL is baked into the image at build time.
-          # No runtime env vars needed for the frontend itself.
-          # To change the backend URL, rebuild the image with a new --build-arg.
+          env:
+            # BACKEND_URL is used server-side by the /api/backend proxy route.
+            # The browser never calls the backend directly — no CORS needed.
+            - name: BACKEND_URL
+              value: "https://shield-backend-aiffxvrl4q-uc.a.run.app"

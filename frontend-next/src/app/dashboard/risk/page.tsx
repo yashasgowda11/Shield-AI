@@ -8,7 +8,7 @@ import {
   Cell, PieChart, Pie, Legend,
 } from "recharts";
 
-const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000";
+const BACKEND = "/api/backend";
 const STATUS_PALETTE = ["#6C72FF","#22C55E","#F59E0B","#EF4444","#8B5CF6","#10B981","#F97316","#3B82F6"];
 
 function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {

@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Topbar from "@/components/layout/Topbar";
 import { fmtDate } from "@/lib/utils";
 
-const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000";
+const BACKEND = "/api/backend";
 
 // Matches the actual /health/services response from the backend
 interface ServiceStatus {

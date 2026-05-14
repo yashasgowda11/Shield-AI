@@ -14,8 +14,8 @@
 #   _AR_REPO      — Artifact Registry   (default: shield-ai)
 #   _BACKEND_SVC  — Cloud Run service   (default: shield-backend)
 #   _FRONTEND_SVC — Cloud Run service   (default: shield-frontend)
-#   _BACKEND_URL  — Backend Cloud Run URL baked into the Next.js image at build time.
-#                   Update this if the backend service URL ever changes.
+#   _BACKEND_URL  — Backend Cloud Run URL injected at deploy time as BACKEND_URL.
+#                   Used server-side by the Next.js /api/backend proxy — no CORS needed.
 
 substitutions:
   _REGION: us-central1
@@ -76,17 +76,18 @@ steps:
 
   # ── Frontend (Next.js) ─────────────────────────────────────────────────
   #
-  # NEXT_PUBLIC_BACKEND_URL is passed as a Docker build arg so it gets
-  # inlined into the Next.js bundle at build time (Next.js static optimization).
-  # The image runs on port 3000 (Next.js default).
-  # Frontend build runs in parallel with the backend build.
+  # The Next.js app proxies all backend calls through /api/backend/* server-side.
+  # BACKEND_URL is injected at deploy time as a Cloud Run env var (not a build arg).
+  # This means:
+  #   - No CORS issues (browser never calls backend directly)
+  #   - The same image works for any backend URL — no rebuild needed to change it
+  #   - Frontend build runs in parallel with the backend build
 
   - id: build-frontend
     name: gcr.io/cloud-builders/docker
     args:
       - build
       - --file=frontend-next.Dockerfile
-      - --build-arg=NEXT_PUBLIC_BACKEND_URL=$_BACKEND_URL
       - --tag=$_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPO/shield-frontend:$SHORT_SHA
       - --tag=$_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPO/shield-frontend:latest
       - --cache-from=$_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPO/shield-frontend:latest
@@ -119,6 +120,7 @@ steps:
       - --max-instances=2
       - --concurrency=80
       - --timeout=60
+      - --set-env-vars=BACKEND_URL=$_BACKEND_URL
     waitFor: [push-frontend]
 
 images:
