@@ -86,15 +86,20 @@ export default function RiskDashboard() {
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {data.anomalies.map((a: any) => (
-                  <div key={a.contract_id} className="flex items-center justify-between rounded-lg px-4 py-3"
+                  <div key={a.contract_id} className="flex items-center gap-3 rounded-lg px-4 py-3"
                     style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
-                    <div>
-                      <p className="font-medium text-sm truncate max-w-xs" style={{ color: "var(--text-primary)" }}>{a.filename}</p>
-                      <p className="text-xs" style={{ color: "var(--text-muted)" }}>{a.vendor ?? "unknown"} · #{a.contract_id}</p>
+                    {/* Left: filename + vendor — must have min-w-0 so truncate works in flex */}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate" style={{ color: "var(--text-primary)" }}
+                        title={a.filename}>{a.filename}</p>
+                      <p className="text-xs truncate" style={{ color: "var(--text-muted)" }}>
+                        {a.vendor ?? "unknown"} · #{a.contract_id}
+                      </p>
                     </div>
-                    <div className="text-right ml-4 flex-shrink-0">
-                      <p className="font-bold text-sm" style={{ color: "#EF4444" }}>{a.score}/100</p>
-                      <p className="text-xs" style={{ color: "var(--text-muted)" }}>{a.reason}</p>
+                    {/* Right: score — fixed width, never shrinks */}
+                    <div className="text-right flex-shrink-0">
+                      <p className="font-bold text-sm whitespace-nowrap" style={{ color: "#EF4444" }}>{a.score}/100</p>
+                      <p className="text-xs whitespace-nowrap" style={{ color: "var(--text-muted)" }}>{a.reason}</p>
                     </div>
                   </div>
                 ))}

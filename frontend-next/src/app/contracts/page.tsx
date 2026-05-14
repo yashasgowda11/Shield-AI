@@ -6,7 +6,7 @@ import Topbar from "@/components/layout/Topbar";
 import StatusPill from "@/components/ui/StatusPill";
 import { api, type ContractSummary } from "@/lib/api";
 import { fmtDate } from "@/lib/utils";
-import { FileText, Search, ChevronLeft, ChevronRight, SlidersHorizontal, Trash2, AlertTriangle } from "lucide-react";
+import { FileText, Search, ChevronLeft, ChevronRight, SlidersHorizontal, Trash2, AlertTriangle, ArrowUpRight } from "lucide-react";
 
 const STATUS_OPTIONS = [
   { value: "",                label: "All statuses" },
@@ -328,15 +328,16 @@ export default function ContractsPage() {
 
         {/* Table */}
         <div className="rounded-xl overflow-hidden border" style={{ borderColor: "var(--border)" }}>
-          <table className="w-full text-sm">
+          <table className="w-full text-sm table-fixed">
             <thead>
               <tr className="border-b text-xs uppercase tracking-wider"
                 style={{ borderColor: "var(--border)", background: "var(--bg-surface)", color: "var(--text-muted)" }}>
-                <th className="px-4 py-3 text-left">Filename</th>
-                <th className="px-4 py-3 text-left">Status</th>
-                <th className="px-4 py-3 text-left">Clauses</th>
-                <th className="px-4 py-3 text-left">Uploaded</th>
-                <th className="px-4 py-3 text-left">Action</th>
+                {/* Mobile: Filename takes remaining space after Status+Action */}
+                <th className="px-3 py-3 text-left w-auto">Filename</th>
+                <th className="px-3 py-3 text-left w-8 sm:w-36">Status</th>
+                <th className="px-3 py-3 text-left w-16 hidden sm:table-cell">Clauses</th>
+                <th className="px-3 py-3 text-left w-24 hidden sm:table-cell">Uploaded</th>
+                <th className="px-3 py-3 text-left w-16 sm:w-28">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -378,30 +379,57 @@ export default function ContractsPage() {
                       borderColor: "var(--border)",
                       background: i % 2 === 0 ? "var(--bg-card)" : "var(--bg-surface)",
                     }}>
-                    <td className="px-4 py-3 font-medium text-white max-w-xs">
-                      <div className="truncate">{c.filename}</div>
-                      <div className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>#{c.id}</div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <StatusPill status={c.status} />
-                        {m && (
-                          <span className="text-xs font-medium hidden sm:inline" style={{ color: m.color }}>
-                            {m.label}
-                          </span>
+
+                    {/* Filename — maxWidth:0 forces truncate to respect table-fixed layout */}
+                    <td className="px-3 py-3 font-medium text-white" style={{ maxWidth: 0 }}>
+                      <div className="truncate text-xs sm:text-sm" title={c.filename}>
+                        {c.filename}
+                      </div>
+                      <div className="text-xs mt-0.5 flex items-center gap-1.5" style={{ color: "var(--text-muted)" }}>
+                        <span>#{c.id}</span>
+                        {c.uploaded_at && (
+                          <span className="sm:hidden">· {fmtDate(c.uploaded_at)}</span>
                         )}
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-sm font-medium" style={{ color: "var(--text-muted)" }}>
+
+                    {/* Status — colored dot on mobile, full pill on sm+ */}
+                    <td className="px-3 py-3">
+                      {/* Mobile: compact dot */}
+                      <span
+                        className="sm:hidden inline-block w-2.5 h-2.5 rounded-full flex-shrink-0"
+                        style={{ background: m?.color ?? "var(--text-muted)" }}
+                        title={m?.label ?? c.status}
+                      />
+                      {/* Desktop: full pill */}
+                      <span className="hidden sm:inline">
+                        <StatusPill status={c.status} />
+                      </span>
+                    </td>
+
+                    {/* Clauses — hidden on mobile */}
+                    <td className="px-3 py-3 text-sm font-medium hidden sm:table-cell" style={{ color: "var(--text-muted)" }}>
                       {c.n_clauses > 0 ? c.n_clauses : <span style={{ color: "var(--border)" }}>—</span>}
                     </td>
-                    <td className="px-4 py-3 text-xs" style={{ color: "var(--text-muted)" }}>
+
+                    {/* Uploaded — hidden on mobile */}
+                    <td className="px-3 py-3 text-xs hidden sm:table-cell" style={{ color: "var(--text-muted)" }}>
                       {c.uploaded_at ? fmtDate(c.uploaded_at) : "—"}
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
+
+                    {/* Action — icon-only on mobile, text button on sm+ */}
+                    <td className="px-3 py-3">
+                      <div className="flex items-center gap-1.5">
+                        {/* Mobile: icon-only */}
                         <Link href={`/contracts/${c.id}`}
-                          className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-opacity hover:opacity-80 inline-flex items-center gap-1"
+                          className="sm:hidden p-1.5 rounded-lg transition-opacity hover:opacity-80 inline-flex items-center justify-center"
+                          style={{ background: "var(--accent)", color: "#fff" }}
+                          title="View contract">
+                          <ArrowUpRight size={14} />
+                        </Link>
+                        {/* Desktop: text button */}
+                        <Link href={`/contracts/${c.id}`}
+                          className="hidden sm:inline-flex text-xs font-semibold px-3 py-1.5 rounded-lg transition-opacity hover:opacity-80 items-center gap-1"
                           style={{ background: "var(--accent)", color: "#fff" }}>
                           View →
                         </Link>

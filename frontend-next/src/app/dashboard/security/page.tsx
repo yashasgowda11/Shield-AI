@@ -103,15 +103,22 @@ function QuarantineCard({
     : "🪤 Lobster Trap";
 
   return (
-    <div className="rounded-xl border p-5"
+    <div className="rounded-xl border p-4 sm:p-5"
       style={{ background: "var(--bg-card)", borderColor: "#F9731640" }}>
-      <div className="flex flex-wrap items-start gap-3 mb-3">
-        <span className="text-xl">🚫</span>
+
+      {/* Header row: icon + filename block + view button */}
+      <div className="flex items-start gap-2 mb-3">
+        <span className="text-lg flex-shrink-0 mt-0.5">🚫</span>
+
+        {/* Filename + badges — min-w-0 is critical for truncate inside flex */}
         <div className="flex-1 min-w-0">
-          <div className="flex flex-wrap items-center gap-2 mb-1">
-            <span className="font-semibold text-sm truncate" style={{ color: "var(--text-primary)" }}>
-              {contract.filename}
-            </span>
+          {/* Filename on its own line so truncate has room to work */}
+          <p className="font-semibold text-sm truncate mb-1" style={{ color: "var(--text-primary)" }}
+            title={contract.filename}>
+            {contract.filename}
+          </p>
+          {/* Status badges */}
+          <div className="flex flex-wrap items-center gap-1.5 mb-1">
             <span className="text-xs px-2 py-0.5 rounded-full"
               style={{ background: "#F9731620", color: "#F97316", border: "1px solid #F9731640" }}>
               Quarantined
@@ -130,8 +137,10 @@ function QuarantineCard({
             </p>
           )}
         </div>
+
+        {/* View button — always right-aligned */}
         <Link href={`/contracts/${contract.id}`}
-          className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg"
+          className="flex-shrink-0 flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg"
           style={{ background: "var(--bg-surface)", color: "var(--text-muted)", border: "1px solid var(--border)" }}>
           View <ExternalLink size={11} />
         </Link>
@@ -417,10 +426,22 @@ export default function SecurityDashboardPage() {
                 {eventsBySeverity.length === 0 ? (
                   <p className="text-sm text-center py-8" style={{ color: "var(--text-muted)" }}>No data</p>
                 ) : (
-                  <ResponsiveContainer width="100%" height={220}>
-                    <BarChart data={eventsBySeverity} margin={{ bottom: 10 }}>
-                      <XAxis dataKey="name" tick={{ fill: "var(--text-secondary)", fontSize: 11 }} />
-                      <YAxis tick={{ fill: "var(--text-muted)", fontSize: 11 }} />
+                  <ResponsiveContainer width="100%" height={240}>
+                    <BarChart
+                      data={eventsBySeverity}
+                      margin={{ top: 5, right: 10, left: -10, bottom: 30 }}
+                      barCategoryGap="30%"
+                    >
+                      {/* interval={0} forces every label to render; angle prevents overlap */}
+                      <XAxis
+                        dataKey="name"
+                        tick={{ fill: "var(--text-secondary)", fontSize: 11 }}
+                        interval={0}
+                        angle={-30}
+                        textAnchor="end"
+                        height={50}
+                      />
+                      <YAxis tick={{ fill: "var(--text-muted)", fontSize: 11 }} allowDecimals={false} />
                       <Tooltip
                         contentStyle={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: 8 }}
                         labelStyle={{ color: "var(--text-primary)" }}

@@ -9,14 +9,15 @@ import type { ContractDetail, Decision, ScoringDetails } from "@/lib/api";
 
 const BACKEND = "/api/backend";
 
-type Tab = "score" | "extraction" | "risk" | "compliance" | "audit";
+type Tab = "score" | "extraction" | "risk" | "compliance" | "audit" | "preview";
 
 const TABS: { id: Tab; label: string }[] = [
-  { id: "score", label: "Score Breakdown" },
-  { id: "extraction", label: "Extraction" },
-  { id: "risk", label: "Risk" },
-  { id: "compliance", label: "Compliance" },
-  { id: "audit", label: "Audit Report" },
+  { id: "score",     label: "Score Breakdown" },
+  { id: "extraction",label: "Extraction" },
+  { id: "risk",      label: "Risk" },
+  { id: "compliance",label: "Compliance" },
+  { id: "preview",   label: "📄 Preview" },
+  { id: "audit",     label: "Audit Report" },
 ];
 
 const SEVERITY_COLORS: Record<string, string> = {
@@ -241,8 +242,9 @@ export default function ContractDetailPage() {
 
   return (
     <>
-      <Topbar title={contract.filename} />
-      <main className="p-6 flex flex-col gap-5 max-w-5xl flex-1 overflow-y-auto min-h-0">
+      <Topbar title={contract.filename.length > 28 ? contract.filename.slice(0, 25) + "…" : contract.filename} />
+      <main className="flex-1 overflow-y-auto min-h-0">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-6 flex flex-col gap-4 sm:gap-5">
         {/* Back button */}
         <button
           onClick={() => router.push("/contracts")}
@@ -723,6 +725,58 @@ export default function ContractDetailPage() {
           </div>
         )}
 
+        {/* ── Full Text Preview ── */}
+        {tab === "preview" && (
+          <div className="flex flex-col gap-4">
+            {contract.raw_text ? (
+              <div className="rounded-xl border" style={{ background: "var(--bg-card)", borderColor: "var(--border)" }}>
+                {/* Header */}
+                <div className="flex items-center justify-between px-5 py-3 border-b"
+                  style={{ borderColor: "var(--border)" }}>
+                  <div>
+                    <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+                      📄 Extracted Contract Text
+                    </p>
+                    <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
+                      {contract.raw_text.length.toLocaleString()} characters ·{" "}
+                      {contract.raw_text.trim().split(/\s+/).length.toLocaleString()} words
+                    </p>
+                  </div>
+                  {/* Copy to clipboard */}
+                  <button
+                    onClick={() => navigator.clipboard.writeText(contract.raw_text!)}
+                    className="text-xs px-3 py-1.5 rounded-lg transition-colors hover:brightness-110"
+                    style={{ background: "var(--bg-surface)", color: "var(--text-muted)", border: "1px solid var(--border)" }}
+                  >
+                    Copy text
+                  </button>
+                </div>
+                {/* Scrollable text body */}
+                <div
+                  className="px-5 py-4 overflow-y-auto text-sm leading-relaxed whitespace-pre-wrap font-mono"
+                  style={{
+                    color: "var(--text-secondary)",
+                    maxHeight: "70vh",
+                    background: "var(--bg-card)",
+                    borderRadius: "0 0 12px 12px",
+                    wordBreak: "break-word",
+                  }}
+                >
+                  {contract.raw_text}
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-xl border p-10 flex flex-col items-center gap-3 text-center"
+                style={{ background: "var(--bg-card)", borderColor: "var(--border)" }}>
+                <span className="text-4xl opacity-30">📄</span>
+                <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+                  No text extracted yet. The contract may still be processing.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* ── Audit Report ── */}
         {tab === "audit" && (
           <div className="flex flex-col gap-4">
@@ -781,6 +835,7 @@ export default function ContractDetailPage() {
             )}
           </div>
         )}
+        </div>{/* end centered wrapper */}
       </main>
     </>
   );

@@ -429,6 +429,117 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* ── Role Descriptions ── */}
+        <section className="px-4 py-5 sm:px-6">
+          <div className="max-w-6xl mx-auto">
+            <SectionHeading label="Access" title="User Roles & Permissions" />
+            {/* 5 roles: 1 col → 2 col → 3 col → naturally fills last row centred via justify-items */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
+              {[
+                {
+                  icon: "📋",
+                  role: "Procurement Analyst",
+                  color: "#94A3B8",
+                  bg: "#94A3B815",
+                  border: "#94A3B830",
+                  what: "Entry-level operator who initiates the review pipeline.",
+                  can: ["Upload single & bulk contracts", "View all uploaded contracts", "Delete own uploads"],
+                  cannot: ["Approve or reject contracts", "Access audit trail", "Assign reviewers"],
+                },
+                {
+                  icon: "📊",
+                  role: "Compliance Officer",
+                  color: "#FBBF24",
+                  bg: "#FBBF2415",
+                  border: "#FBBF2430",
+                  what: "Reviews contracts routed to the manager queue.",
+                  can: ["Approve / reject manager-review contracts", "Comment & annotate clauses", "Escalate to Legal team"],
+                  cannot: ["Approve legal-review contracts", "Modify scoring policy"],
+                },
+                {
+                  icon: "⚖️",
+                  role: "Legal Reviewer",
+                  color: "#38BDF8",
+                  bg: "#38BDF815",
+                  border: "#38BDF830",
+                  what: "Senior gatekeeper for high-risk or escalated contracts.",
+                  can: ["Approve / reject legal-review contracts", "Comment & annotate clauses", "Escalate to Executive"],
+                  cannot: ["Modify scoring rules", "Delete contracts"],
+                },
+                {
+                  icon: "👔",
+                  role: "Executive",
+                  color: "#A78BFA",
+                  bg: "#A78BFA15",
+                  border: "#A78BFA30",
+                  what: "Strategic oversight with read access across all queues.",
+                  can: ["View all contracts & queues", "Add comments & annotations", "Approve if escalated"],
+                  cannot: ["Initiate uploads", "Modify scoring policy"],
+                },
+                {
+                  icon: "🔍",
+                  role: "Auditor",
+                  color: "#2DD4BF",
+                  bg: "#2DD4BF15",
+                  border: "#2DD4BF30",
+                  what: "Read-only compliance monitor with full audit access.",
+                  can: ["View all contracts & queues", "Access full audit log", "Add read-only comments"],
+                  cannot: ["Approve or reject contracts", "Upload contracts", "Modify any data"],
+                },
+              ].map(({ icon, role, color, bg, border, what, can: canDo, cannot }) => (
+                <div key={role}
+                  className="rounded-xl p-5 flex flex-col gap-3"
+                  style={{ background: bg, border: `1px solid ${border}` }}>
+                  {/* Role header */}
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0"
+                      style={{ background: `${color}20`, border: `1px solid ${color}40` }}>
+                      {icon}
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>{role}</h3>
+                      <p className="text-xs mt-0.5 leading-snug" style={{ color: "var(--text-muted)" }}>{what}</p>
+                    </div>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="h-px" style={{ background: border }} />
+
+                  {/* Can do */}
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color }}>
+                      Can do
+                    </p>
+                    <ul className="flex flex-col gap-1">
+                      {canDo.map(item => (
+                        <li key={item} className="flex items-start gap-1.5 text-xs" style={{ color: "var(--text-secondary)" }}>
+                          <span className="mt-0.5 flex-shrink-0" style={{ color: "#22C55E" }}>✓</span>
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Cannot */}
+                  <div className="mt-auto">
+                    <p className="text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "var(--text-muted)" }}>
+                      Cannot
+                    </p>
+                    <ul className="flex flex-col gap-1">
+                      {cannot.map(item => (
+                        <li key={item} className="flex items-start gap-1.5 text-xs" style={{ color: "var(--text-muted)" }}>
+                          <span className="mt-0.5 flex-shrink-0" style={{ color: "#EF4444" }}>✕</span>
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* ── Quick Navigation ── */}
         <section className="px-4 py-5 sm:px-6">
           <div className="max-w-6xl mx-auto">
