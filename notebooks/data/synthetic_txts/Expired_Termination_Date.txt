@@ -1,0 +1,131 @@
+SERVICE AGREEMENT
+
+This Service Agreement (the "Agreement") is made and entered into as of January 1, 2020 (the "Effective Date"), by and between:
+
+Company A, a Delaware corporation, with its principal place of business at [Client Address] ("Client"),
+
+AND
+
+Vendor B, a California Limited Liability Company, with its principal place of business at [Vendor Address] ("Vendor").
+
+RECITALS
+
+WHEREAS, Client is engaged in the business of [Client Business Description];
+
+WHEREAS, Vendor is engaged in the business of providing [Vendor Business Description] services;
+
+WHEREAS, Client desires to engage Vendor to provide certain services as described herein, and Vendor desires to provide such services to Client, all under the terms and conditions set forth in this Agreement.
+
+NOW, THEREFORE, in consideration of the mutual covenants and agreements hereinafter set forth, and for other good and valuable consideration, the receipt and sufficiency of which are hereby acknowledged, the parties hereto agree as follows:
+
+1. DEFINITIONS
+
+1.1. "Agreement" means this Service Agreement, including all exhibits, schedules, and addenda attached hereto, as may be amended from time to time.
+
+1.2. "Confidential Information" means any and all non-public information, whether oral, written, electronic, or in any other form, disclosed by one party (the "Disclosing Party") to the other party (the "Receiving Party") that is designated as confidential or that reasonably should be understood to be confidential given the nature of the information and the circumstances of disclosure. Confidential Information includes, but is not limited to, business plans, financial information, customer lists, technical data, trade secrets, know-how, and proprietary information.
+
+1.3. "Effective Date" means January 1, 2020.
+
+1.4. "Expiration Date" means December 31, 2022.
+
+1.5. "Fees" means the compensation payable by Client to Vendor for the Services, as set forth in the applicable Statement of Work.
+
+1.6. "Intellectual Property Rights" means any and all patents, copyrights, trademarks, service marks, trade dress, trade names, trade secrets, know-how, moral rights, and any other intellectual property or proprietary rights recognized in any jurisdiction, whether registered or unregistered.
+
+1.7. "Services" means the services to be performed by Vendor for Client as described in the applicable Statement of Work.
+
+1.8. "Statement of Work" or "SOW" means a document executed by both parties that specifies the particular Services to be performed, the timeline for performance, the Fees, and any other terms and conditions specific to such Services. Each SOW shall be incorporated into and become part of this Agreement.
+
+2. TERM AND RENEWAL
+
+2.1. Term. This Agreement shall commence on the Effective Date and shall continue in full force and effect until the Expiration Date, unless earlier terminated in accordance with the provisions of this Agreement.
+
+2.2. Renewal. This Agreement shall not automatically renew. Any extension or renewal of this Agreement shall be in writing, signed by both parties, and may be accomplished through the execution of a new Service Agreement or a written amendment to this Agreement.
+
+3. SERVICES / SCOPE OF WORK
+
+3.1. Vendor agrees to provide the Services to Client as described in each Statement of Work executed by both parties.
+
+3.2. Each Statement of Work shall be attached hereto as Exhibit A, Exhibit B, etc., and shall be incorporated herein by reference. In the event of any conflict between the terms of this Agreement and the terms of an SOW, the terms of this Agreement shall prevail, except that the specific scope of Services and Fees detailed in an SOW shall govern for the Services described therein.
+
+3.3. Vendor shall perform the Services in a professional and workmanlike manner, consistent with industry standards and best practices.
+
+3.4. Client shall provide Vendor with reasonable access to its premises, personnel, and information as may be necessary for Vendor to perform the Services.
+
+4. PAYMENT TERMS
+
+4.1. Client shall pay Vendor the Fees for the Services as set forth in each applicable Statement of Work.
+
+4.2. Invoices. Vendor shall submit invoices to Client on a [e.g., monthly] basis, or as otherwise specified in the applicable SOW. Each invoice shall detail the Services performed and the corresponding Fees.
+
+4.3. Payment Due. Client shall pay all undisputed invoices within [e.g., thirty (30)] days of the date of invoice. Payments shall be made in United States Dollars via [e.g., wire transfer to the account specified by Vendor].
+
+4.4. Late Payments. Any amounts not paid when due shall bear interest at the rate of [e.g., one and one-half percent (1.5%)] per month, or the maximum rate permitted by law, whichever is less, from the due date until paid.
+
+4.5. Taxes. Client shall be responsible for all sales, use, and excise taxes, and any other similar taxes, duties, and charges of any kind imposed by any federal, state, or local governmental entity on any amounts payable by Client under this Agreement, except for taxes imposed on Vendor's income.
+
+5. LIABILITY AND INDEMNIFICATION
+
+5.1. Indemnification. Vendor shall indemnify, defend, and hold harmless Client, its officers, directors, employees, agents, and affiliates from and against any and all claims, losses, damages, liabilities, costs, and expenses (including reasonable attorneys' fees) arising out of or relating to: (a) any breach by Vendor of any of its representations, warranties, or obligations under this Agreement; (b) any gross negligence or willful misconduct of Vendor in the performance of the Services; or (c) any infringement or alleged infringement of any third-party Intellectual Property Rights arising from Vendor's performance of the Services, provided that Client provides Vendor with prompt written notice of any such claim and permits Vendor to control the defense of such claim. Notwithstanding the foregoing, Vendor shall not be obligated to indemnify Client for any claim arising from: (i) Client's misuse of the Services; (ii) Client's modification of the Services, unless such modification was directed by Vendor; or (iii) the combination of the Services with other products or services not provided by Vendor, where the infringement would not have occurred without such combination.
+
+5.2. Client shall indemnify, defend, and hold harmless Vendor, its officers, directors, employees, agents, and affiliates from and against any and all claims, losses, damages, liabilities, costs, and expenses (including reasonable attorneys' fees) arising out of or relating to: (a) any breach by Client of any of its representations, warranties, or obligations under this Agreement; (b) any gross negligence or willful misconduct of Client in its use of the Services; or (c) any claim that Client's use of the Services infringes or violates any third-party rights, to the extent such infringement or violation is caused by Client's actions or omissions.
+
+5.3. Limitation of Liability. EXCEPT FOR LIABILITY ARISING FROM INDEMNIFICATION OBLIGATIONS HEREUNDER, BREACH OF CONFIDENTIALITY OBLIGATIONS, OR WILLFUL MISCONDUCT, IN NO EVENT SHALL EITHER PARTY, ITS AFFILIATES, OR THEIR RESPECTIVE OFFICERS, DIRECTORS, EMPLOYEES, AGENTS, OR SUPPLIERS BE LIABLE TO THE OTHER PARTY OR ANY THIRD PARTY FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING LOST PROFITS, LOST REVENUE, OR LOST DATA, ARISING OUT OF OR RELATED TO THIS AGREEMENT, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES. THE TOTAL AGGREGATE LIABILITY OF VENDOR TO CLIENT UNDER THIS AGREEMENT FOR ANY AND ALL CLAIMS, LOSSES, AND CAUSES OF ACTION ARISING OUT OF OR RELATED TO THIS AGREEMENT, REGARDLESS OF THE FORM OF THE ACTION, SHALL NOT EXCEED THE TOTAL FEES PAID BY CLIENT TO VENDOR UNDER THIS AGREEMENT IN THE THIRTY (30) DAY PERIOD IMMEDIATELY PRECEDING THE EVENT GIVING RISE TO THE CLAIM.
+
+6. CONFIDENTIALITY
+
+6.1. Each party agrees to hold in strict confidence all Confidential Information of the other party and to use such Confidential Information only for the purpose of performing its obligations under this Agreement.
+
+6.2. Neither party shall disclose the Confidential Information of the other party to any third party without the prior written consent of the Disclosing Party, except to its employees, agents, or subcontractors who have a need to know such information for the purpose of this Agreement and who are bound by confidentiality obligations at least as restrictive as those contained herein.
+
+6.3. The obligations of confidentiality shall not apply to information that: (a) is or becomes publicly known through no wrongful act of the Receiving Party; (b) was rightfully known to the Receiving Party prior to its disclosure by the Disclosing Party, free of any obligation of confidence; (c) is rightfully received by the Receiving Party from a third party without restriction on disclosure and without breach of any obligation of confidence; or (d) is required to be disclosed by law, regulation, or court order, provided that the Receiving Party gives the Disclosing Party prompt written notice of such requirement and cooperates with the Disclosing Party's efforts to seek a protective order or other appropriate remedy.
+
+6.4. The obligations of confidentiality shall survive the termination or expiration of this Agreement for a period of [e.g., three (3)] years.
+
+7. TERMINATION
+
+7.1. Termination for Cause. Either party may terminate this Agreement immediately upon written notice to the other party if the other party: (a) materially breaches any provision of this Agreement and fails to cure such breach within [e.g., thirty (30)] days after receipt of written notice thereof; or (b) becomes insolvent, files a petition for bankruptcy, makes an assignment for the benefit of creditors, or has a receiver or trustee appointed for its assets.
+
+7.2. Termination for Convenience. Vendor may terminate this Agreement for any reason or no reason upon [e.g., sixty (60)] days prior written notice to Client. Client may not terminate this Agreement for convenience.
+
+7.3. Effect of Termination. Upon termination or expiration of this Agreement: (a) Client shall pay Vendor for all Services performed and expenses incurred up to the effective date of termination; (b) each party shall promptly return or destroy all Confidential Information of the other party in its possession; and (c) the provisions of Sections 5 (Liability and Indemnification), 6 (Confidentiality), 9 (Governing Law and Dispute Resolution), and 10 (General Provisions) shall survive.
+
+8. GOVERNING LAW AND DISPUTE RESOLUTION
+
+8.1. Governing Law. This Agreement shall be governed by and construed in accordance with the laws of the State of Delaware, without regard to its conflict of laws principles.
+
+8.2. Dispute Resolution. Any dispute, controversy, or claim arising out of or relating to this Agreement, or the breach, termination, or validity thereof, shall be settled by arbitration administered by the American Arbitration Association in accordance with its Commercial Arbitration Rules. The arbitration shall take place in Wilmington, Delaware. The award rendered by the arbitrator(s) shall be final and binding upon the parties and may be entered in any court having jurisdiction thereof. Notwithstanding the foregoing, either party may seek injunctive relief from any court of competent jurisdiction to prevent the actual or threatened infringement, misappropriation, or violation of a party's copyrights, patents, trade secrets, trademarks, or other proprietary rights.
+
+9. GENERAL PROVISIONS
+
+9.1. Notices. All notices, requests, demands, and other communications hereunder shall be in writing and shall be deemed to have been duly given: (a) when delivered personally; (b) when sent by confirmed facsimile transmission or email; (c) when received by certified or registered mail, return receipt requested, postage prepaid; or (d) one (1) business day after deposit with a nationally recognized overnight courier service, in each case to the addresses set forth in the preamble to this Agreement or to such other address as either party may designate by notice to the other party.
+
+9.2. Entire Agreement. This Agreement constitutes the entire agreement between the parties with respect to the subject matter hereof and supersedes all prior and contemporaneous agreements, understandings, negotiations, and discussions, whether oral or written, of the parties.
+
+9.3. Severability. If any provision of this Agreement is held to be invalid, illegal, or unenforceable, the validity, legality, and enforceability of the remaining provisions shall not in any way be affected or impaired thereby.
+
+9.4. Waiver. The failure of either party to enforce any provision of this Agreement shall not constitute a waiver of such provision or of the right to enforce such provision in the future. No waiver of any breach of this Agreement shall be effective unless in writing and signed by the party waiving such breach.
+
+9.5. Assignment. Neither party may assign or transfer its rights or obligations under this Agreement without the prior written consent of the other party, which consent shall not be unreasonably withheld or delayed. Notwithstanding the foregoing, either party may assign this Agreement to an affiliate or in connection with a merger, acquisition, or sale of all or substantially all of its assets, provided that the assignee agrees in writing to be bound by the terms of this Agreement.
+
+9.6. Force Majeure. Neither party shall be liable for any failure or delay in performance under this Agreement (other than for delay in the payment of money due and payable hereunder) for causes beyond that party's reasonable control and occurring without that party's fault or negligence, including, but not limited to, acts of God, acts of government, fires, floods, earthquakes, storms, riots, wars, sabotage, or terrorism. Each party shall use reasonable efforts to mitigate the effect of such events.
+
+9.7. Independent Contractors. The relationship between Client and Vendor is that of independent contractors. Nothing in this Agreement shall be construed as creating a partnership, joint venture, agency, or employment relationship between the parties. Vendor is solely responsible for its own employees, agents, and subcontractors, including the payment of all wages, benefits, and taxes.
+
+9.8. Counterparts. This Agreement may be executed in one or more counterparts, each of which shall be deemed an original, but all of which together shall constitute one and the same instrument.
+
+10. SIGNATURES
+
+IN WITNESS WHEREOF, the parties hereto have caused this Agreement to be executed by their duly authorized representatives as of the Effective Date.
+
+COMPANY A
+
+By: _________________________
+Name:
+Title:
+
+VENDOR B
+
+By: _________________________
+Name:
+Title:

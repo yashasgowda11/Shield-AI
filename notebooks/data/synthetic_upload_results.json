@@ -1,0 +1,1618 @@
+[
+  {
+    "filename": "Government_Procurement_FAR.pdf",
+    "contract_id": null,
+    "status": "no_pdf",
+    "risk_score": null
+  },
+  {
+    "filename": "Finance_PCI_DSS_Agreement.pdf",
+    "contract_id": 12,
+    "status": "quarantined",
+    "risk_score": null,
+    "agent_outputs": {}
+  },
+  {
+    "filename": "Zero_Liability_Cap.pdf",
+    "contract_id": 13,
+    "status": "legal_review",
+    "risk_score": null,
+    "agent_outputs": {
+      "extraction": {
+        "output": {
+          "parties": [
+            {
+              "name": "COMPANY A",
+              "role": "Customer"
+            },
+            {
+              "name": "VENDOR B",
+              "role": "Vendor"
+            }
+          ],
+          "effective_date": "2025-01-01",
+          "term": "The initial term of this Agreement shall commence on the Effective Date and shall continue for a period of two (2) years. Upon expiration of the Initial Term, this Agreement shall automatically renew for successive periods of one (1) year each, unless either party provides written notice of its intent not to renew to the other party at least ninety (90) days prior to the expiration of the then-current term.",
+          "payment_terms": "Net 30",
+          "governing_law": "State of Delaware",
+          "obligations": [
+            {
+              "party": "Vendor",
+              "description": "Provide the services described in Section 4 and detailed in Exhibit A.",
+              "clause_ref": "3.1"
+            },
+            {
+              "party": "Vendor",
+              "description": "Perform the Services in a professional and workmanlike manner, consistent with industry standards and best practices.",
+              "clause_ref": "3.2"
+            },
+            {
+              "party": "Client",
+              "description": "Provide Vendor with reasonable access to its facilities, personnel, and information as may be necessary for Vendor to perform the Services.",
+              "clause_ref": "3.3"
+            },
+            {
+              "party": "Client",
+              "description": "Pay Vendor the fees set forth in Exhibit A.",
+              "clause_ref": "4.1"
+            },
+            {
+              "party": "Client",
+              "description": "Pay all undisputed invoices within thirty (30) days of receipt of the invoice.",
+              "clause_ref": "4.3"
+            },
+            {
+              "party": "Client",
+              "description": "Reimburse Vendor for all reasonable out-of-pocket expenses incurred by Vendor in connection with the performance of the Services, provided that such expenses are pre-approved in writing by Client and are accompanied by appropriate documentation.",
+              "clause_ref": "4.5"
+            },
+            {
+              "party": "Client",
+              "description": "Indemnify, defend, and hold harmless Vendor, its Affiliates, and their respective officers, directors, employees, agents, and representatives from and against any and all claims, liabilities, damages, losses, costs, expenses, and causes of action of any kind or nature whatsoever, including reasonable attorneys' fees and costs, arising out of or relating to: (a) Client's breach of any provision of this Agreement; (b) Client's use or misuse of the Services or any deliverables provided by Vendor; (c) any third-party claims arising from Client's products, services, or business operations; (d) any act or omission of Client or its employees, agents, or contractors; or (e) any violation of any applicable law or regulation by Client.",
+              "clause_ref": "5.2"
+            },
+            {
+              "party": "Vendor",
+              "description": "Indemnify, defend, and hold harmless Client, its Affiliates, and their respective officers, directors, employees, agents, and representatives from and against any and all claims, liabilities, damages, losses, costs, expenses, and causes of action of any kind or nature whatsoever, including reasonable attorneys' fees and costs, arising out of or relating to: (a) Vendor's breach of any provision of this Agreement; (b) Vendor's gross negligence or willful misconduct in the performance of the Services; or (c) any infringement of any third-party intellectual property rights by the Services, provided that Client promptly notifies Vendor in writing of such claim and Vendor has sole control of the defense and settlement of such claim.",
+              "clause_ref": "5.3"
+            },
+            {
+              "party": "Receiving Party",
+              "description": "Hold the Disclosing Party's Confidential Information in strict confidence and shall not disclose such Confidential Information to any third party, nor use such Confidential Information for any purpose other than as necessary to perform its obligations or exercise its rights under this Agreement, without the prior written consent of the Disclosing Party.",
+              "clause_ref": "6.1"
+            },
+            {
+              "party": "Receiving Party",
+              "description": "Exercise the same degree of care to protect the Disclosing Party's Confidential Information as it exercises to protect its own confidential information of a similar nature, but in no event less than a reasonable degree of care.",
+              "clause_ref": "6.2"
+            },
+            {
+              "party": "Receiving Party",
+              "description": "Disclose Confidential Information to its employees, contractors, and professional advisors who have a need to know such information for the purpose of this Agreement, provided that such individuals are bound by confidentiality obligations at least as restrictive as those contained herein.",
+              "clause_ref": "6.3"
+            },
+            {
+              "party": "Receiving Party",
+              "description": "Promptly return to the Disclosing Party, or destroy and certify the destruction of, all Confidential Information of the Disclosing Party in its possession or control, including all copies thereof, upon the termination or expiration of this Agreement, or upon the Disclosing Party's written request.",
+              "clause_ref": "6.4"
+            },
+            {
+              "party": "Either party",
+              "description": "Terminate this Agreement upon written notice to the other party if the other party materially breaches any of its obligations under this Agreement and fails to cure such breach within thirty (30) days after receiving written notice of such breach.",
+              "clause_ref": "7.1"
+            },
+            {
+              "party": "Client",
+              "description": "Terminate this Agreement for any reason or no reason upon sixty (60) days' prior written notice to Vendor.",
+              "clause_ref": "7.2"
+            },
+            {
+              "party": "Vendor",
+              "description": "Cease all performance of the Services upon termination or expiration of this Agreement.",
+              "clause_ref": "7.3"
+            },
+            {
+              "party": "Client",
+              "description": "Pay Vendor for all Services performed and expenses incurred up to the effective date of termination or expiration.",
+              "clause_ref": "7.3"
+            }
+          ],
+          "summary": "This Vendor Agreement establishes a two-year initial term, with automatic one-year renewals, between COMPANY A (Client) and VENDOR B (Vendor). Vendor B will provide services as described in Exhibit A, and Client will pay for these services within 30 days of invoice receipt. The agreement is governed by Delaware law and includes provisions for liability limitations, indemnification, and confidentiality."
+        },
+        "confidence": null,
+        "prompt_hash": "sha256:8d30304b2a3f1e8f",
+        "created_at": "2026-05-13T00:10:36.529657"
+      },
+      "risk": {
+        "output": {
+          "score": 75,
+          "findings": [
+            {
+              "risk": "Zero Liability Cap for Vendor",
+              "severity": "Critical",
+              "clause_ref": "5.1",
+              "reasoning": "Clause 5.1 states that the Vendor's total aggregate liability is zero dollars ($0.00). This is a critical risk as it provides no recourse for the Client in case of Vendor's failure or damages, even if the remedy fails its essential purpose."
+            },
+            {
+              "risk": "Uncapped Indemnification by Client",
+              "severity": "High",
+              "clause_ref": "5.2",
+              "reasoning": "Clause 5.2 requires the Client to indemnify the Vendor for a broad range of claims, and this obligation is uncapped. This presents a significant financial risk to the Client as there is no limit to their potential liability."
+            },
+            {
+              "risk": "Automatic Renewal with Short Notice Period",
+              "severity": "Medium",
+              "clause_ref": "2.2",
+              "reasoning": "Clause 2.2 states the agreement automatically renews for one-year periods unless notice is given 90 days prior to expiration. This short notice period for non-renewal could lead to unwanted renewals if not managed carefully."
+            },
+            {
+              "risk": "Broad Scope of Vendor's Indemnification",
+              "severity": "Medium",
+              "clause_ref": "5.3",
+              "reasoning": "Clause 5.3 indemnifies Client for Vendor's breach, gross negligence, or willful misconduct, and IP infringement. While standard, the scope could be reviewed to ensure it aligns with the specific services and potential risks."
+            }
+          ]
+        },
+        "confidence": null,
+        "prompt_hash": "sha256:1b1fe11942999261",
+        "created_at": "2026-05-13T00:10:44.818104"
+      },
+      "compliance": {
+        "output": {
+          "frameworks": [
+            {
+              "framework": "HIPAA",
+              "passed": true,
+              "checks": [
+                {
+                  "requirement": "Business Associate Agreement (BAA)",
+                  "present": true,
+                  "evidence_quote": "Framework not applicable \u2014 contract does not involve [PHI / customer data processing / EU personal data].",
+                  "gap_description": null,
+                  "severity": "Medium"
+                },
+                {
+                  "requirement": "Subcontractor Agreements",
+                  "present": true,
+                  "evidence_quote": "Framework not applicable \u2014 contract does not involve [PHI / customer data processing / EU personal data].",
+                  "gap_description": null,
+                  "severity": "Medium"
+                },
+                {
+                  "requirement": "Permitted Uses and Disclosures",
+                  "present": true,
+                  "evidence_quote": "Framework not applicable \u2014 contract does not involve [PHI / customer data processing / EU personal data].",
+                  "gap_description": null,
+                  "severity": "Medium"
+                },
+                {
+                  "requirement": "Safeguards for PHI",
+                  "present": true,
+                  "evidence_quote": "Framework not applicable \u2014 contract does not involve [PHI / customer data processing / EU personal data].",
+                  "gap_description": null,
+                  "severity": "Medium"
+                },
+                {
+                  "requirement": "Breach Notification",
+                  "present": true,
+                  "evidence_quote": "Framework not applicable \u2014 contract does not involve [PHI / customer data processing / EU personal data].",
+                  "gap_description": null,
+                  "severity": "Medium"
+                }
+              ]
+            },
+            {
+              "framework": "SOC2",
+              "passed": true,
+              "checks": [
+                {
+                  "requirement": "Security Certification",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not contain any clauses requiring the vendor to maintain a current SOC 2 Type II report or make it available to the customer.",
+                  "severity": "High"
+                },
+                {
+                  "requirement": "Incident Response",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not specify requirements for an incident response plan or a timeframe for notifying the customer of security incidents.",
+                  "severity": "High"
+                },
+                {
+                  "requirement": "Vendor Risk Management",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not include provisions for the vendor to conduct risk assessments of subprocessors or disclose its subprocessor list.",
+                  "severity": "Medium"
+                },
+                {
+                  "requirement": "Business Continuity",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "There are no clauses addressing the vendor's maintenance of a business continuity and disaster recovery plan, including RTO/RPO testing.",
+                  "severity": "Medium"
+                },
+                {
+                  "requirement": "Logging and Monitoring",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract lacks requirements for the vendor to collect, monitor, retain, or alert on security-relevant logs for systems handling customer data.",
+                  "severity": "Medium"
+                },
+                {
+                  "requirement": "Change Management",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not outline a documented change management process for systems handling customer data.",
+                  "severity": "Medium"
+                },
+                {
+                  "requirement": "Access Controls",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not specify requirements for role-based access controls, multi-factor authentication for privileged access, or quarterly access reviews.",
+                  "severity": "High"
+                }
+              ]
+            },
+            {
+              "framework": "GDPR",
+              "passed": true,
+              "checks": [
+                {
+                  "requirement": "Data Processing Agreement (DPA)",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not contain or incorporate a Data Processing Agreement that meets the requirements of Article 28 of the GDPR.",
+                  "severity": "Critical"
+                },
+                {
+                  "requirement": "Sub-processor Approval",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not specify requirements for obtaining prior written authorization before engaging sub-processors or imposing equivalent data protection obligations.",
+                  "severity": "High"
+                },
+                {
+                  "requirement": "Data Breach Notification",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not include provisions for notifying the Customer of personal data breaches within the timeframe specified by Article 33 of the GDPR.",
+                  "severity": "Critical"
+                },
+                {
+                  "requirement": "Return or Deletion",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "While Section 6.4 addresses the return or destruction of Confidential Information, it does not explicitly cover personal data as required by GDPR upon termination.",
+                  "severity": "High"
+                },
+                {
+                  "requirement": "Records of Processing",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not mention the vendor's obligation to maintain records of processing activities as required by Article 30 of the GDPR.",
+                  "severity": "Medium"
+                },
+                {
+                  "requirement": "Security of Processing",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not detail the specific technical and organisational measures to ensure an appropriate level of security for personal data processing.",
+                  "severity": "High"
+                },
+                {
+                  "requirement": "Data Subject Rights",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not include provisions for the vendor to assist the customer in fulfilling data subject rights requests within the specified timeframes.",
+                  "severity": "High"
+                },
+                {
+                  "requirement": "Lawful Basis and Purpose Limitation",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not specify the subject matter, duration, nature, and purpose of processing, nor the types of personal data and categories of data subjects, as required for a DPA.",
+                  "severity": "Critical"
+                }
+              ]
+            }
+          ]
+        },
+        "confidence": null,
+        "prompt_hash": "HIPAA:sha256:c32d4ba66280db7d;SOC2:sha256:a56d292ca29e2c25;GDPR:sha256:c2aca95e97ba12a1",
+        "created_at": "2026-05-13T00:10:57.613585"
+      }
+    }
+  },
+  {
+    "filename": "Expired_Termination_Date.pdf",
+    "contract_id": 14,
+    "status": "quarantined",
+    "risk_score": null,
+    "agent_outputs": {}
+  },
+  {
+    "filename": "Multi_Party_4_Parties.pdf",
+    "contract_id": 15,
+    "status": "quarantined",
+    "risk_score": null,
+    "agent_outputs": {}
+  },
+  {
+    "filename": "CSS_Hidden_Injection.pdf",
+    "contract_id": 16,
+    "status": "quarantined",
+    "risk_score": null,
+    "agent_outputs": {}
+  },
+  {
+    "filename": "Employment_Aggressive_NonCompete.pdf",
+    "contract_id": 17,
+    "status": "legal_review",
+    "risk_score": null,
+    "agent_outputs": {
+      "extraction": {
+        "output": {
+          "parties": [
+            {
+              "name": "Company A",
+              "role": "Customer"
+            },
+            {
+              "name": "Vendor B",
+              "role": "Vendor"
+            }
+          ],
+          "effective_date": "2025-01-01",
+          "term": "2 years from Effective Date, with automatic one-year renewals",
+          "payment_terms": "Net 30",
+          "governing_law": "State of Delaware",
+          "obligations": [
+            {
+              "party": "Vendor B",
+              "description": "Provide Client the services described in Exhibit A in a professional and workmanlike manner, consistent with industry standards and best practices.",
+              "clause_ref": "3.1"
+            },
+            {
+              "party": "Vendor B",
+              "description": "Assign qualified personnel to perform the Services and be solely responsible for their supervision, direction, and control.",
+              "clause_ref": "3.2"
+            },
+            {
+              "party": "Client",
+              "description": "Reasonably cooperate with Vendor in connection with the performance of the Services, including providing Vendor with access to necessary information, personnel, and facilities.",
+              "clause_ref": "3.3"
+            },
+            {
+              "party": "Client",
+              "description": "Pay Vendor the fees set forth in Exhibit B.",
+              "clause_ref": "4.1"
+            },
+            {
+              "party": "Client",
+              "description": "Pay all undisputed invoices within thirty (30) days of receipt.",
+              "clause_ref": "4.3"
+            },
+            {
+              "party": "Vendor B",
+              "description": "Indemnify, defend, and hold harmless Client, its Affiliates, and their respective officers, directors, employees, and agents from and against any and all claims, losses, damages, liabilities, costs, and expenses (including reasonable attorneys' fees) arising out of or relating to: (i) Vendor's breach of any of its representations, warranties, or obligations under this Agreement; (ii) any gross negligence or willful misconduct of Vendor or its personnel in the performance of the Services; or (iii) any infringement or alleged infringement of any third-party intellectual property rights arising from the Services as performed by Vendor, provided that Client provides Vendor with prompt written notice of any such claim and cooperates with Vendor in the defense of such claim.",
+              "clause_ref": "5.2(a)"
+            },
+            {
+              "party": "Client",
+              "description": "Indemnify, defend, and hold harmless Vendor, its Affiliates, and their respective officers, directors, employees, and agents from and against any and all claims, losses, damages, liabilities, costs, and expenses (including reasonable attorneys' fees) arising out of or relating to: (i) Client's breach of any of its representations, warranties, or obligations under this Agreement; or (ii) any gross negligence or willful misconduct of Client or its personnel.",
+              "clause_ref": "5.2(b)"
+            },
+            {
+              "party": "Vendor B",
+              "description": "Hold Client's Confidential Information in strict confidence and shall not, without Client's prior written consent, disclose such Confidential Information to any third party, except to its employees, agents, and subcontractors who have a need to know such information for the purpose of performing their duties under this Agreement and who are bound by confidentiality obligations at least as restrictive as those contained herein.",
+              "clause_ref": "6.1"
+            },
+            {
+              "party": "Vendor B",
+              "description": "Use Client's Confidential Information solely for the purpose of performing its obligations or exercising its rights under this Agreement.",
+              "clause_ref": "6.2"
+            },
+            {
+              "party": "Vendor B",
+              "description": "Upon the termination of this Agreement or upon Client's written request, promptly return to Client all Confidential Information in its possession or control, or, at Client's option, destroy all such Confidential Information and certify in writing to Client that such destruction has been completed. Notwithstanding the foregoing, Vendor may retain one (1) copy of Client's Confidential Information solely for archival purposes, provided that such copy remains subject to the confidentiality obligations set forth in this Agreement.",
+              "clause_ref": "6.3"
+            },
+            {
+              "party": "Vendor B",
+              "description": "For a period of three (3) years following the effective date of termination or expiration of this Agreement, not engage in, be employed by, consult for, or otherwise participate in any business that competes with Client in any market segment in which Client operates or has announced plans to operate as of the date of termination or expiration. This restriction applies worldwide.",
+              "clause_ref": "8.1"
+            },
+            {
+              "party": "Vendor B",
+              "description": "For a period of three (3) years following the effective date of termination or expiration of this Agreement, not solicit, induce, or attempt to induce any customer of Client with whom Vendor had material contact or about whom Vendor obtained Confidential Information during the Term of this Agreement, to cease doing business with Client or to do business with a competitor of Client.",
+              "clause_ref": "8.2"
+            },
+            {
+              "party": "Vendor B",
+              "description": "For a period of three (3) years following the effective date of termination or expiration of this Agreement, not solicit, induce, or attempt to induce any employee of Client to leave their employment with Client.",
+              "clause_ref": "8.3"
+            },
+            {
+              "party": "Vendor B",
+              "description": "Cease all performance of the Services upon termination of this Agreement.",
+              "clause_ref": "7.3(a)"
+            },
+            {
+              "party": "Client",
+              "description": "Pay Vendor for all Services performed and expenses incurred up to the effective date of termination, in accordance with the payment terms set forth herein.",
+              "clause_ref": "7.3(b)"
+            },
+            {
+              "party": "Vendor B",
+              "description": "Promptly return to Client all of Client's Confidential Information and any other property belonging to Client upon termination of this Agreement.",
+              "clause_ref": "7.3(d)"
+            }
+          ],
+          "summary": "This Employment Agreement is between Company A (Client) and Vendor B (Vendor), effective January 1, 2025, for a term of two years with automatic renewals. Vendor B agrees to provide specific services to Client in exchange for fees, with payment due within 30 days of invoice receipt. The agreement also outlines confidentiality obligations, limitations of liability, indemnification, and non-compete/non-solicitation clauses for Vendor B for three years post-termination."
+        },
+        "confidence": null,
+        "prompt_hash": "sha256:e700cb52a9b5d31d",
+        "created_at": "2026-05-13T00:11:27.312857"
+      },
+      "risk": {
+        "output": {
+          "score": 75,
+          "findings": [
+            {
+              "risk": "Broad Non-Compete Clause",
+              "severity": "High",
+              "clause_ref": "8.1",
+              "reasoning": "Clause 8.1 imposes a three-year worldwide non-compete restriction on the Vendor in any market segment where the Client operates or has announced plans to operate. This is a very broad restriction that could significantly hinder the Vendor's ability to conduct business post-termination."
+            },
+            {
+              "risk": "Broad Non-Solicitation of Customers",
+              "severity": "Medium",
+              "clause_ref": "8.2",
+              "reasoning": "Clause 8.2 restricts the Vendor from soliciting any Client customer with whom the Vendor had material contact or obtained Confidential Information for three years post-termination. This could be overly broad if 'material contact' is not clearly defined."
+            },
+            {
+              "risk": "Broad Non-Solicitation of Employees",
+              "severity": "Medium",
+              "clause_ref": "8.3",
+              "reasoning": "Clause 8.3 prohibits the Vendor from soliciting any Client employee for three years post-termination. This is a broad restriction that may be difficult for the Vendor to comply with, especially if employees leave Client for unrelated reasons."
+            },
+            {
+              "risk": "Automatic Renewal Clause",
+              "severity": "Medium",
+              "clause_ref": "2.2",
+              "reasoning": "Clause 2.2 states the agreement will automatically renew for one-year terms unless 90 days' notice is given. This could lead to unintended renewals if notice is missed, potentially locking parties into the agreement longer than desired."
+            },
+            {
+              "risk": "Broad Limitation of Liability",
+              "severity": "Medium",
+              "clause_ref": "5.1",
+              "reasoning": "Clause 5.1 limits the Vendor's total aggregate liability to the total fees paid or payable in the preceding 12 months, excluding certain specific liabilities. This cap may be insufficient for significant breaches or damages."
+            },
+            {
+              "risk": "Indemnification Scope",
+              "severity": "Medium",
+              "clause_ref": "5.2(a)",
+              "reasoning": "Clause 5.2(a) requires the Vendor to indemnify Client for IP infringement claims arising from the Services as performed by Vendor. This could expose the Vendor to significant liability if the Services inadvertently infringe on third-party IP."
+            }
+          ]
+        },
+        "confidence": null,
+        "prompt_hash": "sha256:e6ac257ff4589856",
+        "created_at": "2026-05-13T00:11:31.612066"
+      },
+      "compliance": {
+        "output": {
+          "frameworks": [
+            {
+              "framework": "HIPAA",
+              "passed": true,
+              "checks": [
+                {
+                  "requirement": "Business Associate Agreement (BAA)",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not mention Protected Health Information (PHI) or a Business Associate Agreement (BAA), indicating HIPAA is not applicable.",
+                  "severity": "Critical"
+                },
+                {
+                  "requirement": "Subcontractor Agreements",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not mention Protected Health Information (PHI) or subcontractor agreements related to PHI, indicating HIPAA is not applicable.",
+                  "severity": "High"
+                },
+                {
+                  "requirement": "Permitted Uses and Disclosures",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not mention Protected Health Information (PHI) or specific uses and disclosures of PHI, indicating HIPAA is not applicable.",
+                  "severity": "Critical"
+                },
+                {
+                  "requirement": "Safeguards for PHI",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not mention Protected Health Information (PHI) or specific safeguards for PHI, indicating HIPAA is not applicable.",
+                  "severity": "High"
+                },
+                {
+                  "requirement": "Breach Notification",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not mention Protected Health Information (PHI) or breach notification requirements related to PHI, indicating HIPAA is not applicable.",
+                  "severity": "Critical"
+                }
+              ]
+            },
+            {
+              "framework": "SOC2",
+              "passed": true,
+              "checks": [
+                {
+                  "requirement": "Security Certification",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not contain any clauses requiring the vendor to maintain a current SOC 2 Type II report or make it available to the customer.",
+                  "severity": "High"
+                },
+                {
+                  "requirement": "Logging and Monitoring",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not specify requirements for the vendor to collect, monitor, or retain security-relevant logs for systems handling customer data.",
+                  "severity": "Medium"
+                },
+                {
+                  "requirement": "Access Controls",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not include provisions for role-based access controls, multi-factor authentication for privileged access, or quarterly access reviews.",
+                  "severity": "High"
+                },
+                {
+                  "requirement": "Incident Response",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract lacks clauses detailing the vendor's obligation to maintain an incident response plan or notify the customer of security incidents within a specified timeframe.",
+                  "severity": "High"
+                },
+                {
+                  "requirement": "Vendor Risk Management",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "There are no requirements for the vendor to perform annual risk assessments of subprocessors or disclose its subprocessor list to the customer.",
+                  "severity": "Medium"
+                },
+                {
+                  "requirement": "Business Continuity",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not stipulate that the vendor must maintain a business continuity and disaster recovery plan with documented RTO and RPO, tested annually.",
+                  "severity": "Medium"
+                },
+                {
+                  "requirement": "Change Management",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not outline requirements for a documented change management process including peer review, testing, and rollback procedures.",
+                  "severity": "Medium"
+                }
+              ]
+            },
+            {
+              "framework": "GDPR",
+              "passed": true,
+              "checks": [
+                {
+                  "requirement": "Data Processing Agreement (DPA)",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not contain or incorporate a Data Processing Agreement as required by Article 28 of the GDPR.",
+                  "severity": "Critical"
+                },
+                {
+                  "requirement": "Sub-processor Approval",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not include provisions for obtaining prior written authorization before engaging sub-processors or imposing equivalent data protection obligations.",
+                  "severity": "High"
+                },
+                {
+                  "requirement": "Data Breach Notification",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not specify requirements for notifying the Customer of personal data breaches within the timeframe stipulated by Article 33 of the GDPR.",
+                  "severity": "Critical"
+                },
+                {
+                  "requirement": "Return or Deletion",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "While Article 6.3 mentions return or destruction of Confidential Information, it does not explicitly cover personal data upon termination as required by GDPR.",
+                  "severity": "High"
+                },
+                {
+                  "requirement": "Data Subject Rights",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not outline how the Vendor will assist the Customer in fulfilling data subject rights under Articles 15-22 of the GDPR.",
+                  "severity": "High"
+                },
+                {
+                  "requirement": "Records of Processing",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not include provisions for the Vendor to maintain records of processing activities as required by Article 30 of the GDPR.",
+                  "severity": "Medium"
+                },
+                {
+                  "requirement": "Security of Processing",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "While the contract implies a need for security through confidentiality clauses, it does not detail the implementation of specific technical and organizational measures as required by Article 32 of the GDPR.",
+                  "severity": "High"
+                },
+                {
+                  "requirement": "Lawful Basis and Purpose Limitation",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not specify the subject matter, duration, nature, and purpose of processing, nor the types of personal data and categories of data subjects, as required for a DPA under GDPR.",
+                  "severity": "Critical"
+                }
+              ]
+            }
+          ]
+        },
+        "confidence": null,
+        "prompt_hash": "HIPAA:sha256:0bdec36efb009cbe;SOC2:sha256:34e0a773839e59a4;GDPR:sha256:c8e23e7081d54e1a",
+        "created_at": "2026-05-13T00:11:48.200782"
+      }
+    }
+  },
+  {
+    "filename": "GDPR_CCPA_Dual_DPA.pdf",
+    "contract_id": 18,
+    "status": "legal_review",
+    "risk_score": null,
+    "agent_outputs": {
+      "extraction": {
+        "output": {
+          "parties": [
+            {
+              "name": "Company A",
+              "role": "Customer"
+            },
+            {
+              "name": "Vendor B",
+              "role": "Vendor"
+            }
+          ],
+          "effective_date": "2025-01-01",
+          "term": "2 years from Effective Date, with automatic one (1) year renewals unless notice is given",
+          "payment_terms": "Net 30",
+          "governing_law": "State of Delaware",
+          "obligations": [
+            {
+              "party": "Vendor",
+              "description": "Provide the Services to Client as set forth in Exhibit A.",
+              "clause_ref": "3.1"
+            },
+            {
+              "party": "Vendor",
+              "description": "Perform the Services in a professional and workmanlike manner, consistent with industry standards and best practices.",
+              "clause_ref": "3.2"
+            },
+            {
+              "party": "Client",
+              "description": "Provide Vendor with all necessary information, access, and cooperation reasonably required for Vendor to perform the Services.",
+              "clause_ref": "3.3"
+            },
+            {
+              "party": "Client",
+              "description": "Pay Vendor the fees set forth in Exhibit B.",
+              "clause_ref": "4.1"
+            },
+            {
+              "party": "Client",
+              "description": "Pay invoices within thirty (30) days of the date of invoice.",
+              "clause_ref": "4.3"
+            },
+            {
+              "party": "Client",
+              "description": "Indemnify, defend, and hold harmless Vendor, its Affiliates, and their respective officers, directors, employees, and agents from and against any and all claims, liabilities, damages, losses, costs, expenses, and fees (including reasonable attorneys' fees) arising out of or relating to (a) Client's breach of this Agreement, or (b) Client's negligence or willful misconduct in connection with its obligations under this Agreement.",
+              "clause_ref": "5.2.1"
+            },
+            {
+              "party": "Vendor",
+              "description": "Indemnify, defend, and hold harmless Client, its Affiliates, and their respective officers, directors, employees, and agents from and against any and all claims, liabilities, damages, losses, costs, expenses, and fees (including reasonable attorneys' fees) arising out of or relating to (a) Vendor's breach of this Agreement, (b) Vendor's negligence or willful misconduct in connection with its obligations under this Agreement, or (c) any claim that the Services infringe or misappropriate any intellectual property rights of a third party.",
+              "clause_ref": "5.2.2"
+            },
+            {
+              "party": "Vendor",
+              "description": "Process Personal Data only on behalf of Client and in accordance with Client's documented instructions, unless required to do so by Union or Member State law to which Vendor is subject; in such a case, Vendor shall inform Client of that legal requirement before Processing, unless that law prohibits such information on important grounds of public interest.",
+              "clause_ref": "10.1.2(b)"
+            },
+            {
+              "party": "Vendor",
+              "description": "Ensure that persons authorised to Process the Personal Data have committed themselves to confidentiality or are under an appropriate statutory obligation of confidentiality.",
+              "clause_ref": "10.1.2(c)"
+            },
+            {
+              "party": "Vendor",
+              "description": "Implement appropriate technical and organisational measures to ensure a level of security appropriate to the risk.",
+              "clause_ref": "10.1.2(d)"
+            },
+            {
+              "party": "Vendor",
+              "description": "Assist Client in fulfilling Client's obligations to respond to requests for exercising Data Subject rights under Chapter III of GDPR.",
+              "clause_ref": "10.1.2(e)"
+            },
+            {
+              "party": "Vendor",
+              "description": "Assist Client in fulfilling Client's obligations pursuant to Articles 32 to 36 of GDPR, taking into account the nature of Processing and the information available to Vendor.",
+              "clause_ref": "10.1.2(f)"
+            },
+            {
+              "party": "Vendor",
+              "description": "Upon termination of the provision of Personal Data Processing services, at the choice of Client, delete or return all the Personal Data to Client and delete existing copies unless Union or Member State law requires the storage of the Personal Data.",
+              "clause_ref": "10.1.2(g)"
+            },
+            {
+              "party": "Vendor",
+              "description": "Make available to Client all information necessary to demonstrate compliance with the obligations laid down in Article 28 of GDPR and allow for and contribute to audits, including inspections, conducted by Client or another auditor mandated by Client.",
+              "clause_ref": "10.1.2(h)"
+            },
+            {
+              "party": "Vendor",
+              "description": "Not sell Personal Information received from Client.",
+              "clause_ref": "10.2.1(b)"
+            },
+            {
+              "party": "Vendor",
+              "description": "Not retain, use, or disclose Personal Information received from Client for any purpose other than for the specific purpose of performing the Services for Client as described in this Agreement, and as permitted by the CCPA.",
+              "clause_ref": "10.2.1(c)"
+            },
+            {
+              "party": "Vendor",
+              "description": "Not retain, use, or disclose Personal Information outside of the direct business relationship between Client and Vendor.",
+              "clause_ref": "10.2.1(d)"
+            },
+            {
+              "party": "Vendor",
+              "description": "Provide the same level of privacy protection to Personal Information as is required of a Business under the CCPA.",
+              "clause_ref": "10.2.1(e)"
+            },
+            {
+              "party": "Vendor",
+              "description": "Notify Client promptly if Vendor determines that it can no longer meet this obligation.",
+              "clause_ref": "10.2.1(f)"
+            },
+            {
+              "party": "Vendor",
+              "description": "Allow Client to take reasonable steps to remedy any breach of this Agreement by Vendor, and shall provide prompt notice to Client of any legally binding request for Personal Information from law enforcement.",
+              "clause_ref": "10.2.1(g)"
+            },
+            {
+              "party": "Vendor",
+              "description": "Cooperate with Client in connection with Client's obligations under the CCPA, including responding to consumer requests and assisting with data protection impact assessments.",
+              "clause_ref": "10.2.1(h)"
+            },
+            {
+              "party": "Vendor",
+              "description": "Assist Client in responding to consumer requests under the CCPA, including requests for access, deletion, or opt-out of sale, as applicable.",
+              "clause_ref": "10.2.2"
+            },
+            {
+              "party": "Vendor",
+              "description": "Not use Personal Information for the purpose of targeted advertising or to create profiles for such purposes, unless explicitly instructed and permitted by Client and in compliance with the CCPA.",
+              "clause_ref": "10.2.2"
+            },
+            {
+              "party": "Vendor",
+              "description": "Not engage any Sub-processor to Process Personal Data without the prior written consent of Client.",
+              "clause_ref": "10.3"
+            },
+            {
+              "party": "Vendor",
+              "description": "Ensure that any engaged Sub-processor is bound by contractual obligations that are at least as protective of Personal Data as those set forth in this Agreement.",
+              "clause_ref": "10.3"
+            },
+            {
+              "party": "Client",
+              "description": "Ensure that it has a lawful basis for Processing Personal Data that is transferred to Vendor for Processing under this Agreement, in accordance with Article 6 of GDPR.",
+              "clause_ref": "10.1.1"
+            },
+            {
+              "party": "Client",
+              "description": "Provide Vendor with appropriate instructions for the Processing of Personal Data.",
+              "clause_ref": "10.1.1"
+            },
+            {
+              "party": "Client",
+              "description": "Shall be the Data Controller.",
+              "clause_ref": "10.1.2(a)"
+            },
+            {
+              "party": "Client",
+              "description": "Shall be the Business, as defined under the CCPA.",
+              "clause_ref": "10.2.1(a)"
+            },
+            {
+              "party": "Client",
+              "description": "May terminate this Agreement upon thirty (30) days' written notice to Vendor for any reason.",
+              "clause_ref": "7.1.3"
+            },
+            {
+              "party": "Either party",
+              "description": "May terminate this Agreement upon thirty (30) days' written notice to the other party if the other party materially breaches any provision of this Agreement and fails to cure such breach within such thirty (30) day period.",
+              "clause_ref": "7.1.1"
+            },
+            {
+              "party": "Either party",
+              "description": "May terminate this Agreement immediately upon written notice to the other party if the other party becomes insolvent, files a petition for bankruptcy, makes an assignment for the benefit of creditors, or has a receiver or trustee appointed for its assets.",
+              "clause_ref": "7.1.2"
+            },
+            {
+              "party": "Vendor",
+              "description": "Shall remain fully liable to Client for the performance of the Sub-processor's obligations.",
+              "clause_ref": "10.3"
+            }
+          ],
+          "summary": "This Data Processing Agreement (DPA) is between Company A (Client) and Vendor B (Vendor), effective January 1, 2025. Vendor B will provide services involving the processing of personal data for Client, adhering to GDPR and CCPA regulations. The agreement outlines the term, payment terms, mutual indemnification, confidentiality obligations, and specific data processing responsibilities for both parties."
+        },
+        "confidence": null,
+        "prompt_hash": "sha256:5859becc29b7f11e",
+        "created_at": "2026-05-13T00:12:05.103500"
+      },
+      "risk": {
+        "output": {
+          "score": 15,
+          "findings": [
+            {
+              "risk": "Asymmetric termination for convenience",
+              "severity": "Medium",
+              "clause_ref": "7.1.3",
+              "reasoning": "Clause 7.1.3 allows the Client to terminate the agreement for any reason with 30 days' notice, while the Vendor does not have a similar right. This asymmetry could leave the Vendor with unrecouped costs or stranded investments."
+            },
+            {
+              "risk": "Broad limitation of liability",
+              "severity": "Medium",
+              "clause_ref": "5.1",
+              "reasoning": "Clause 5.1 limits the Vendor's aggregate liability to the total fees paid or payable in the preceding 12 months, excluding certain critical areas like gross negligence or willful misconduct. This cap may not adequately cover potential damages arising from a significant breach."
+            }
+          ]
+        },
+        "confidence": null,
+        "prompt_hash": "sha256:670ae80b4a39af45",
+        "created_at": "2026-05-13T00:12:07.247296"
+      },
+      "compliance": {
+        "output": {
+          "frameworks": [
+            {
+              "framework": "HIPAA",
+              "passed": true,
+              "checks": [
+                {
+                  "requirement": "Business Associate Agreement (BAA)",
+                  "present": true,
+                  "evidence_quote": "Framework not applicable \u2014 contract does not involve [PHI / customer data processing / EU personal data].",
+                  "gap_description": null,
+                  "severity": "Medium"
+                },
+                {
+                  "requirement": "Subcontractor Agreements",
+                  "present": true,
+                  "evidence_quote": "Framework not applicable \u2014 contract does not involve [PHI / customer data processing / EU personal data].",
+                  "gap_description": null,
+                  "severity": "Medium"
+                },
+                {
+                  "requirement": "Permitted Uses and Disclosures",
+                  "present": true,
+                  "evidence_quote": "Framework not applicable \u2014 contract does not involve [PHI / customer data processing / EU personal data].",
+                  "gap_description": null,
+                  "severity": "Medium"
+                },
+                {
+                  "requirement": "Safeguards for PHI",
+                  "present": true,
+                  "evidence_quote": "Framework not applicable \u2014 contract does not involve [PHI / customer data processing / EU personal data].",
+                  "gap_description": null,
+                  "severity": "Medium"
+                }
+              ]
+            },
+            {
+              "framework": "SOC2",
+              "passed": false,
+              "checks": []
+            },
+            {
+              "framework": "GDPR",
+              "passed": false,
+              "checks": [
+                {
+                  "requirement": "Sub-processor Approval",
+                  "present": true,
+                  "evidence_quote": "Vendor shall not engage any Sub-processor to Process Personal Data without the prior written consent of Client. If Vendor engages a Sub-processor, Vendor shall ensure that such Sub-processor is bound by contractual obligations that are at least as protective of Personal Data as those set forth in this Agreement. Vendor shall remain fully liable to Client for the performance of the Sub-processor's obligations.",
+                  "gap_description": null,
+                  "severity": "Medium"
+                },
+                {
+                  "requirement": "Data Processing Agreement (DPA)",
+                  "present": true,
+                  "evidence_quote": "This Data Processing Agreement (the \"Agreement\") is made and entered into as of January 1, 2025 (the \"Effective Date\"), by and between:\nCompany A, a Delaware corporation, with its principal place of business at [Client's Address], hereinafter referred to as \"Client\";\nand\nVendor B, a California Limited Liability Company, with its principal place of business at [Vendor's Address], hereinafter referred to as\n\"Vendor\".",
+                  "gap_description": null,
+                  "severity": "Medium"
+                },
+                {
+                  "requirement": "Records of Processing",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not contain a clause requiring the vendor to maintain a record of processing activities and make it available to supervisory authorities.",
+                  "severity": "Medium"
+                },
+                {
+                  "requirement": "Lawful Basis and Purpose Limitation",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "While the contract mentions lawful basis and instructions, it does not explicitly detail the subject matter, duration, nature, and purpose of processing, nor the types of personal data and categories of data subjects in the main body of the DPA.",
+                  "severity": "Critical"
+                },
+                {
+                  "requirement": "Return or Deletion",
+                  "present": true,
+                  "evidence_quote": "Upon termination or expiration of this Agreement, Vendor shall promptly cease all Processing of Client's Personal Data and shall, at Client's election, delete or return all Personal Data and any copies thereof in its possession or control, except to the extent that Vendor is required by Applicable Data Protection Laws to retain such Personal Data.",
+                  "gap_description": null,
+                  "severity": "Medium"
+                },
+                {
+                  "requirement": "Data Subject Rights",
+                  "present": true,
+                  "evidence_quote": "Vendor shall assist Client in fulfilling Client's obligations to respond to requests for exercising Data Subject rights under Chapter III of GDPR (e.g., right of access, rectification, erasure, restriction of processing, data portability, right to object). Vendor shall assist Client in fulfilling Client's obligations pursuant to Articles 32 to 36 of GDPR, taking into account the nature of Processing and the information available to Vendor.",
+                  "gap_description": null,
+                  "severity": "Medium"
+                },
+                {
+                  "requirement": "Security of Processing",
+                  "present": true,
+                  "evidence_quote": "Vendor shall implement appropriate technical and organisational measures to ensure a level of security appropriate to the risk, taking into account the state of the art, the costs of implementation and the nature, scope, context and purposes of Processing as well as the risks of varying likelihood and severity for the rights and freedoms of natural persons.",
+                  "gap_description": null,
+                  "severity": "Medium"
+                },
+                {
+                  "requirement": "Data Breach Notification",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not specify that the vendor must notify the client of a personal data breach without undue delay and within 72 hours of becoming aware of it.",
+                  "severity": "Critical"
+                }
+              ]
+            }
+          ]
+        },
+        "confidence": null,
+        "prompt_hash": "HIPAA:sha256:70c85888977191d1;GDPR:sha256:6534b8dbbe35dd9f",
+        "created_at": "2026-05-13T00:12:16.484789"
+      }
+    }
+  },
+  {
+    "filename": "Contradictory_Clauses.pdf",
+    "contract_id": 19,
+    "status": "legal_review",
+    "risk_score": null,
+    "agent_outputs": {
+      "extraction": {
+        "output": {
+          "parties": [
+            {
+              "name": "Company A",
+              "role": "Customer"
+            },
+            {
+              "name": "Vendor B",
+              "role": "Vendor"
+            }
+          ],
+          "effective_date": "2025-01-01",
+          "term": "initial period of two (2) years, automatically renew for successive periods of one (1) year each",
+          "payment_terms": "Net 30",
+          "governing_law": "State of Delaware",
+          "obligations": [
+            {
+              "party": "Vendor B",
+              "description": "provide the following services to Client",
+              "clause_ref": "4"
+            },
+            {
+              "party": "Vendor B",
+              "description": "perform the Services in a professional and workmanlike manner, consistent with industry standards and best practices.",
+              "clause_ref": "4"
+            },
+            {
+              "party": "Vendor B",
+              "description": "dedicate sufficient qualified personnel to perform the Services.",
+              "clause_ref": "4"
+            },
+            {
+              "party": "Client",
+              "description": "cooperate with Vendor and provide Vendor with reasonable access to Client's facilities, personnel, and information as may be necessary for Vendor to perform the Services.",
+              "clause_ref": "4"
+            },
+            {
+              "party": "Client",
+              "description": "pay Vendor the fees set forth in Exhibit A",
+              "clause_ref": "5"
+            },
+            {
+              "party": "Client",
+              "description": "All undisputed invoices shall be due and payable within thirty (30) days of Client's receipt of the invoice.",
+              "clause_ref": "5"
+            },
+            {
+              "party": "Client",
+              "description": "responsible for all applicable sales, use, and other taxes arising from the Services, except for taxes based on Vendor's net income.",
+              "clause_ref": "5"
+            },
+            {
+              "party": "Vendor B",
+              "description": "indemnify, defend, and hold harmless Client, its affiliates, officers, directors, employees, agents, and successors from and against any and all claims, liabilities, damages, losses, costs, expenses, and fees (including reasonable attorneys' fees) arising out of or relating to: (a) any breach by Vendor of any representation, warranty, or covenant made in this Agreement; (b) any gross negligence or willful misconduct of Vendor in the performance of the Services; (c) any infringement or alleged infringement of any intellectual property rights by the Services; or (d) any bodily injury, death, or property damage caused by Vendor's acts or omissions in connection with the Services.",
+              "clause_ref": "6"
+            },
+            {
+              "party": "Client",
+              "description": "indemnify, defend, and hold harmless Vendor, its affiliates, officers, directors, employees, agents, and successors from and against any and all claims, liabilities, damages, losses, costs, expenses, and fees (including reasonable attorneys' fees) arising out of or relating to: (a) any breach by Client of any representation, warranty, or covenant made in this Agreement; or (b) any gross negligence or willful misconduct of Client in connection with its obligations under this Agreement.",
+              "clause_ref": "6"
+            },
+            {
+              "party": "Each party",
+              "description": "agrees to hold in strict confidence all Confidential Information of the other party and shall not disclose such Confidential Information to any third party, except as expressly permitted by this Agreement.",
+              "clause_ref": "7"
+            },
+            {
+              "party": "Each party",
+              "description": "shall use the same degree of care to protect the Disclosing Party's Confidential Information as it uses to protect its own confidential information of a similar nature, but in no event less than a reasonable degree of care.",
+              "clause_ref": "7"
+            },
+            {
+              "party": "Receiving Party",
+              "description": "may disclose Confidential Information only to its employees, contractors, and agents who have a need to know such information for the purpose of fulfilling its obligations under this Agreement, provided that such individuals are bound by confidentiality obligations no less restrictive than those contained herein.",
+              "clause_ref": "7"
+            },
+            {
+              "party": "Either party",
+              "description": "may terminate this Agreement upon written notice to the other party if the other party materially breaches any provision of this Agreement and fails to cure such breach within thirty (30) days after receiving written notice thereof.",
+              "clause_ref": "8"
+            },
+            {
+              "party": "Client",
+              "description": "may terminate this Agreement for any reason or no reason upon thirty (30) days' prior written notice to Vendor.",
+              "clause_ref": "8"
+            },
+            {
+              "party": "Vendor B",
+              "description": "may terminate this Agreement for any reason or no reason upon ninety (90) days' prior written notice to Client.",
+              "clause_ref": "8"
+            },
+            {
+              "party": "Vendor B",
+              "description": "shall immediately cease performance of the Services.",
+              "clause_ref": "8"
+            },
+            {
+              "party": "Client",
+              "description": "shall pay Vendor for all Services performed and expenses incurred by Vendor up to the effective date of termination.",
+              "clause_ref": "8"
+            }
+          ],
+          "summary": "This Vendor Agreement is between Company A (Client) and Vendor B (Vendor), effective January 1, 2025. Vendor B will provide services to Client for an initial term of two years, with automatic one-year renewals. Client agrees to pay Vendor B for services rendered, with invoices due within 30 days. Both parties have indemnification obligations and agree to maintain confidentiality of information."
+        },
+        "confidence": null,
+        "prompt_hash": "sha256:e9e98d005b4abe90",
+        "created_at": "2026-05-13T00:12:25.819145"
+      },
+      "risk": {
+        "output": {
+          "score": 75,
+          "findings": [
+            {
+              "risk": "Unlimited Vendor Liability",
+              "severity": "Critical",
+              "clause_ref": "4",
+              "reasoning": "Clause 4 states 'Vendor's liability under this Agreement shall be unlimited.' This is a critical risk as it exposes the vendor to potentially unbounded financial responsibility, which is highly unusual and typically a deal-breaker. A prior finding for 'Zero Liability Cap for Vendor' in a similar context (Company A \u00b7 clause 5.1) was rated Critical, indicating a pattern of concern around liability caps."
+            },
+            {
+              "risk": "Asymmetric Termination Rights",
+              "severity": "High",
+              "clause_ref": "3",
+              "reasoning": "Clause 3 states that the agreement automatically renews unless a party provides notice 90 days prior. However, Clause 8.2 states 'Client may terminate this Agreement for any reason or no reason upon thirty (30) days' prior written notice to Vendor. Vendor may terminate this Agreement for any reason or no reason upon ninety (90) days' prior written notice to Client.' This asymmetry, where the client has a shorter termination notice period, is a significant risk. A similar clause in a prior Vendor agreement (Vendor \u00b7 clause 1.2) was rated High for 'Asymmetric termination rights'."
+            },
+            {
+              "risk": "Low Liability Cap for Vendor",
+              "severity": "High",
+              "clause_ref": "6",
+              "reasoning": "Clause 6 states 'Vendor's maximum liability shall not exceed one hundred dollars ($100).' This is an extremely low cap and presents a significant risk to the client, as it provides minimal recourse in case of vendor failure or breach. While not as severe as unlimited liability, it warrants review."
+            }
+          ]
+        },
+        "confidence": null,
+        "prompt_hash": "sha256:3705f4123a7f62ef",
+        "created_at": "2026-05-13T00:12:34.850466"
+      },
+      "compliance": {
+        "output": {
+          "frameworks": [
+            {
+              "framework": "HIPAA",
+              "passed": true,
+              "checks": [
+                {
+                  "requirement": "Business Associate Agreement (BAA)",
+                  "present": true,
+                  "evidence_quote": "Framework not applicable \u2014 contract does not involve [PHI / customer data processing / EU personal data].",
+                  "gap_description": null,
+                  "severity": "Critical"
+                },
+                {
+                  "requirement": "Permitted Uses and Disclosures",
+                  "present": true,
+                  "evidence_quote": "Framework not applicable \u2014 contract does not involve [PHI / customer data processing / EU personal data].",
+                  "gap_description": null,
+                  "severity": "Critical"
+                },
+                {
+                  "requirement": "Subcontractor Agreements",
+                  "present": true,
+                  "evidence_quote": "Framework not applicable \u2014 contract does not involve [PHI / customer data processing / EU personal data].",
+                  "gap_description": null,
+                  "severity": "High"
+                },
+                {
+                  "requirement": "Safeguards for PHI",
+                  "present": true,
+                  "evidence_quote": "Framework not applicable \u2014 contract does not involve [PHI / customer data processing / EU personal data].",
+                  "gap_description": null,
+                  "severity": "High"
+                },
+                {
+                  "requirement": "Return or Destruction of PHI",
+                  "present": true,
+                  "evidence_quote": "Framework not applicable \u2014 contract does not involve [PHI / customer data processing / EU personal data].",
+                  "gap_description": null,
+                  "severity": "High"
+                }
+              ]
+            },
+            {
+              "framework": "SOC2",
+              "passed": true,
+              "checks": [
+                {
+                  "requirement": "Security Certification",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not contain any clauses requiring the vendor to maintain a current SOC 2 Type II report or make it available to the customer.",
+                  "severity": "High"
+                },
+                {
+                  "requirement": "Logging and Monitoring",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not specify requirements for the vendor to collect, monitor, or retain security-relevant logs for systems handling customer data.",
+                  "severity": "Medium"
+                },
+                {
+                  "requirement": "Access Controls",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not detail requirements for role-based access controls, multi-factor authentication for privileged access, or quarterly access reviews.",
+                  "severity": "High"
+                },
+                {
+                  "requirement": "Vendor Risk Management",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not include provisions for the vendor to perform annual risk assessments of subprocessors or disclose its subprocessor list.",
+                  "severity": "Medium"
+                },
+                {
+                  "requirement": "Incident Response",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract lacks clauses regarding the vendor's maintenance of an incident response plan or notification timelines for security incidents affecting customer data.",
+                  "severity": "High"
+                },
+                {
+                  "requirement": "Change Management",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "There are no documented requirements for the vendor to follow a change management process that includes peer review, testing, or rollback procedures.",
+                  "severity": "Medium"
+                },
+                {
+                  "requirement": "Business Continuity",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not stipulate that the vendor must maintain a business continuity and disaster recovery plan with defined RTO/RPO, or that it must be tested annually.",
+                  "severity": "Medium"
+                }
+              ]
+            },
+            {
+              "framework": "GDPR",
+              "passed": true,
+              "checks": [
+                {
+                  "requirement": "Data Processing Agreement (DPA)",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not contain or incorporate a Data Processing Agreement that meets the requirements of Article 28 of the GDPR.",
+                  "severity": "Critical"
+                },
+                {
+                  "requirement": "Return or Deletion",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not specify the vendor's obligation to delete or return personal data upon termination.",
+                  "severity": "High"
+                },
+                {
+                  "requirement": "Sub-processor Approval",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not address the requirement for vendor to obtain prior written authorization before engaging sub-processors.",
+                  "severity": "High"
+                },
+                {
+                  "requirement": "Data Subject Rights",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not outline how the vendor will assist the customer in fulfilling data subject rights.",
+                  "severity": "High"
+                },
+                {
+                  "requirement": "Data Breach Notification",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not include provisions for the vendor to notify the customer of personal data breaches.",
+                  "severity": "Critical"
+                },
+                {
+                  "requirement": "Records of Processing",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not mention the vendor's obligation to maintain records of processing activities.",
+                  "severity": "Medium"
+                },
+                {
+                  "requirement": "Security of Processing",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not detail the technical and organizational measures the vendor must implement for data security.",
+                  "severity": "High"
+                },
+                {
+                  "requirement": "Lawful Basis and Purpose Limitation",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not specify the subject matter, duration, nature, and purpose of processing, nor details about personal data types, data subjects, and controller obligations.",
+                  "severity": "Critical"
+                }
+              ]
+            }
+          ]
+        },
+        "confidence": null,
+        "prompt_hash": "HIPAA:sha256:8b3da4804bd61f34;SOC2:sha256:8769b13e26b0b768;GDPR:sha256:df9f079ddf06033a",
+        "created_at": "2026-05-13T00:12:45.611665"
+      }
+    }
+  },
+  {
+    "filename": "IP_Assignment_Heavy.pdf",
+    "contract_id": 20,
+    "status": "legal_review",
+    "risk_score": null,
+    "agent_outputs": {
+      "extraction": {
+        "output": {
+          "parties": [
+            {
+              "name": "COMPANY A",
+              "role": "Customer"
+            },
+            {
+              "name": "VENDOR B",
+              "role": "Vendor"
+            }
+          ],
+          "effective_date": "2025-01-01",
+          "term": "Initial Term of two (2) years, with automatic renewal for successive periods of one (1) year each",
+          "payment_terms": "Net 30",
+          "governing_law": "State of Delaware",
+          "obligations": [
+            {
+              "party": "Vendor",
+              "description": "Provide to Client the technology services and intellectual property development as specifically set forth in Exhibit A.",
+              "clause_ref": "3.1"
+            },
+            {
+              "party": "Client",
+              "description": "Cooperate fully with Vendor in the performance of the Services, including providing timely access to Client personnel, information, and resources as reasonably requested by Vendor.",
+              "clause_ref": "3.2"
+            },
+            {
+              "party": "Client",
+              "description": "Pay Vendor the fees set forth in Exhibit B for the Services provided by Vendor.",
+              "clause_ref": "4.1"
+            },
+            {
+              "party": "Vendor",
+              "description": "Invoice Client on a [monthly/quarterly] basis, in arrears, for Services rendered during the preceding [month/quarter].",
+              "clause_ref": "4.2"
+            },
+            {
+              "party": "Client",
+              "description": "Reimburse Vendor for reasonable and pre-approved out-of-pocket expenses incurred in connection with the performance of the Services, provided that Vendor submits itemized receipts for such expenses.",
+              "clause_ref": "4.3"
+            },
+            {
+              "party": "Client",
+              "description": "Indemnify, defend, and hold harmless Vendor and its officers, directors, employees, agents, and affiliates from and against any and all claims, liabilities, damages, losses, costs, expenses, and fees (including reasonable attorneys' fees) arising out of or relating to specific conditions outlined in the agreement.",
+              "clause_ref": "5.1"
+            },
+            {
+              "party": "Vendor",
+              "description": "Indemnify, defend, and hold harmless Client and its officers, directors, employees, agents, and affiliates from and against any and all claims, liabilities, damages, losses, costs, expenses, and fees (including reasonable attorneys' fees) arising out of specific conditions outlined in the agreement.",
+              "clause_ref": "5.2"
+            },
+            {
+              "party": "Each party",
+              "description": "Hold in strict confidence all Confidential Information of the other party and shall not disclose such Confidential Information to any third party, nor use such Confidential Information for any purpose other than as necessary to perform its obligations under this Agreement, without the prior written consent of the Disclosing Party.",
+              "clause_ref": "6.1"
+            },
+            {
+              "party": "Receiving Party",
+              "description": "Promptly return to the Disclosing Party or destroy all Confidential Information of the Disclosing Party in its possession or control, and certify in writing that all such Confidential Information has been returned or destroyed, upon the termination or expiration of this Agreement, or upon the written request of the Disclosing Party.",
+              "clause_ref": "6.2"
+            },
+            {
+              "party": "Either party",
+              "description": "Terminate this Agreement upon written notice to the other party if the other party materially breaches any of its obligations under this Agreement and fails to cure such breach within thirty (30) days after receiving written notice thereof, or becomes insolvent, files a petition for bankruptcy, makes an assignment for the benefit of creditors, or has a receiver appointed for its assets.",
+              "clause_ref": "7.1"
+            },
+            {
+              "party": "Vendor",
+              "description": "Terminate this Agreement for any reason or no reason upon thirty (30) days' written notice to Client.",
+              "clause_ref": "7.2"
+            },
+            {
+              "party": "Client",
+              "description": "Pay Vendor for all Services performed and expenses incurred up to the effective date of termination.",
+              "clause_ref": "7.3"
+            },
+            {
+              "party": "Client",
+              "description": "Irrevocably assign, transfer, and convey to Vendor, and agree to assign, transfer, and convey to Vendor, all of Client's right, title, and interest in and to any and all Intellectual Property developed, conceived, reduced to practice, or created by Client or jointly by Client and Vendor, or by Vendor for Client, in connection with or arising out of the performance of this Agreement, including any improvements or modifications thereto.",
+              "clause_ref": "9.5"
+            },
+            {
+              "party": "Client",
+              "description": "Execute and deliver such further documents and take such further actions as Vendor may reasonably request to perfect, record, and enforce Vendor's ownership of such Intellectual Property.",
+              "clause_ref": "9.5"
+            }
+          ],
+          "summary": "This Intellectual Property and Technology Services Agreement is made between COMPANY A (Client) and VENDOR B (Vendor). Vendor B will provide technology services and intellectual property development to Client as detailed in Exhibit A. Client will pay Vendor B fees as outlined in Exhibit B and reimburse for pre-approved expenses. The agreement has an initial term of two years with automatic one-year renewals and is governed by Delaware law."
+        },
+        "confidence": null,
+        "prompt_hash": "sha256:60c236f8097b6c76",
+        "created_at": "2026-05-13T00:12:56.196107"
+      },
+      "risk": {
+        "output": {
+          "score": 75,
+          "findings": [
+            {
+              "risk": "Asymmetric IP Assignment",
+              "severity": "Critical",
+              "clause_ref": "9.5",
+              "reasoning": "Clause 9.5 requires the Client to irrevocably assign all Intellectual Property developed in connection with the Agreement to the Vendor. This is a critical risk as it results in the Client losing all rights to any IP created, even if developed by the Client or jointly, which is highly unfavorable and unusual."
+            },
+            {
+              "risk": "Vendor Termination for Convenience",
+              "severity": "High",
+              "clause_ref": "7.2",
+              "reasoning": "Clause 7.2 allows the Vendor to terminate the agreement for any reason with only 30 days' written notice. This creates significant business risk for the Client, as the Vendor can cease services with minimal notice, disrupting operations."
+            },
+            {
+              "risk": "Vendor-Favorable Limitation of Liability",
+              "severity": "Medium",
+              "clause_ref": "5.3",
+              "reasoning": "Clause 5.3 limits the Vendor's total aggregate liability to the total fees paid in the preceding 30 days, excluding breaches of confidentiality and indemnification. This is a very low cap and may not adequately cover potential damages to the Client."
+            },
+            {
+              "risk": "Automatic Renewal with Short Notice Period",
+              "severity": "Medium",
+              "clause_ref": "2.2",
+              "reasoning": "Clause 2.2 states the agreement automatically renews for one-year terms unless 90 days' notice is given. This notice period may be insufficient for the Client to find an alternative vendor if they decide not to renew, potentially locking them into another year."
+            }
+          ]
+        },
+        "confidence": null,
+        "prompt_hash": "sha256:40c9c73629b38699",
+        "created_at": "2026-05-13T00:13:00.804489"
+      },
+      "compliance": {
+        "output": {
+          "frameworks": [
+            {
+              "framework": "HIPAA",
+              "passed": true,
+              "checks": [
+                {
+                  "requirement": "Business Associate Agreement (BAA)",
+                  "present": true,
+                  "evidence_quote": "Framework not applicable \u2014 contract does not involve [PHI / customer data processing / EU personal data].",
+                  "gap_description": null,
+                  "severity": "Critical"
+                },
+                {
+                  "requirement": "Subcontractor Agreements",
+                  "present": true,
+                  "evidence_quote": "Framework not applicable \u2014 contract does not involve [PHI / customer data processing / EU personal data].",
+                  "gap_description": null,
+                  "severity": "High"
+                },
+                {
+                  "requirement": "Safeguards for PHI",
+                  "present": true,
+                  "evidence_quote": "Framework not applicable \u2014 contract does not involve [PHI / customer data processing / EU personal data].",
+                  "gap_description": null,
+                  "severity": "High"
+                },
+                {
+                  "requirement": "Permitted Uses and Disclosures",
+                  "present": true,
+                  "evidence_quote": "Framework not applicable \u2014 contract does not involve [PHI / customer data processing / EU personal data].",
+                  "gap_description": null,
+                  "severity": "Critical"
+                },
+                {
+                  "requirement": "Individual Rights",
+                  "present": true,
+                  "evidence_quote": "Framework not applicable \u2014 contract does not involve [PHI / customer data processing / EU personal data].",
+                  "gap_description": null,
+                  "severity": "Medium"
+                },
+                {
+                  "requirement": "Return or Destruction of PHI",
+                  "present": true,
+                  "evidence_quote": "Framework not applicable \u2014 contract does not involve [PHI / customer data processing / EU personal data].",
+                  "gap_description": null,
+                  "severity": "High"
+                }
+              ]
+            },
+            {
+              "framework": "SOC2",
+              "passed": true,
+              "checks": [
+                {
+                  "requirement": "Security Certification",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not contain any clauses requiring the vendor to maintain a current SOC 2 Type II report or make it available to the customer.",
+                  "severity": "High"
+                },
+                {
+                  "requirement": "Access Controls",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not specify requirements for role-based access controls, multi-factor authentication for privileged access, quarterly access reviews, or logging and retention of access to customer data.",
+                  "severity": "High"
+                },
+                {
+                  "requirement": "Logging and Monitoring",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not mention the collection, monitoring, or retention of security-relevant logs, nor does it include requirements for alerting on anomalous events.",
+                  "severity": "Medium"
+                },
+                {
+                  "requirement": "Vendor Risk Management",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not include provisions for annual risk assessments of subprocessors or disclosure of a subprocessor list.",
+                  "severity": "Medium"
+                },
+                {
+                  "requirement": "Incident Response",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract lacks requirements for an incident response plan and timely notification to the customer of security incidents affecting customer data.",
+                  "severity": "High"
+                },
+                {
+                  "requirement": "Business Continuity",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not address the maintenance of a business continuity and disaster recovery plan, including documented RTO/RPO and testing.",
+                  "severity": "Medium"
+                }
+              ]
+            },
+            {
+              "framework": "GDPR",
+              "passed": true,
+              "checks": [
+                {
+                  "requirement": "Sub-processor Approval",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not contain any clauses regarding the vendor's use of sub-processors or the requirement for prior written authorization from the client before engaging them.",
+                  "severity": "High"
+                },
+                {
+                  "requirement": "Data Processing Agreement (DPA)",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not include or incorporate a Data Processing Agreement that meets the requirements of Article 28 of the GDPR.",
+                  "severity": "Critical"
+                },
+                {
+                  "requirement": "Data Breach Notification",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not specify any obligations for the vendor to notify the client of personal data breaches within a certain timeframe.",
+                  "severity": "Critical"
+                },
+                {
+                  "requirement": "Data Subject Rights",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not outline how the vendor will assist the client in fulfilling data subject rights requests.",
+                  "severity": "High"
+                },
+                {
+                  "requirement": "Return or Deletion",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "While section 6.2 mentions return or destruction of 'Confidential Information' upon termination or request, it does not specifically address the return or deletion of 'personal data' as required by GDPR.",
+                  "severity": "High"
+                },
+                {
+                  "requirement": "Records of Processing",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not include any clauses requiring the vendor to maintain records of processing activities carried out on behalf of the client.",
+                  "severity": "Medium"
+                },
+                {
+                  "requirement": "Security of Processing",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not specify the implementation of appropriate technical and organisational measures to ensure a level of security appropriate to the risk for personal data processing.",
+                  "severity": "High"
+                },
+                {
+                  "requirement": "Lawful Basis and Purpose Limitation",
+                  "present": false,
+                  "evidence_quote": null,
+                  "gap_description": "The contract does not specify the subject matter, duration, nature, and purpose of processing, nor the types of personal data, categories of data subjects, and the obligations and rights of the Customer as Controller, which are typically found in a DPA.",
+                  "severity": "Critical"
+                }
+              ]
+            }
+          ]
+        },
+        "confidence": null,
+        "prompt_hash": "HIPAA:sha256:34adea81a0530271;SOC2:sha256:fc035a444d0a5922;GDPR:sha256:c132ac9ee5ef6d38",
+        "created_at": "2026-05-13T00:13:11.559045"
+      }
+    }
+  }
+]

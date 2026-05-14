@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <defs>
+    <!-- Shield body gradient: deep indigo → violet -->
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#6C72FF"/>
+      <stop offset="100%" stop-color="#A78BFA"/>
+    </linearGradient>
+
+    <!-- Inner glow for the "S" -->
+    <linearGradient id="letterGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#FFFFFF" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#C4B5FD" stop-opacity="0.9"/>
+    </linearGradient>
+
+    <!-- Subtle inner highlight on the shield -->
+    <linearGradient id="shineGrad" x1="20%" y1="0%" x2="80%" y2="60%">
+      <stop offset="0%"   stop-color="#FFFFFF" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+
+    <!-- Drop shadow filter -->
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#6C72FF" flood-opacity="0.45"/>
+    </filter>
+
+    <!-- Clip to shield shape -->
+    <clipPath id="shieldClip">
+      <path d="M50 6
+               L88 20
+               Q90 22 90 26
+               L90 52
+               Q90 74 50 94
+               Q10 74 10 52
+               L10 26
+               Q10 22 12 20
+               Z"/>
+    </clipPath>
+  </defs>
+
+  <!-- ── Shield body ── -->
+  <path
+    d="M50 6
+       L88 20
+       Q90 22 90 26
+       L90 52
+       Q90 74 50 94
+       Q10 74 10 52
+       L10 26
+       Q10 22 12 20
+       Z"
+    fill="url(#shieldGrad)"
+    filter="url(#shadow)"
+  />
+
+  <!-- Shine overlay (clipped to shield) -->
+  <rect x="0" y="0" width="100" height="100"
+        fill="url(#shineGrad)"
+        clip-path="url(#shieldClip)"/>
+
+  <!-- Thin border outline for crispness -->
+  <path
+    d="M50 6
+       L88 20
+       Q90 22 90 26
+       L90 52
+       Q90 74 50 94
+       Q10 74 10 52
+       L10 26
+       Q10 22 12 20
+       Z"
+    fill="none"
+    stroke="rgba(255,255,255,0.25)"
+    stroke-width="1.5"
+  />
+
+  <!-- ── Letter S ── -->
+  <!--
+    Hand-crafted S using two arcs so it stays crisp at all sizes.
+    Centered at (50, 50).
+  -->
+  <text
+    x="50"
+    y="67"
+    text-anchor="middle"
+    font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+    font-size="52"
+    font-weight="800"
+    fill="url(#letterGrad)"
+    letter-spacing="-1"
+  >S</text>
+
+  <!-- Small "AI" subscript under the S -->
+  <text
+    x="50"
+    y="80"
+    text-anchor="middle"
+    font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+    font-size="12"
+    font-weight="700"
+    fill="rgba(255,255,255,0.55)"
+    letter-spacing="3"
+  >AI</text>
+</svg>

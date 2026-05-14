@@ -1,67 +1,34 @@
-"""Agent 5 — Approval Recommendation (rules-based, NO LLM).
+"""Agent 5 — Approval Recommendation.
 
-The pitch: "we never let an LLM make the final approval call."
-This agent's decision is deterministic. The rationale comes from a templated
-lookup keyed by the path the decision took. No Gemini call.
+Decision engine type: POLICY_BASED — deterministic, no LLM call.
+The recommendation is produced by the hybrid scoring engine in scoring.py
+which combines a weighted composite score with hard override rules.
 
-Reads the latest risk + compliance outputs from agent_outputs and the
-security_events for the contract, runs the decision tree, persists a Decision
-row, and updates the contract's status.
+Priority order: REJECT > LEGAL_REVIEW > MANAGER_REVIEW > AUTO_APPROVE
 
-Decision tree (in priority order):
-  1. Any security events present                  → REJECT
-  2. Any Critical compliance gap                  → LEGAL_REVIEW
-  3. risk_score >= 70                             → LEGAL_REVIEW
-  4. risk_score >= 40                             → MANAGER_REVIEW
-  5. otherwise                                    → AUTO_APPROVE
+The active scoring policy is loaded from the scoring_policies table so
+admins can adjust thresholds and weights from the UI without a code deploy.
 """
 import logging
-from typing import Any
 
 from sqlalchemy.orm import Session
 
 from backend import audit
+from backend.agents import history as agent_history
+from backend.agents import scoring as scoring_engine
 from backend.models import AgentOutput, Contract, Decision, SecurityEvent
 
 logger = logging.getLogger(__name__)
 
 AGENT_NAME = "recommendation"
 
-# Decision codes
-AUTO_APPROVE = "AUTO_APPROVE"
-MANAGER_REVIEW = "MANAGER_REVIEW"
-LEGAL_REVIEW = "LEGAL_REVIEW"
-REJECT = "REJECT"
-
-# How an AI recommendation maps to a contract status
-RECOMMENDATION_TO_STATUS = {
-    AUTO_APPROVE: "approved",
-    MANAGER_REVIEW: "manager_review",
-    LEGAL_REVIEW: "legal_review",
-    REJECT: "rejected",
+# Maps engine decision codes → contract status strings
+_DECISION_TO_STATUS = {
+    "AUTO_APPROVE":   "approved",
+    "MANAGER_REVIEW": "manager_review",
+    "LEGAL_REVIEW":   "legal_review",
+    "REJECT":         "rejected",
 }
-
-RATIONALE_TEMPLATES = {
-    "REJECT_security": (
-        "Rejected: {n_events} security event(s) detected during the pre-LLM scan, "
-        "including {top_event_type}."
-    ),
-    "LEGAL_REVIEW_compliance": (
-        "Routed to legal review: {framework} critical compliance failure on '{requirement}'."
-    ),
-    "LEGAL_REVIEW_score": (
-        "Routed to legal review: risk score {score}/100 exceeds the high-risk threshold (70)."
-    ),
-    "MANAGER_REVIEW": (
-        "Routed to manager review: risk score {score}/100 is in the moderate range (40-69)."
-    ),
-    "AUTO_APPROVE": (
-        "Auto-approved: risk score {score}/100, all compliance checks passed, no security events."
-    ),
-}
-
-HIGH_RISK_THRESHOLD = 70
-MODERATE_RISK_THRESHOLD = 40
 
 
 def _latest_output(db: Session, contract_id: int, agent_name: str) -> dict | None:
@@ -74,103 +41,121 @@ def _latest_output(db: Session, contract_id: int, agent_name: str) -> dict | Non
     return row.output if row else None
 
 
-def _security_events(db: Session, contract_id: int) -> list[dict]:
+def _get_security_events(db: Session, contract_id: int) -> list[dict]:
     rows = db.query(SecurityEvent).filter_by(contract_id=contract_id).all()
-    return [
-        {"event_type": r.event_type, "severity": r.severity}
-        for r in rows
-    ]
-
-
-def _decide(
-    risk: dict[str, Any] | None,
-    compliance: dict[str, Any] | None,
-    security_events: list[dict],
-) -> tuple[str, str]:
-    """Pure decision function. Easy to unit-test independently of DB."""
-    # 1. Any security events → hard reject
-    if security_events:
-        return REJECT, RATIONALE_TEMPLATES["REJECT_security"].format(
-            n_events=len(security_events),
-            top_event_type=security_events[0].get("event_type", "unknown"),
-        )
-
-    # 2. Critical compliance gap → legal review.
-    # Trust the framework-level `passed` flag: if Gemini decided the framework
-    # passed (e.g. HIPAA for an NDA — not applicable), don't second-guess by
-    # iterating its individual checks. This avoids escalating NDAs to legal
-    # because they technically don't have a BAA clause.
-    for fw in (compliance or {}).get("frameworks", []):
-        if fw.get("passed"):
-            continue
-        for check in fw.get("checks", []) or []:
-            if (not check.get("present")) and check.get("severity") == "Critical":
-                requirement = (check.get("requirement") or "?").strip("[]").strip()
-                return LEGAL_REVIEW, RATIONALE_TEMPLATES["LEGAL_REVIEW_compliance"].format(
-                    framework=fw.get("framework", "?"),
-                    requirement=requirement,
-                )
-
-    # 3. Score-based routing
-    score = int((risk or {}).get("score") or 0)
-    if score >= HIGH_RISK_THRESHOLD:
-        return LEGAL_REVIEW, RATIONALE_TEMPLATES["LEGAL_REVIEW_score"].format(score=score)
-    if score >= MODERATE_RISK_THRESHOLD:
-        return MANAGER_REVIEW, RATIONALE_TEMPLATES["MANAGER_REVIEW"].format(score=score)
-    return AUTO_APPROVE, RATIONALE_TEMPLATES["AUTO_APPROVE"].format(score=score)
+    return [{"event_type": r.event_type, "severity": r.severity} for r in rows]
 
 
 def run(db: Session, contract_id: int) -> Decision:
-    """Execute Agent 5. Reads upstream outputs, persists Decision, updates status."""
+    """Execute Agent 5 — load upstream outputs, score, persist decision."""
 
-    # ---- Read upstream outputs (non-fatal if missing — decision tree handles None) ----
+    # ── Read outputs from upstream agents ─────────────────────────────────────
     try:
-        risk = _latest_output(db, contract_id, "risk")
-        compliance = _latest_output(db, contract_id, "compliance")
-        sec_events = _security_events(db, contract_id)
+        risk           = _latest_output(db, contract_id, "risk")
+        compliance     = _latest_output(db, contract_id, "compliance")
+        extraction     = _latest_output(db, contract_id, "extraction")
+        classification = _latest_output(db, contract_id, "classification")
+        sec_events     = _get_security_events(db, contract_id)
     except Exception as exc:
         logger.exception(
-            "Agent 5 (recommendation) failed to read upstream outputs for contract %s: %s",
+            "Agent 5 failed to read upstream outputs for contract %s: %s",
             contract_id, exc,
         )
         raise
 
     if risk is None:
         logger.warning(
-            "Agent 5: no risk output found for contract %s — defaulting score to 0",
+            "Agent 5: no risk output for contract %s — risk score defaults to 0",
             contract_id,
         )
     if compliance is None:
         logger.warning(
-            "Agent 5: no compliance output found for contract %s — skipping framework checks",
+            "Agent 5: no compliance output for contract %s — skipping framework checks",
             contract_id,
         )
+    if classification is None:
+        logger.warning(
+            "Agent 5: no classification output for contract %s — using default (Other) sector policy",
+            contract_id,
+        )
+    else:
+        logger.info(
+            "Agent 5: classification loaded — type=%s sector=%s jurisdiction=%s/%s",
+            classification.get("contract_type"),
+            classification.get("sector"),
+            classification.get("jurisdiction_country"),
+            classification.get("jurisdiction_us_state"),
+        )
 
-    # ---- Decision logic (pure, no I/O) ----
+    # ── Load active scoring policy (sector-aware) ──────────────────────────────
+    sector = (classification or {}).get("sector", "Other")
+    policy = scoring_engine.load_policy(db, sector=sector)
+
+    # ── Load feedback context (best-effort) ───────────────────────────────────
+    vendor_name = "unknown"
+    feedback_ctx: dict = {}
     try:
-        recommendation, reasoning = _decide(risk, compliance, sec_events)
+        if extraction:
+            parties = extraction.get("parties") or []
+            vendor_name = parties[0].get("name", "unknown") if parties else "unknown"
+        feedback_ctx = agent_history.get_feedback_context(db, vendor_name)
+    except Exception:
+        logger.warning("Agent 5: could not load feedback context (non-fatal)", exc_info=True)
+
+    # ── Run hybrid scoring engine ──────────────────────────────────────────────
+    try:
+        result = scoring_engine.decide(
+            risk=risk,
+            compliance=compliance,
+            extraction=extraction,
+            security_events=sec_events,
+            policy=policy,
+            classification=classification,   # ← sector/jurisdiction/financial risk gating
+        )
     except Exception as exc:
         logger.exception(
-            "Agent 5 decision logic raised unexpectedly for contract %s: %s",
+            "Agent 5 scoring engine raised for contract %s: %s",
             contract_id, exc,
         )
         raise
 
-    # ---- Persist Decision + update contract status ----
+    logger.info(
+        "Agent 5 scored contract %s — composite=%.1f risk=%d compliance=%.1f "
+        "quality=%.1f critical=%d high=%d → %s",
+        contract_id, result.composite_score, result.risk_score,
+        result.compliance_avg, result.quality_score,
+        result.critical_findings, result.high_findings,
+        result.decision,
+    )
+
+    # ── Persist Decision + update contract status ──────────────────────────────
     try:
+        # Append feedback context notes to rationale (non-blocking)
+        if feedback_ctx.get("global_suggestion"):
+            result.rationale.append(f"ℹ️ Reviewer trend: {feedback_ctx['global_suggestion']}")
+        if feedback_ctx.get("vendor_pattern"):
+            result.rationale.append(f"ℹ️ {feedback_ctx['vendor_pattern']}")
+        if feedback_ctx.get("last_human_override_reason"):
+            result.rationale.append(
+                f"ℹ️ Prior human override for this vendor — {feedback_ctx['last_human_override_reason']}"
+            )
+
+        primary_reasoning = result.rationale[0] if result.rationale else result.decision
+
         decision = Decision(
             contract_id=contract_id,
-            recommendation=recommendation,
-            reasoning=reasoning,
+            recommendation=result.decision,
+            reasoning=primary_reasoning,
             reviewer_role=f"agent:{AGENT_NAME}",
+            scoring_details=result.to_dict(),
         )
         db.add(decision)
 
         contract = db.query(Contract).filter_by(id=contract_id).first()
         if contract is None:
-            raise ValueError(f"Contract {contract_id} not found when persisting decision")
+            raise ValueError(f"Contract {contract_id} not found")
 
-        new_status = RECOMMENDATION_TO_STATUS.get(recommendation)
+        new_status = _DECISION_TO_STATUS.get(result.decision)
         if new_status:
             contract.status = new_status
 
@@ -178,13 +163,13 @@ def run(db: Session, contract_id: int) -> Decision:
         db.refresh(decision)
     except Exception as exc:
         logger.exception(
-            "Agent 5 (recommendation) DB persist failed for contract %s: %s",
+            "Agent 5 DB persist failed for contract %s: %s",
             contract_id, exc,
         )
         db.rollback()
         raise
 
-    # ---- Audit log ----
+    # ── Audit log ──────────────────────────────────────────────────────────────
     try:
         audit.log(
             db,
@@ -192,17 +177,24 @@ def run(db: Session, contract_id: int) -> Decision:
             action="recommend",
             resource=f"contract:{contract_id}",
             after={
-                "recommendation": recommendation,
-                "reasoning": reasoning,
-                "risk_score": (risk or {}).get("score"),
-                "new_status": contract.status if contract else None,
+                "decision":            result.decision,
+                "composite_score":     result.composite_score,
+                "risk_score":          result.risk_score,
+                "compliance_avg":      result.compliance_avg,
+                "quality_score":       result.quality_score,
+                "critical_findings":   result.critical_findings,
+                "high_findings":       result.high_findings,
+                "triggered_rules":     result.triggered_rules,
+                "sector":              result.sector,
+                "jurisdiction":        result.jurisdiction,
+                "financial_penalties": result.financial_penalties,
+                "jurisdiction_penalties": result.jurisdiction_penalties,
+                "new_status":          contract.status if contract else None,
             },
         )
     except Exception:
-        logger.exception("Agent 5 audit log failed for contract %s (non-fatal)", contract_id)
+        logger.exception(
+            "Agent 5 audit log failed for contract %s (non-fatal)", contract_id
+        )
 
-    logger.info(
-        "Agent 5 (recommendation) on contract %s → %s (status now %s)",
-        contract_id, recommendation, contract.status if contract else "?",
-    )
     return decision

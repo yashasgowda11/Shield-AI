@@ -46,6 +46,41 @@ logger = logging.getLogger(__name__)
 MODEL_PRO = os.getenv("GEMINI_MODEL_PRO", "gemini-2.5-flash-lite")
 MODEL_FLASH = os.getenv("GEMINI_MODEL_FLASH", "gemini-2.5-flash-lite")
 
+# Fallback model — used when primary is overloaded or returns server errors.
+# gemini-1.5-flash is a stable fallback available on all tiers.
+MODEL_FALLBACK = os.getenv("GEMINI_MODEL_FALLBACK", "gemini-1.5-flash")
+
+# Module-level fallback state — updated by generate_* functions.
+# Thread-safe reads are fine (GIL). Writes are infrequent and non-critical.
+_fallback_state: dict = {
+    "active": False,
+    "reason": None,
+    "primary_model": None,
+    "fallback_model": None,
+}
+
+
+def get_fallback_state() -> dict:
+    """Return current Gemini fallback state for health check endpoint."""
+    return {
+        "fallback_active": _fallback_state["active"],
+        "fallback_reason": _fallback_state["reason"],
+        "model_in_use": _fallback_state["fallback_model"] if _fallback_state["active"] else None,
+        "primary_model": _fallback_state["primary_model"],
+    }
+
+
+def _is_model_unavailable(exc: Exception) -> bool:
+    """True if the exception indicates the model is overloaded/down (not just rate-limited)."""
+    msg = str(exc).upper()
+    # 503 = Service Unavailable, OVERLOADED, INTERNAL = server-side failures
+    return any(kw in msg for kw in (
+        "503", "SERVICE_UNAVAILABLE", "OVERLOADED",
+        "INTERNAL", "UNAVAILABLE", "MODEL_NOT_FOUND",
+        "DEADLINE_EXCEEDED",
+    ))
+
+
 T = TypeVar("T", bound=BaseModel)
 
 
@@ -78,9 +113,37 @@ def generate_text(
 
     try:
         result = call_with_retry(call)
-    except Exception as exc:
-        logger.error("generate_text failed (model=%s): %s", model, exc)
-        raise
+    except Exception as primary_exc:
+        if _is_model_unavailable(primary_exc) and model != MODEL_FALLBACK:
+            logger.warning(
+                "Primary model %s unavailable (%s), switching to fallback %s",
+                model, type(primary_exc).__name__, MODEL_FALLBACK,
+            )
+            _fallback_state.update({
+                "active": True,
+                "reason": str(primary_exc)[:200],
+                "primary_model": model,
+                "fallback_model": MODEL_FALLBACK,
+            })
+
+            def fallback_call():
+                return client.models.generate_content(
+                    model=MODEL_FALLBACK,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(**config_kwargs),
+                )
+
+            try:
+                result = call_with_retry(fallback_call)
+            except Exception as fallback_exc:
+                logger.error(
+                    "generate_text fallback also failed (fallback_model=%s): %s",
+                    MODEL_FALLBACK, fallback_exc,
+                )
+                raise primary_exc
+        else:
+            logger.error("generate_text failed (model=%s): %s", model, primary_exc)
+            raise
 
     text = result.text or ""
     if not text.strip():
@@ -125,12 +188,40 @@ def generate_json(
     # ---- API call ----
     try:
         result = call_with_retry(call)
-    except Exception as exc:
-        logger.error(
-            "generate_json API call failed (model=%s schema=%s): %s",
-            model, schema.__name__, exc,
-        )
-        raise
+    except Exception as primary_exc:
+        if _is_model_unavailable(primary_exc) and model != MODEL_FALLBACK:
+            logger.warning(
+                "Primary model %s unavailable (%s), switching to fallback %s",
+                model, type(primary_exc).__name__, MODEL_FALLBACK,
+            )
+            _fallback_state.update({
+                "active": True,
+                "reason": str(primary_exc)[:200],
+                "primary_model": model,
+                "fallback_model": MODEL_FALLBACK,
+            })
+
+            def fallback_call():
+                return client.models.generate_content(
+                    model=MODEL_FALLBACK,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(**config_kwargs),
+                )
+
+            try:
+                result = call_with_retry(fallback_call)
+            except Exception as fallback_exc:
+                logger.error(
+                    "generate_json fallback also failed (fallback_model=%s schema=%s): %s",
+                    MODEL_FALLBACK, schema.__name__, fallback_exc,
+                )
+                raise primary_exc
+        else:
+            logger.error(
+                "generate_json API call failed (model=%s schema=%s): %s",
+                model, schema.__name__, primary_exc,
+            )
+            raise
 
     # ---- SDK already parsed the response ----
     if getattr(result, "parsed", None) is not None:

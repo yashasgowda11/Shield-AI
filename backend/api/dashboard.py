@@ -12,6 +12,7 @@ from collections import Counter
 from typing import Any
 
 from fastapi import APIRouter, Depends
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from backend.db import get_db
@@ -22,14 +23,45 @@ router = APIRouter()
 
 # ---- Helpers ----
 
-def _latest_output(db: Session, contract_id: int, agent_name: str) -> dict | None:
-    row = (
-        db.query(AgentOutput)
-        .filter_by(contract_id=contract_id, agent_name=agent_name)
-        .order_by(AgentOutput.created_at.desc())
-        .first()
+def _batch_latest_outputs(
+    db: Session,
+    contract_ids: list[int],
+    agent_name: str,
+) -> dict[int, dict]:
+    """Return the latest output for `agent_name` for every contract in one query.
+
+    Uses a subquery to pick the MAX(created_at) per contract so we load
+    exactly N rows instead of issuing N separate SELECT statements.
+    """
+    if not contract_ids:
+        return {}
+
+    # Subquery: latest created_at per contract for this agent
+    latest_sq = (
+        db.query(
+            AgentOutput.contract_id,
+            func.max(AgentOutput.created_at).label("max_ts"),
+        )
+        .filter(
+            AgentOutput.contract_id.in_(contract_ids),
+            AgentOutput.agent_name == agent_name,
+        )
+        .group_by(AgentOutput.contract_id)
+        .subquery()
     )
-    return row.output if row else None
+
+    rows = (
+        db.query(AgentOutput)
+        .join(
+            latest_sq,
+            (AgentOutput.contract_id == latest_sq.c.contract_id)
+            & (AgentOutput.created_at == latest_sq.c.max_ts),
+        )
+        .filter(AgentOutput.agent_name == agent_name)
+        .all()
+    )
+
+    return {row.contract_id: (row.output or {}) for row in rows}
 
 
 def _vendor_from_extraction(extraction: dict | None) -> str | None:
@@ -50,12 +82,17 @@ def _vendor_from_extraction(extraction: dict | None) -> str | None:
 @router.get("/risk-summary")
 def risk_summary(db: Session = Depends(get_db)) -> dict[str, Any]:
     contracts = db.query(Contract).all()
+    contract_ids = [c.id for c in contracts]
+
+    # Batch-load latest risk + extraction outputs — 2 queries total, not 2N
+    risk_map = _batch_latest_outputs(db, contract_ids, "risk")
+    ext_map  = _batch_latest_outputs(db, contract_ids, "extraction")
 
     # Per-contract risk view
     rows: list[dict[str, Any]] = []
     for c in contracts:
-        risk = _latest_output(db, c.id, "risk") or {}
-        ext = _latest_output(db, c.id, "extraction") or {}
+        risk = risk_map.get(c.id, {})
+        ext  = ext_map.get(c.id, {})
         rows.append({
             "contract_id": c.id,
             "filename": c.filename,

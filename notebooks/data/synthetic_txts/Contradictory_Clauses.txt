@@ -1,0 +1,103 @@
+VENDOR AGREEMENT
+
+This Vendor Agreement (the "Agreement") is made and entered into as of January 1, 2025 (the "Effective Date"), by and between:
+
+Company A, a Delaware corporation, with its principal place of business at [Client Address] ("Client"),
+
+AND
+
+Vendor B, a California Limited Liability Company, with its principal place of business at [Vendor Address] ("Vendor").
+
+RECITALS
+
+WHEREAS, Client desires to engage Vendor to provide certain services as described herein; and
+
+WHEREAS, Vendor has the necessary expertise, personnel, and resources to provide such services; and
+
+WHEREAS, Client and Vendor desire to enter into this Agreement to set forth the terms and conditions under which Vendor will provide the services to Client.
+
+NOW, THEREFORE, in consideration of the mutual covenants and agreements set forth herein, and for other good and valuable consideration, the receipt and sufficiency of which are hereby acknowledged, the parties agree as follows:
+
+1. Parties and Recitals
+
+The parties to this Agreement are Company A ("Client") and Vendor B ("Vendor"). The recitals set forth above are incorporated into and form a material part of this Agreement.
+
+2. Definitions
+
+As used in this Agreement, the following terms shall have the meanings set forth below:
+
+"Confidential Information" means any and all non-public information, whether tangible or intangible, disclosed by one party (the "Disclosing Party") to the other party (the "Receiving Party"), whether orally or in writing, that is designated as confidential or that reasonably should be understood to be confidential given the nature of the information and the circumstances of disclosure. Confidential Information includes, but is not limited to, business plans, financial information, customer lists, technical data, trade secrets, know-how, and proprietary information.
+
+"Effective Date" means January 1, 2025.
+
+"Services" means the services to be performed by Vendor for Client as described in Section 4 of this Agreement.
+
+"Term" means the initial term of this Agreement and any renewal terms.
+
+3. Term and Renewal
+
+This Agreement shall commence on the Effective Date and shall continue for an initial period of two (2) years (the "Initial Term"). Following the Initial Term, this Agreement shall automatically renew for successive periods of one (1) year each (each a "Renewal Term"), unless either party provides written notice of its intent not to renew to the other party at least ninety (90) days prior to the expiration of the then-current term. The Initial Term and any Renewal Terms are collectively referred to as the "Term".
+
+4. Services / Scope of Work
+
+Vendor agrees to provide the following services to Client (the "Services"):
+
+[Detailed description of services to be provided by Vendor. This section should be specific and clearly outline the deliverables, responsibilities of each party, and any performance metrics. For the purpose of this template, a placeholder is used.]
+
+Vendor shall perform the Services in a professional and workmanlike manner, consistent with industry standards and best practices. Vendor shall dedicate sufficient qualified personnel to perform the Services. Client shall cooperate with Vendor and provide Vendor with reasonable access to Client's facilities, personnel, and information as may be necessary for Vendor to perform the Services.
+
+Vendor's liability under this Agreement shall be unlimited.
+
+5. Payment Terms
+
+Client shall pay Vendor the fees set forth in Exhibit A, attached hereto and incorporated herein by reference (the "Fees"). Unless otherwise specified in Exhibit A, Vendor shall invoice Client on a [monthly/quarterly] basis. All undisputed invoices shall be due and payable within thirty (30) days of Client's receipt of the invoice. Late payments shall accrue interest at a rate of one and one-half percent (1.5%) per month, or the maximum rate permitted by law, whichever is less. Client shall be responsible for all applicable sales, use, and other taxes arising from the Services, except for taxes based on Vendor's net income.
+
+6. Liability and Indemnification
+
+Indemnification: Vendor shall indemnify, defend, and hold harmless Client, its affiliates, officers, directors, employees, agents, and successors from and against any and all claims, liabilities, damages, losses, costs, expenses, and fees (including reasonable attorneys' fees) arising out of or relating to: (a) any breach by Vendor of any representation, warranty, or covenant made in this Agreement; (b) any gross negligence or willful misconduct of Vendor in the performance of the Services; (c) any infringement or alleged infringement of any intellectual property rights by the Services; or (d) any bodily injury, death, or property damage caused by Vendor's acts or omissions in connection with the Services.
+
+Client shall indemnify, defend, and hold harmless Vendor, its affiliates, officers, directors, employees, agents, and successors from and against any and all claims, liabilities, damages, losses, costs, expenses, and fees (including reasonable attorneys' fees) arising out of or relating to: (a) any breach by Client of any representation, warranty, or covenant made in this Agreement; or (b) any gross negligence or willful misconduct of Client in connection with its obligations under this Agreement.
+
+Limitation of Liability: Notwithstanding anything to the contrary, Vendor's maximum liability shall not exceed one hundred dollars ($100).
+
+7. Confidentiality
+
+Each party agrees to hold in strict confidence all Confidential Information of the other party and shall not disclose such Confidential Information to any third party, except as expressly permitted by this Agreement. Each party shall use the same degree of care to protect the Disclosing Party's Confidential Information as it uses to protect its own confidential information of a similar nature, but in no event less than a reasonable degree of care. The Receiving Party may disclose Confidential Information only to its employees, contractors, and agents who have a need to know such information for the purpose of fulfilling its obligations under this Agreement, provided that such individuals are bound by confidentiality obligations no less restrictive than those contained herein. The obligations of confidentiality shall survive the termination of this Agreement for a period of five (5) years.
+
+8. Termination
+
+Termination for Cause: Either party may terminate this Agreement upon written notice to the other party if the other party materially breaches any provision of this Agreement and fails to cure such breach within thirty (30) days after receiving written notice thereof.
+
+Termination for Convenience: Client may terminate this Agreement for any reason or no reason upon thirty (30) days' prior written notice to Vendor. Vendor may terminate this Agreement for any reason or no reason upon ninety (90) days' prior written notice to Client.
+
+Effect of Termination: Upon termination or expiration of this Agreement, Vendor shall immediately cease performance of the Services. Client shall pay Vendor for all Services performed and expenses incurred by Vendor up to the effective date of termination. The provisions of Sections 2, 5 (for payments due), 6, 7, 9, and 10 shall survive the termination or expiration of this Agreement.
+
+9. Governing Law and Dispute Resolution
+
+This Agreement shall be governed by and construed in accordance with the laws of the State of Delaware, without regard to its conflict of laws principles. Any dispute, controversy, or claim arising out of or relating to this Agreement, or the breach, termination, or invalidity thereof, shall be settled by arbitration administered by the American Arbitration Association under its Commercial Arbitration Rules. The arbitration shall take place in Wilmington, Delaware. The award rendered by the arbitrator(s) shall be final and binding upon the parties. Judgment on the award rendered by the arbitrator(s) may be entered in any court having jurisdiction thereof.
+
+10. General Provisions
+
+Notices: All notices, requests, demands, and other communications hereunder shall be in writing and shall be deemed to have been duly given when delivered personally, sent by certified or registered mail, return receipt requested, postage prepaid, or by reputable overnight courier service to the addresses set forth in the preamble to this Agreement, or to such other address as either party may designate by written notice to the other.
+
+Entire Agreement: This Agreement, including all exhibits and schedules attached hereto, constitutes the entire agreement between the parties with respect to the subject matter hereof and supersedes all prior and contemporaneous understandings, agreements, representations, and warranties, both written and oral, with respect to such subject matter.
+
+Severability: If any provision of this Agreement is held to be invalid, illegal, or unenforceable, the validity, legality, and enforceability of the remaining provisions shall not in any way be affected or impaired thereby.
+
+Waiver: The failure of either party to enforce any provision of this Agreement shall not constitute a waiver of such provision or of the right to enforce such provision in the future.
+
+11. Signatures
+
+IN WITNESS WHEREOF, the parties hereto have executed this Vendor Agreement as of the Effective Date.
+
+COMPANY A
+
+By: _________________________
+Name:
+Title:
+
+VENDOR B
+
+By: _________________________
+Name:
+Title:

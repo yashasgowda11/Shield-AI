@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <defs>
+    <!-- Left-half gradient: deep indigo -->
+    <linearGradient id="gLeft" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#4F46E5"/>
+      <stop offset="100%" stop-color="#6C72FF"/>
+    </linearGradient>
+    <!-- Right-half gradient: violet -->
+    <linearGradient id="gRight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#8B5CF6"/>
+      <stop offset="100%" stop-color="#A78BFA"/>
+    </linearGradient>
+    <!-- Top shine overlay -->
+    <linearGradient id="gShine" x1="20%" y1="0%" x2="80%" y2="50%">
+      <stop offset="0%"   stop-color="#FFFFFF" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <!-- Drop shadow -->
+    <filter id="drop" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#4F46E5" flood-opacity="0.5"/>
+    </filter>
+    <!-- Clip to shield outline -->
+    <clipPath id="shieldClip">
+      <path d="M50 5 L87 19 Q91 21 91 26 L91 52 Q91 76 50 95 Q9 76 9 52 L9 26 Q9 21 13 19 Z"/>
+    </clipPath>
+  </defs>
+
+  <!-- ── Left half (indigo) ── -->
+  <path
+    d="M50 5 L13 19 Q9 21 9 26 L9 52 Q9 76 50 95 Z"
+    fill="url(#gLeft)"
+    filter="url(#drop)"
+  />
+
+  <!-- ── Right half (violet) ── -->
+  <path
+    d="M50 5 L87 19 Q91 21 91 26 L91 52 Q91 76 50 95 Z"
+    fill="url(#gRight)"
+  />
+
+  <!-- ── Shine overlay (clipped) ── -->
+  <rect x="0" y="0" width="100" height="55"
+    fill="url(#gShine)"
+    clip-path="url(#shieldClip)"
+  />
+
+  <!-- ── Center divider line ── -->
+  <line x1="50" y1="5" x2="50" y2="95"
+    stroke="rgba(255,255,255,0.18)" stroke-width="1.2"
+    clip-path="url(#shieldClip)"
+  />
+
+  <!-- ── Shield outline ── -->
+  <path
+    d="M50 5 L87 19 Q91 21 91 26 L91 52 Q91 76 50 95 Q9 76 9 52 L9 26 Q9 21 13 19 Z"
+    fill="none"
+    stroke="rgba(255,255,255,0.28)"
+    stroke-width="1.5"
+  />
+
+  <!-- ── Inner shield (smaller nested shield for depth) ── -->
+  <path
+    d="M50 22 L72 31 Q74 32 74 35 L74 51 Q74 65 50 76 Q26 65 26 51 L26 35 Q26 32 28 31 Z"
+    fill="none"
+    stroke="rgba(255,255,255,0.13)"
+    stroke-width="1.2"
+  />
+</svg>

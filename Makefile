@@ -31,7 +31,7 @@ backend-only:
 	uvicorn backend.main:app --reload --port 8000
 
 frontend:
-	streamlit run frontend/app.py
+	streamlit run frontend/Home.py
 
 test:
 	pytest tests/ -v

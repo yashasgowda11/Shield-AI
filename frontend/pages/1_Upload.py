@@ -3,6 +3,9 @@
 Renders, after upload:
   - Quarantined → red panel with the matched injection text
   - Extracted   → progress bar while agents run in background, then results
+
+Only shows results of the currently uploaded file.
+Recent uploads have their own page (2_Recent_Uploads).
 """
 import json
 import sys
@@ -12,10 +15,14 @@ import pathlib
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))
 
 import streamlit as st
-from utils import api_get, api_post, api_delete, can, current_role, gate, render_file_preview
+from utils import (
+    api_get, api_post, api_delete, can, current_role, gate,
+    render_file_preview, get_service_status, render_topbar, setup_sidebar,
+)
 
-st.title("📄 Upload Contract")
-st.caption(f"Active role: **{current_role()}**")
+st.set_page_config(page_title="Upload Contract — Shield AI", page_icon="📄", layout="wide")
+setup_sidebar()
+render_topbar("Upload Contract", "📄")
 
 gate("upload", "Only Procurement Analysts can upload contracts.")
 
@@ -146,7 +153,7 @@ def render_compliance(block: dict) -> None:
     st.caption(f"Prompt hashes: `{block.get('prompt_hash', '?')}`")
 
 
-# ---- Upload widget ----
+# ---- Shared constants ----
 
 # Terminal statuses: pipeline is done (success or human decision)
 _PIPELINE_DONE = {
@@ -161,11 +168,12 @@ _POLL_INTERVAL = 3  # seconds between status checks
 def _poll_until_done(contract_id: int) -> dict:
     """Poll GET /contracts/{id} until the pipeline finishes or timeout."""
     stages = [
-        ("🔍 Agent 1 — Extracting parties, dates, obligations…", 0.20),
-        ("⚠️  Agent 2 — Assessing clause-level risk…",          0.45),
-        ("📋 Agent 3 — Checking compliance frameworks…",         0.70),
-        ("🎯 Agent 5 — Generating approval recommendation…",     0.90),
-        ("⏳ Finalising…",                                        0.95),
+        ("🪤 Agent 4 — Security gate scanning clauses (Lobster Trap)…", 0.10),
+        ("🔍 Agent 1 — Extracting parties, dates, obligations…",        0.30),
+        ("⚠️  Agent 2 — Assessing clause-level risk…",                  0.55),
+        ("📋 Agent 3 — Checking compliance frameworks…",                 0.75),
+        ("🎯 Agent 5 — Generating approval recommendation…",             0.92),
+        ("⏳ Finalising…",                                               0.97),
     ]
     stage_idx = 0
     elapsed = 0
@@ -278,292 +286,320 @@ def _render_results(body: dict, detail: dict) -> None:
         st.caption(f"Audit report unavailable: {e}")
 
 
-uploaded = st.file_uploader(
-    "Drop a PDF or DOCX here",
-    type=["pdf", "docx"],
-    help="Pipeline: extract → security gate → segment → Agents 1/2/3/5 (async).",
-)
-
-if uploaded is not None:
-    mime = (
-        "application/pdf"
-        if uploaded.name.lower().endswith(".pdf")
-        else "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+# ── LT status banner (always shown) ──────────────────────────────────────────
+_svc = get_service_status()
+_lt_online = _svc.get("lt", {}).get("available", False)
+if not _lt_online:
+    st.warning(
+        "⚠️ **Lobster Trap (primary security layer) is currently offline.** "
+        "Uploads will be scanned by the offline pattern detector only. "
+        "Lobster Trap provides: prompt injection DPI, credential leak detection, "
+        "role impersonation detection, and data exfiltration pattern analysis."
     )
 
-    # Step 1: upload + security gate (~4s)
-    with st.spinner(f"Uploading **{uploaded.name}** and running security gate…"):
-        r = api_post(
-            "/contracts/upload",
-            files={"file": (uploaded.name, uploaded.getvalue(), mime)},
-            data={"actor": f"user:{current_role()}"},
-        )
 
-    if r.status_code != 200:
-        st.error(f"Upload failed (HTTP {r.status_code})")
-        try:
-            st.json(r.json())
-        except Exception:
-            st.code(r.text)
-        st.stop()
+# ── Helper: render quarantine events ─────────────────────────────────────────
 
-    body = r.json()
-
-    # ---- Duplicate file ----
-    if body["status"] == "duplicate":
-        st.warning(
-            f"⚠️ **This file has already been uploaded.**\n\n"
-            f"The content is identical to **{body['existing_filename']}** "
-            f"(Contract #{body['id']}, uploaded {(body.get('uploaded_at') or '')[:19].replace('T', ' ')} UTC).\n\n"
-            f"Current status: **{body['existing_status']}**"
-        )
-        st.info("Showing the existing report below — no re-processing needed.")
-
-        # Load and render the existing contract's full report
-        detail = api_get(f"/contracts/{body['id']}").json()
-        current_status = detail.get("status", "")
-
-        # If pipeline is still running, poll until done
-        if current_status == "extracted":
-            st.caption("Pipeline is still running for the original upload — waiting for it to finish…")
-            detail = _poll_until_done(body["id"])
-
-        _render_results(body, detail)
-        st.stop()
-
-    # ---- Quarantined ----
-    if body["status"] == "quarantined":
-        scan_info = body.get("security_scan", {})
-        lt_used = scan_info.get("lt_used", False)
-
-        st.error("🚨  Contract quarantined by the pre-LLM security gate")
-
-        layer_parts = []
-        if lt_used:
-            layer_parts.append("🪤 **Lobster Trap**")
-        layer_parts.append("🧱 **Offline detector**")
-        st.caption(
-            f"Suspicious content detected **before any LLM was called**. "
-            f"Layers active: {' · '.join(layer_parts)}. "
-            "This contract will not be processed further."
-        )
-
-        events = body.get("security_events", [])
-        st.subheader(f"Detected events ({len(events)})")
-
-        _SEV_ICON = {"critical": "🔴", "high": "🟠", "medium": "🟡", "low": "🟢"}
-        _SOURCE_LABEL = {
-            "lobstertrap": "🪤 Lobster Trap",
-            "offline_detector": "🧱 Offline detector",
-        }
-
-        for ev in events:
-            d = ev.get("details") or {}
-            source = d.get("source", "offline_detector")
-            sev = ev.get("severity", "high")
-            sev_icon = _SEV_ICON.get(sev, "⚪")
-            source_label = _SOURCE_LABEL.get(source, source)
-
-            with st.expander(
-                f"{sev_icon} **{ev['event_type']}**  ·  {source_label}  ·  severity: {sev}",
-                expanded=True,
-            ):
-                if source == "lobstertrap":
-                    st.markdown("**Caught by:** 🪤 Lobster Trap (deep prompt inspection proxy)")
-
-                    if d.get("rule_name"):
-                        st.markdown(f"**Rule fired:** `{d['rule_name']}`")
-
-                    if d.get("deny_message"):
-                        st.markdown("**Deny message:**")
-                        st.code(d["deny_message"], language="text")
-                    elif d.get("matched_text"):
-                        st.markdown("**Matched text:**")
-                        st.code(d["matched_text"], language="text")
-
-                    if d.get("detected_flags"):
-                        st.markdown(
-                            "**Detected flags:** "
-                            + "  ·  ".join(f"`{f}`" for f in d["detected_flags"])
-                        )
-
-                    col_score, col_conf = st.columns(2)
-                    if d.get("risk_score") is not None:
-                        col_score.metric("LT risk score", f"{d['risk_score']:.2f}")
-                    if d.get("confidence") is not None:
-                        col_conf.metric("Confidence", f"{d['confidence']:.0%}")
-
-                    if d.get("request_id"):
-                        st.caption(
-                            f"Lobster Trap request ID: `{d['request_id']}`  "
-                            "— cross-reference in the LT dashboard at `/_lobstertrap/`"
-                        )
-
-                else:
-                    st.markdown("**Caught by:** 🧱 Offline pattern detector")
-
-                    if d.get("matched_text"):
-                        st.markdown("**Matched text:**")
-                        st.code(d["matched_text"], language="text")
-
-                    if d.get("context"):
-                        with st.expander("Surrounding context"):
-                            st.code(d["context"], language="text")
-
-                    if d.get("description"):
-                        st.info(d["description"])
-
-                    if d.get("confidence") is not None:
-                        st.caption(f"Confidence: {d['confidence']:.0%}")
-
-    # ---- Clean — poll while agents run in background ----
-    else:
-        scan_info = body.get("security_scan", {})
-        lt_used = scan_info.get("lt_used", False)
-
-        if lt_used:
-            scanner_line = "🪤 Lobster Trap + 🧱 Offline detector"
-        else:
-            scanner_line = "🧱 Offline detector _(Lobster Trap not reachable — using fallback)_"
-
-        st.success(
-            f"✅ Security gate cleared — **{body.get('n_clauses', '?')} clauses** extracted.  \n"
-            f"Scanned by: {scanner_line}"
-        )
-        st.info("AI agents are now running in the background…")
-
-        # Step 2: poll until agents finish
-        detail = _poll_until_done(body["id"])
-
-        if detail.get("status") in _PIPELINE_DONE - {"quarantined"}:
-            _render_results(body, detail)
-        elif detail.get("status") == "quarantined":
-            # Shouldn't happen (gate already passed), but handle defensively
-            st.error("Contract was quarantined during agent processing.")
-        else:
-            st.warning(
-                f"Pipeline still running (status: **{detail.get('status')}**). "
-                "You can track progress in the **Review Queue**."
-            )
-
-# ---- Recent uploads ----
-st.divider()
-st.subheader("Recent uploads")
-
-try:
-    contracts = api_get("/contracts/").json()
-except Exception as e:
-    st.warning(f"Couldn't reach backend: {e}")
-    contracts = []
-
-if not contracts:
-    st.caption("No contracts uploaded yet.")
-else:
-    for c in contracts[:15]:
-        contract_id = c["id"]
-        status_icon = STATUS_EMOJI.get(c["status"], "⚪")
-        uploaded = (c.get("uploaded_at") or "")[:19].replace("T", " ")
-
+def _render_quarantine(body: dict) -> None:
+    scan_info = body.get("security_scan", {})
+    lt_used = scan_info.get("lt_used", False)
+    layer_parts = (["🪤 **Lobster Trap**"] if lt_used else []) + ["🧱 **Offline detector**"]
+    st.error("🚨 Contract quarantined by the pre-LLM security gate")
+    st.caption(
+        f"Suspicious content detected **before any LLM was called**. "
+        f"Layers active: {' · '.join(layer_parts)}."
+    )
+    events = body.get("security_events", [])
+    _SEV_ICON = {"critical": "🔴", "high": "🟠", "medium": "🟡", "low": "🟢"}
+    for ev in events:
+        d = ev.get("details") or {}
+        source = d.get("source", "offline_detector")
+        sev = ev.get("severity", "high")
         with st.expander(
-            f"{status_icon} **{c['filename']}**  ·  {c['status']}  ·  "
-            f"{c['n_clauses']} clauses  ·  {uploaded} UTC",
-            expanded=False,
+            f"{_SEV_ICON.get(sev,'⚪')} **{ev['event_type']}**  ·  severity: {sev}",
+            expanded=True,
         ):
-            # Header row: metadata + delete button
-            head_cols = st.columns([4, 1])
-            head_cols[0].caption(
-                f"Contract ID: **{contract_id}**  ·  "
-                f"Uploaded: {uploaded} UTC"
+            if d.get("matched_text"):
+                st.code(d["matched_text"], language="text")
+            if d.get("deny_message"):
+                st.code(d["deny_message"], language="text")
+            if d.get("description"):
+                st.info(d["description"])
+
+
+# ── Tabs: Single / Bulk ───────────────────────────────────────────────────────
+
+tab_single, tab_bulk = st.tabs(["📄 Single upload", "📦 Bulk upload"])
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# TAB 1 — Single upload (existing behaviour, unchanged)
+# ════════════════════════════════════════════════════════════════════════════
+
+with tab_single:
+    uploaded = st.file_uploader(
+        "Drop a PDF or DOCX here",
+        type=["pdf", "docx"],
+        help="Pipeline: Security Gate → Agent 1 (Extraction) → Agent 2 (Risk) → "
+             "Agent 3 (Compliance) → Agent 5 (Recommendation)",
+        key="single_uploader",
+    )
+
+    if not _lt_online and uploaded is not None:
+        _lt_consent = st.checkbox(
+            "I understand Lobster Trap is offline. Proceed with offline detector only.",
+            key="lt_single_consent",
+        )
+        if not _lt_consent:
+            st.info("Check the box above to proceed.")
+            st.stop()
+
+    if uploaded is not None:
+        mime = (
+            "application/pdf"
+            if uploaded.name.lower().endswith(".pdf")
+            else "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        )
+        with st.spinner(f"Uploading **{uploaded.name}** and running security gate…"):
+            r = api_post(
+                "/contracts/upload",
+                files={"file": (uploaded.name, uploaded.getvalue(), mime)},
+                data={"actor": f"user:{current_role()}"},
             )
 
-            # Delete button — Procurement Analyst only
-            if can("delete"):
-                if head_cols[1].button(
-                    "🗑️ Delete",
-                    key=f"del_{contract_id}",
-                    type="secondary",
-                    help="Permanently delete this contract and all its analysis data.",
-                ):
-                    # Confirm via session state flag
-                    st.session_state[f"confirm_del_{contract_id}"] = True
+        if r.status_code != 200:
+            st.error(f"Upload failed (HTTP {r.status_code})")
+            try:
+                st.json(r.json())
+            except Exception:
+                st.code(r.text)
+            st.stop()
 
-            # Confirmation dialog
-            if st.session_state.get(f"confirm_del_{contract_id}"):
+        body = r.json()
+
+        if body["status"] == "duplicate":
+            st.warning(
+                f"⚠️ **This file has already been uploaded.**\n\n"
+                f"Identical to **{body['existing_filename']}** "
+                f"(Contract #{body['id']}, uploaded {(body.get('uploaded_at') or '')[:19].replace('T',' ')} UTC).\n\n"
+                f"Current status: **{body['existing_status']}**"
+            )
+            st.info("Showing the existing report below — no re-processing needed.")
+            detail = api_get(f"/contracts/{body['id']}").json()
+            if detail.get("status") == "extracted":
+                detail = _poll_until_done(body["id"])
+            _render_results(body, detail)
+
+        elif body["status"] == "quarantined":
+            _render_quarantine(body)
+
+        else:
+            scan_info = body.get("security_scan", {})
+            scanner_line = (
+                "🪤 Lobster Trap + 🧱 Offline detector"
+                if scan_info.get("lt_used")
+                else "🧱 Offline detector _(Lobster Trap not reachable — using fallback)_"
+            )
+            st.success(
+                f"✅ Security gate cleared — **{body.get('n_clauses','?')} clauses** extracted.  \n"
+                f"Scanned by: {scanner_line}"
+            )
+            st.info("AI agents are now running in the background…")
+            detail = _poll_until_done(body["id"])
+            if detail.get("status") in _PIPELINE_DONE - {"quarantined"}:
+                _render_results(body, detail)
+            elif detail.get("status") == "quarantined":
+                st.error("Contract was quarantined during agent processing.")
+            else:
                 st.warning(
-                    f"⚠️ Delete **{c['filename']}**? "
-                    "This removes the file, all agent outputs, and decisions. "
-                    "Audit logs are kept."
-                )
-                conf_cols = st.columns(2)
-                if conf_cols[0].button("Yes, delete", key=f"yes_del_{contract_id}", type="primary"):
-                    r = api_delete(
-                        f"/contracts/{contract_id}",
-                        params={"actor": f"user:{current_role()}"},
-                    )
-                    if r.status_code == 200:
-                        st.success(f"✅ Contract #{contract_id} deleted.")
-                        st.session_state.pop(f"confirm_del_{contract_id}", None)
-                        st.rerun()
-                    else:
-                        st.error(f"Delete failed (HTTP {r.status_code}): {r.text}")
-                if conf_cols[1].button("Cancel", key=f"cancel_del_{contract_id}"):
-                    st.session_state.pop(f"confirm_del_{contract_id}", None)
-                    st.rerun()
-
-            # Tabs: Preview | Analysis
-            tab_preview, tab_analysis = st.tabs(["📄 Preview", "📊 Analysis"])
-
-            with tab_preview:
-                # Fetch detail lazily — only when this expander is open
-                detail = api_get(f"/contracts/{contract_id}").json()
-                render_file_preview(
-                    contract_id=contract_id,
-                    filename=c["filename"],
-                    raw_text=detail.get("raw_text"),
-                    key_suffix=f"recent_{contract_id}",
+                    f"Pipeline still running (status: **{detail.get('status')}**). "
+                    "Track progress in the **Review Queue**."
                 )
 
-            with tab_analysis:
-                detail = api_get(f"/contracts/{contract_id}").json()
-                agent_outputs = detail.get("agent_outputs") or {}
 
-                if not agent_outputs:
-                    if c["status"] in ("extracted", "uploading"):
-                        st.info("⏳ Agents are still running — check back in a moment.")
-                    else:
-                        st.caption("No agent outputs yet.")
-                else:
-                    if "extraction" in agent_outputs:
-                        render_extraction(agent_outputs["extraction"])
-                    if "risk" in agent_outputs:
-                        render_risk(agent_outputs["risk"])
-                    if "compliance" in agent_outputs:
-                        render_compliance(agent_outputs["compliance"])
+# ════════════════════════════════════════════════════════════════════════════
+# TAB 2 — Bulk upload
+# ════════════════════════════════════════════════════════════════════════════
 
-                    decisions = detail.get("decisions") or []
-                    ai_decision = next(
-                        (d for d in decisions if (d.get("reviewer_role") or "").startswith("agent:")),
-                        None,
-                    )
-                    if ai_decision:
-                        st.subheader("🎯  Agent 5 — Recommendation")
-                        label, color = RECOMMENDATION_BADGE.get(
-                            ai_decision["recommendation"],
-                            (ai_decision["recommendation"], "off"),
-                        )
-                        c1, c2 = st.columns([1, 3])
-                        c1.metric("Recommendation", label, delta_color=color)
-                        c2.info(ai_decision.get("reasoning") or "")
+with tab_bulk:
+    st.markdown(
+        "<div style='background:#0D1628;border:1px solid #212C4D;border-radius:10px;"
+        "padding:0.9rem 1.1rem;margin-bottom:1rem;'>"
+        "<span style='color:#7E89AC;font-size:0.82rem;'>"
+        "📦 Upload up to <strong style='color:#fff;'>20 contracts</strong> at once. "
+        "Each file goes through the full pipeline independently — "
+        "one failure does not block the others. "
+        "Track processing progress in the <strong style='color:#6C72FF;'>Review Queue</strong>."
+        "</span></div>",
+        unsafe_allow_html=True,
+    )
 
-                # Audit report download
+    bulk_files = st.file_uploader(
+        "Drop up to 20 PDF or DOCX files here",
+        type=["pdf", "docx"],
+        accept_multiple_files=True,
+        help="Each file is processed independently through the full AI pipeline.",
+        key="bulk_uploader",
+    )
+
+    if not _lt_online and bulk_files:
+        _lt_bulk_consent = st.checkbox(
+            "I understand Lobster Trap is offline. Proceed with offline detector only.",
+            key="lt_bulk_consent",
+        )
+        if not _lt_bulk_consent:
+            st.info("Check the box above to proceed.")
+
+    _can_upload_bulk = bool(bulk_files) and (_lt_online or st.session_state.get("lt_bulk_consent", False))
+
+    if bulk_files:
+        if len(bulk_files) > 20:
+            st.error("Maximum 20 files per bulk upload. Please remove some files.")
+        else:
+            st.caption(f"{len(bulk_files)} file(s) selected.")
+
+    if _can_upload_bulk and len(bulk_files) <= 20:
+        if st.button(
+            f"🚀 Upload & process all {len(bulk_files)} file(s)",
+            type="primary",
+            key="bulk_submit",
+        ):
+            # Build multipart payload
+            files_payload = []
+            for f in bulk_files:
+                mime = (
+                    "application/pdf"
+                    if f.name.lower().endswith(".pdf")
+                    else "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                )
+                files_payload.append(("files", (f.name, f.getvalue(), mime)))
+
+            with st.spinner(f"Uploading {len(bulk_files)} file(s) and running security gates…"):
+                import requests, os
+                BACKEND = os.getenv("BACKEND_URL", "http://localhost:8000")
                 try:
-                    report = api_get(f"/contracts/{contract_id}/audit-report").json()
-                    st.download_button(
-                        "📥 Download audit report",
-                        data=json.dumps(report, indent=2),
-                        file_name=f"shield_audit_contract_{contract_id}.json",
-                        mime="application/json",
-                        key=f"dl_report_{contract_id}",
+                    resp = requests.post(
+                        f"{BACKEND}/contracts/bulk-upload",
+                        files=files_payload,
+                        data={"actor": f"user:{current_role()}"},
+                        timeout=120,
                     )
-                except Exception:
-                    pass
+                    bulk_resp = resp.json() if resp.ok else None
+                except Exception as exc:
+                    st.error(f"Bulk upload request failed: {exc}")
+                    bulk_resp = None
+
+            if bulk_resp is None:
+                st.error("Backend did not return a valid response.")
+            else:
+                # ── Summary banner ────────────────────────────────────────────
+                total      = bulk_resp.get("total", 0)
+                queued     = bulk_resp.get("queued", 0)
+                duplicates = bulk_resp.get("duplicates", 0)
+                quarantine = bulk_resp.get("quarantined", 0)
+                errors     = bulk_resp.get("errors", 0)
+
+                if queued == total:
+                    st.success(f"✅ All {total} files uploaded and queued for AI processing.")
+                elif queued > 0:
+                    st.warning(
+                        f"⚠️ {queued}/{total} files queued. "
+                        f"{duplicates} duplicate(s) · {quarantine} quarantined · {errors} error(s)."
+                    )
+                else:
+                    st.error(f"No files were queued. {quarantine} quarantined · {errors} error(s).")
+
+                summary_cols = st.columns(4)
+                summary_cols[0].metric("Queued for AI", queued)
+                summary_cols[1].metric("Duplicates", duplicates)
+                summary_cols[2].metric("Quarantined 🚨", quarantine)
+                summary_cols[3].metric("Errors", errors)
+
+                # ── Per-file results table ────────────────────────────────────
+                st.markdown("### Results per file")
+
+                _STATUS_ICON = {
+                    "extracted":         "🟡 Processing…",
+                    "duplicate":         "🔄 Duplicate",
+                    "quarantined":       "🚨 Quarantined",
+                    "extraction_failed": "⚫ Extraction failed",
+                    "error":             "❌ Error",
+                }
+
+                for res in bulk_resp.get("results", []):
+                    fname   = res.get("filename", "?")
+                    status  = res.get("status", "error")
+                    cid     = res.get("id")
+                    msg     = res.get("message", "")
+                    n_cls   = res.get("n_clauses")
+
+                    icon_label = _STATUS_ICON.get(status, f"🟡 {status}")
+
+                    with st.container(border=True):
+                        row_l, row_r = st.columns([5, 2])
+                        with row_l:
+                            st.markdown(
+                                f"<span style='font-weight:600;color:#fff;'>{fname}</span>  "
+                                f"<span style='color:#7E89AC;font-size:0.8rem;'>{icon_label}</span>",
+                                unsafe_allow_html=True,
+                            )
+                            if msg and status not in ("extracted",):
+                                st.caption(msg)
+                            if n_cls is not None:
+                                st.caption(f"{n_cls} clauses extracted")
+                        with row_r:
+                            if cid and status not in ("error",):
+                                st.markdown(
+                                    f"<span style='font-size:0.78rem;color:#7E89AC;'>"
+                                    f"Contract #{cid}</span>",
+                                    unsafe_allow_html=True,
+                                )
+                            if status == "quarantined":
+                                with st.expander("Security events"):
+                                    for ev in (res.get("security_events") or []):
+                                        st.caption(
+                                            f"🔴 {ev.get('event_type')} · {ev.get('severity')}"
+                                        )
+
+                # ── Polling progress for queued files ─────────────────────────
+                queued_ids = [
+                    r["id"] for r in bulk_resp.get("results", [])
+                    if r.get("status") == "extracted" and r.get("id")
+                ]
+                if queued_ids:
+                    st.markdown("---")
+                    st.info(
+                        f"⏳ **{len(queued_ids)} file(s) are being processed by AI agents.** "
+                        "Go to the **Review Queue** to monitor progress and take action when ready. "
+                        "You don't need to stay on this page."
+                    )
+                    if st.button("🔄 Check processing status now", key="bulk_poll"):
+                        still_running = []
+                        done = []
+                        for cid in queued_ids:
+                            d = api_get(f"/contracts/{cid}").json()
+                            if d.get("status") in _PIPELINE_DONE:
+                                done.append((cid, d.get("status"), d.get("filename", "")))
+                            else:
+                                still_running.append(cid)
+                        if done:
+                            st.success(f"✅ {len(done)} file(s) finished processing:")
+                            for cid, st_val, fn in done:
+                                st.caption(f"  • #{cid} {fn} → **{st_val}**")
+                        if still_running:
+                            st.warning(
+                                f"⏳ {len(still_running)} file(s) still processing "
+                                f"(IDs: {still_running}). Check again in a moment."
+                            )
+
+# ── Hint to navigate to Recent Uploads ───────────────────────────────────────
+st.markdown("<div style='height:1.5rem'></div>", unsafe_allow_html=True)
+st.markdown(
+    "<div style='background:#101935;border:1px solid #212C4D;border-radius:12px;"
+    "padding:1rem 1.25rem;'>"
+    "<span style='color:#7E89AC;font-size:0.85rem;'>"
+    "📂 Looking for past uploads? Go to <strong style='color:#6C72FF;'>Recent Uploads</strong> "
+    "in the sidebar for a full table with in-depth analysis of any contract."
+    "</span></div>",
+    unsafe_allow_html=True,
+)

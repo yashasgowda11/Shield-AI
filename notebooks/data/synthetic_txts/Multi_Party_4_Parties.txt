@@ -1,0 +1,241 @@
+PARTNERSHIP AGREEMENT
+
+This Partnership Agreement (the "Agreement") is made and entered into as of January 1, 2025 (the "Effective Date"), by and between:
+
+ACME CORP, a Delaware corporation, with its principal place of business at 123 Innovation Drive, Wilmington, Delaware 19801 (hereinafter referred to as "Acme");
+
+BETA SOLUTIONS LLC, a Texas limited liability company, with its principal place of business at 456 Tech Avenue, Austin, Texas 78701 (hereinafter referred to as "Beta");
+
+GAMMA DATA SERVICES INC, a California corporation, with its principal place of business at 789 Digital Parkway, San Francisco, California 94107 (hereinafter referred to as "Gamma"); and
+
+DELTA ANALYTICS GMBH, a German company, with its registered office at Hauptstrasse 10, 10115 Berlin, Germany (hereinafter referred to as "Delta").
+
+Acme, Beta, Gamma, and Delta are collectively referred to herein as the "Parties" and individually as a "Party."
+
+RECITALS
+
+WHEREAS, the Parties desire to collaborate and combine their respective expertise, resources, and technologies to develop, market, and provide a comprehensive suite of data analytics and business intelligence solutions to clients (the "Partnership Purpose");
+
+WHEREAS, Acme possesses expertise in cloud infrastructure and scalable computing;
+
+WHEREAS, Beta specializes in advanced machine learning algorithms and predictive modeling;
+
+WHEREAS, Gamma excels in data integration, cleansing, and visualization tools;
+
+WHEREAS, Delta is a leader in international market analysis and regulatory compliance for data;
+
+WHEREAS, the Parties wish to set forth the terms and conditions governing their relationship in connection with the Partnership Purpose.
+
+NOW, THEREFORE, in consideration of the mutual covenants and agreements hereinafter set forth, and for other good and valuable consideration, the receipt and sufficiency of which are hereby acknowledged, the Parties agree as follows:
+
+ARTICLE 1
+DEFINITIONS
+
+1.1 "Affiliate" means, with respect to any Party, any entity that directly or indirectly controls, is controlled by, or is under common control with such Party. For purposes of this definition, "control" means the possession, directly or indirectly, of more than fifty percent (50%) of the voting power of the outstanding securities of such entity or the power to direct or cause the direction of the management and policies of such entity.
+
+1.2 "Confidential Information" means any and all non-public information, whether tangible or intangible, disclosed by one Party (the "Disclosing Party") to another Party (the "Receiving Party"), or to which the Receiving Party gains access in connection with this Agreement, including, but not limited to, business plans, financial information, customer lists, technical data, trade secrets, know-how, software, source code, algorithms, marketing strategies, and any other proprietary information. Confidential Information shall not include information that: (a) is or becomes publicly known through no wrongful act of the Receiving Party; (b) was rightfully known to the Receiving Party prior to its disclosure by the Disclosing Party, free of any obligation of confidence; (c) is rightfully received by the Receiving Party from a third party without restriction on disclosure and without breach of any obligation of confidence; or (d) is independently developed by the Receiving Party without use of or reference to the Disclosing Party's Confidential Information.
+
+1.3 "Intellectual Property" means any and all patents, patent applications, copyrights, trademarks, service marks, trade names, trade secrets, know-how, proprietary rights, and any other intellectual property or proprietary rights recognized in any jurisdiction.
+
+1.4 "Partnership Purpose" means the development, marketing, and provision of comprehensive data analytics and business intelligence solutions, including but not limited to cloud-based analytics platforms, predictive modeling services, data visualization tools, and international market analysis, as further detailed in Article 4.
+
+1.5 "Services" means the specific contributions and activities undertaken by each Party as described in Article 4.
+
+ARTICLE 2
+TERM AND RENEWAL
+
+2.1 This Agreement shall commence on the Effective Date and shall continue in full force and effect for an initial term of two (2) years (the "Initial Term").
+
+2.2 Following the Initial Term, this Agreement shall automatically renew for successive one (1) year periods (each, a "Renewal Term") unless any Party provides written notice of its intent not to renew to the other Parties at least ninety (90) days prior to the expiration of the then-current term. The Initial Term and any Renewal Terms are collectively referred to as the "Term."
+
+ARTICLE 3
+SERVICES / SCOPE OF WORK
+
+3.1 The Parties agree to collaborate and contribute their respective expertise and resources to achieve the Partnership Purpose. The specific contributions of each Party are as follows:
+
+(a) Acme shall provide and maintain the underlying cloud infrastructure, ensuring scalability, security, and availability of the platform. Acme will also be responsible for the integration of third-party services and the overall system architecture.
+
+(b) Beta shall develop, implement, and refine advanced machine learning algorithms, predictive models, and artificial intelligence components for the analytics platform. Beta will also provide expertise in model training, validation, and deployment.
+
+(c) Gamma shall be responsible for the development and maintenance of data integration tools, data cleansing processes, and interactive data visualization dashboards. Gamma will ensure the platform can ingest, process, and present data from various sources effectively.
+
+(d) Delta shall conduct international market analysis, provide insights into global data trends, and ensure compliance with relevant international data privacy regulations, including the GDPR. Delta will also assist in tailoring solutions for specific international markets and clients.
+
+3.2 The Parties will jointly develop a detailed project plan, including specific deliverables, timelines, and milestones, within thirty (30) days of the Effective Date. This project plan may be amended from time to time by mutual written agreement of all Parties.
+
+3.3 Each Party shall perform its Services in a professional and workmanlike manner, consistent with industry standards and best practices.
+
+ARTICLE 4
+PAYMENT TERMS
+
+4.1 The Parties acknowledge that this Agreement establishes a collaborative partnership and does not contemplate a fixed fee structure for individual services. Instead, revenue generated from clients for the solutions developed and provided under this Agreement shall be shared among the Parties.
+
+4.2 A detailed revenue sharing model will be developed and agreed upon by all Parties in a separate addendum to this Agreement within sixty (60) days of the Effective Date. This model will consider the contributions, risks, and market value of each Party's services.
+
+4.3 All revenue generated from the Partnership Purpose shall be collected by a designated Party or through a mutually agreed-upon mechanism. Expenses incurred by the Parties in furtherance of the Partnership Purpose shall be documented and reimbursed according to the terms of the revenue sharing addendum.
+
+ARTICLE 5
+LIABILITY AND INDEMNIFICATION
+
+5.1 Each Party shall be solely responsible for its own acts and omissions and the acts and omissions of its employees, agents, and subcontractors in connection with the performance of its obligations under this Agreement.
+
+5.2 Except as otherwise provided herein, no Party shall be liable to any other Party for any indirect, incidental, consequential, special, exemplary, or punitive damages arising out of or relating to this Agreement, even if such Party has been advised of the possibility of such damages.
+
+5.3 Notwithstanding the foregoing, each Party (the "Indemnifying Party") shall indemnify, defend, and hold harmless the other Parties (the "Indemnified Parties") from and against any and all claims, liabilities, losses, damages, costs, and expenses (including reasonable attorneys' fees) arising out of or relating to: (a) any breach of this Agreement by the Indemnifying Party; (b) any gross negligence or willful misconduct of the Indemnifying Party in connection with its performance under this Agreement; or (c) any infringement of any third-party intellectual property rights by the Indemnifying Party's contributions.
+
+5.4 The obligations of indemnification under this Article 5 shall survive the termination of this Agreement.
+
+ARTICLE 6
+CONFIDENTIALITY
+
+6.1 Each Receiving Party agrees to hold all Confidential Information of the Disclosing Party in strict confidence and not to disclose such Confidential Information to any third party, nor use it for any purpose other than for the performance of its obligations under this Agreement, without the prior written consent of the Disclosing Party.
+
+6.2 The Receiving Party shall exercise the same degree of care to protect the Disclosing Party's Confidential Information as it exercises to protect its own confidential information of a similar nature, but in no event less than a reasonable degree of care.
+
+6.3 If the Receiving Party is required by law, regulation, or court order to disclose any Confidential Information, it shall promptly notify the Disclosing Party of such requirement and cooperate with the Disclosing Party in seeking a protective order or other appropriate remedy.
+
+6.4 The obligations of confidentiality under this Article 6 shall survive the termination of this Agreement for a period of five (5) years.
+
+ARTICLE 7
+TERMINATION
+
+7.1 This Agreement may be terminated prior to the expiration of the Term under the following circumstances:
+
+(a) By mutual written consent of all Parties.
+
+(b) By any Party upon material breach of this Agreement by another Party, if such breach is not cured within sixty (60) days after written notice thereof is provided to the breaching Party.
+
+(c) By any Party upon the bankruptcy, insolvency, or dissolution of another Party.
+
+7.2 Upon termination of this Agreement, each Party shall promptly return or destroy all Confidential Information of the other Parties in its possession or control.
+
+7.3 Termination of this Agreement shall not affect any rights or obligations that have accrued prior to the effective date of termination, including, but not limited to, payment obligations and indemnification obligations. Articles 5, 6, 7, 9, and 10 shall survive the termination of this Agreement.
+
+ARTICLE 8
+GOVERNING LAW AND DISPUTE RESOLUTION
+
+8.1 This Agreement and all matters arising out of or relating to this Agreement shall be governed by and construed in accordance with the laws of the State of Delaware, without regard to its conflict of laws principles.
+
+8.2 Any dispute, controversy, or claim arising out of or relating to this Agreement, or the breach, termination, or invalidity thereof, shall be settled by arbitration administered by the American Arbitration Association in accordance with its Commercial Arbitration Rules. The arbitration shall take place in Wilmington, Delaware. The award of the arbitrator(s) shall be final and binding upon the Parties. The language of the arbitration shall be English.
+
+8.3 Notwithstanding the foregoing, any Party may seek injunctive relief or other equitable remedies from any court of competent jurisdiction to prevent the actual or threatened infringement, misappropriation, or violation of its Intellectual Property or Confidential Information.
+
+ARTICLE 9
+GENERAL PROVISIONS
+
+9.1 Notices. All notices, requests, demands, and other communications hereunder shall be in writing and shall be deemed to have been duly given: (a) when delivered personally; (b) when sent by confirmed facsimile or email; (c) one (1) business day after being sent to a nationally recognized overnight courier service; or (d) three (3) business days after being mailed by certified or registered mail, return receipt requested, postage prepaid, to the Parties at their respective addresses set forth in the preamble to this Agreement, or to such other address as any Party may designate by notice to the others.
+
+9.2 Entire Agreement. This Agreement, together with any addenda or exhibits attached hereto, constitutes the entire agreement between the Parties with respect to the subject matter hereof and supersedes all prior and contemporaneous agreements, understandings, negotiations, and discussions, whether oral or written, of the Parties.
+
+9.3 Severability. If any provision of this Agreement is held to be invalid, illegal, or unenforceable by a court of competent jurisdiction, such provision shall be modified to the extent necessary to make it valid, legal, and enforceable, and the remainder of this Agreement shall continue in full force and effect.
+
+9.4 Waiver. The failure of any Party to enforce any provision of this Agreement shall not constitute a waiver of such provision or of the right to enforce such provision in the future.
+
+9.5 Assignment. No Party may assign its rights or delegate its obligations under this Agreement without the prior written consent of all other Parties, which consent shall not be unreasonably withheld or delayed. Any attempted assignment in violation of this Section shall be void.
+
+9.6 Force Majeure. Neither Party shall be liable for any failure or delay in performing its obligations hereunder if such failure or delay is due to circumstances beyond its reasonable control, including but not limited to acts of God, war, terrorism, riots, embargoes, acts of civil or military authorities, fire, floods, accidents, strikes, or shortages of transportation facilities, fuel, energy, labor, or materials. The affected Party shall promptly notify the other Parties of such event and shall use commercially reasonable efforts to resume performance as soon as practicable.
+
+9.7 Data Processing Addendum. The Parties acknowledge and agree that the processing of personal data in connection with this Agreement shall be subject to the terms of the Data Processing Addendum attached hereto as Exhibit A, which is incorporated herein by reference and is compliant with EU GDPR (Regulation 2016/679).
+
+ARTICLE 10
+SIGNATURES
+
+IN WITNESS WHEREOF, the Parties have caused this Agreement to be executed by their duly authorized representatives as of the Effective Date.
+
+ACME CORP
+
+By:
+Name:
+Title:
+
+BETA SOLUTIONS LLC
+
+By:
+Name:
+Title:
+
+GAMMA DATA SERVICES INC
+
+By:
+Name:
+Title:
+
+DELTA ANALYTICS GMBH
+
+By:
+Name:
+Title:
+
+EXHIBIT A
+
+DATA PROCESSING ADDENDUM (DPA)
+COMPLIANT WITH EU GDPR (REGULATION 2016/679)
+
+This Data Processing Addendum ("DPA") is entered into as of January 1, 2025, by and between the Parties to the Partnership Agreement dated January 1, 2025 (the "Partnership Agreement"). This DPA is incorporated into and forms part of the Partnership Agreement.
+
+1. DEFINITIONS
+
+1.1 "Controller," "Processor," "Data Subject," "Personal Data," "Processing," and "Supervisory Authority" shall have the meanings ascribed to them in the GDPR.
+
+1.2 "GDPR" means Regulation (EU) 2016/679 of the European Parliament and of the Council of 27 April 2016 on the protection of natural persons with regard to the processing of personal data and on the free movement of such data, and repealing Directive 95/46/EC (General Data Protection Regulation).
+
+1.3 "Standard Contractual Clauses" or "SCCs" means the standard data protection clauses adopted by the European Commission.
+
+2. ROLES OF THE PARTIES
+
+2.1 The Parties acknowledge that in the context of providing services under the Partnership Agreement, certain Personal Data may be processed. The specific roles of Controller and Processor will be determined on a case-by-case basis depending on the nature of the data processed and the services provided. However, for the purposes of this DPA, where one Party (the "Controller Party") determines the purposes and means of the processing of Personal Data, and another Party (the "Processor Party") processes such Personal Data on behalf of the Controller Party, the Processor Party shall act as a Processor and the Controller Party shall act as a Controller.
+
+3. PROCESSING OF PERSONAL DATA
+
+3.1 Processor Party shall only process Personal Data on behalf of the Controller Party and in accordance with the Controller Party's documented instructions, unless required to do otherwise by applicable law. The Controller Party's instructions will be consistent with the GDPR.
+
+3.2 The nature, purpose, and duration of the Processing of Personal Data by the Processor Party are as follows:
+    a. Nature: Processing of Personal Data as necessary to provide the data analytics and business intelligence solutions contemplated by the Partnership Agreement. This may include collection, recording, organization, structuring, storage, adaptation or alteration, retrieval, consultation, use, disclosure by transmission, dissemination or otherwise making available, alignment or combination, restriction, erasure or destruction.
+    b. Purpose: To enable the provision of the services described in the Partnership Agreement, including but not limited to data analysis, predictive modeling, data visualization, and international market analysis.
+    c. Duration: For the duration of the Partnership Agreement and as long as Personal Data is required for the purposes outlined herein, subject to applicable law.
+
+3.3 The categories of Personal Data to be processed and the categories of Data Subjects are as follows: [To be specified based on actual data processed, e.g., Customer contact details, employee data, user behavior data. Categories of Data Subjects: Individuals whose data is processed in connection with the services provided.]
+
+4. DATA SUBJECT RIGHTS
+
+4.1 The Processor Party shall, to the extent technically feasible and legally permissible, assist the Controller Party in fulfilling its obligations to respond to requests from Data Subjects exercising their rights under Chapter III of the GDPR (e.g., right of access, rectification, erasure, restriction of processing, data portability, and objection).
+
+5. SECURITY MEASURES
+
+5.1 The Processor Party shall implement and maintain appropriate technical and organizational measures to ensure a level of security appropriate to the risk, including, as appropriate, the measures referred to in Article 32(1) of the GDPR. These measures shall include, but are not limited to, pseudonymization and encryption of Personal Data, the ability to ensure the ongoing confidentiality, integrity, availability, and resilience of processing systems and services, the ability to restore the availability and access to Personal Data in a timely manner in the event of a physical or technical incident, and a process for regularly testing, assessing, and evaluating the effectiveness of technical and organizational measures.
+
+6. SUB-PROCESSORS
+
+6.1 The Processor Party shall not engage any sub-processor without the prior written authorization of the Controller Party. The Controller Party hereby grants a general written authorization to the Processor Party to engage sub-processors for the purposes of providing the services under the Partnership Agreement. The Processor Party shall inform the Controller Party of any intended changes concerning the addition or replacement of sub-processors, thereby giving the Controller Party the opportunity to object to such changes.
+
+6.2 Where the Processor Party engages a sub-processor, it shall impose on that sub-processor, by contract or other legal act, the same data protection obligations as are set out in this DPA, in particular providing sufficient guarantees that it will implement appropriate technical and organizational measures in such a manner that the processing will meet the requirements of the GDPR.
+
+7. INTERNATIONAL DATA TRANSFERS
+
+7.1 Where Personal Data is transferred from the European Economic Area ("EEA") to a country outside the EEA, the Parties shall ensure that such transfer is made in compliance with Chapter V of the GDPR. Where such transfers are to a Processor Party located outside the EEA, the Parties agree to implement the Standard Contractual Clauses (SCCs) as adopted by the European Commission, which shall be attached hereto as Exhibit B. The SCCs shall govern the transfer of Personal Data.
+
+8. AUDIT RIGHTS
+
+8.1 The Processor Party shall make available to the Controller Party all information necessary to demonstrate compliance with the obligations laid down in this DPA and Article 28 of the GDPR. The Processor Party shall allow for and contribute to audits, including inspections, conducted by the Controller Party or an auditor mandated by the Controller Party. Such audits shall be conducted during business hours, with reasonable notice, and in a manner that minimizes disruption to the Processor Party's business.
+
+9. BREACH AND NOTIFICATION
+
+9.1 The Processor Party shall notify the Controller Party without undue delay after becoming aware of a Personal Data breach. Such notification shall include at least the following information:
+    a. the nature of the Personal Data breach including, where possible, the categories and approximate number of Data Subjects concerned and the categories and approximate number of Personal Data records concerned;
+    b. the name and contact details of the data protection officer or other contact point from which more information can be obtained;
+    c. the likely consequences of the Personal Data breach;
+    d. the measures taken or proposed to be taken by the Processor Party to address the Personal Data breach, including, where appropriate, measures to mitigate its possible adverse effects.
+
+10. TERMINATION
+
+10.1 Upon termination of the Partnership Agreement, the Processor Party shall, at the choice of the Controller Party, delete or return all Personal Data to the Controller Party, and delete all existing copies unless applicable law requires the storage of the Personal Data.
+
+11. GOVERNING LAW
+
+11.1 This DPA shall be governed by and construed in accordance with the laws of the State of Delaware, without regard to its conflict of laws principles, and shall be subject to the dispute resolution provisions of the Partnership Agreement.
+
+EXHIBIT B
+
+STANDARD CONTRACTUAL CLAUSES (SCCs)
+
+[This section would typically contain the full text of the relevant EU Commission Implementing Decision on Standard Contractual Clauses for the transfer of personal data to third countries. For brevity and to avoid exceeding typical contract length constraints for this exercise, the actual SCC text is omitted here but would be a critical component of a real-world DPA.]

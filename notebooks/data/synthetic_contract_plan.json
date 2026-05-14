@@ -1,0 +1,104 @@
+[
+  {
+    "filename": "Government_Procurement_FAR.pdf",
+    "type": "Government",
+    "frameworks": [
+      "FAR",
+      "DFARS"
+    ],
+    "expected_risk": "Medium",
+    "agent_tested": "Agent 3",
+    "scenario": "FAR mandatory clauses present/missing \u2192 compliance fail",
+    "has_injection": false
+  },
+  {
+    "filename": "Finance_PCI_DSS_Agreement.pdf",
+    "type": "Finance",
+    "frameworks": [
+      "PCI-DSS",
+      "SOX"
+    ],
+    "expected_risk": "High",
+    "agent_tested": "Agent 3",
+    "scenario": "Payment processing \u2014 PCI-DSS scope 1 requirements must be flagged",
+    "has_injection": false
+  },
+  {
+    "filename": "Zero_Liability_Cap.pdf",
+    "type": "Vendor",
+    "frameworks": [],
+    "expected_risk": "Critical",
+    "agent_tested": "Agent 2",
+    "scenario": "Vendor liability cap = $0 AND uncapped indemnification \u2192 score must be 90+",
+    "has_injection": false
+  },
+  {
+    "filename": "Expired_Termination_Date.pdf",
+    "type": "Service",
+    "frameworks": [],
+    "expected_risk": "High",
+    "agent_tested": "Agent 1",
+    "scenario": "Contract expired 2 years ago \u2014 Agent 1 must extract and flag past termination date",
+    "has_injection": false
+  },
+  {
+    "filename": "Multi_Party_4_Parties.pdf",
+    "type": "Partnership",
+    "frameworks": [
+      "GDPR"
+    ],
+    "expected_risk": "Medium",
+    "agent_tested": "Agent 1",
+    "scenario": "4-party data sharing agreement \u2014 Agent 1 must extract all 4 parties correctly",
+    "has_injection": false
+  },
+  {
+    "filename": "CSS_Hidden_Injection.pdf",
+    "type": "NDA",
+    "frameworks": [],
+    "expected_risk": "Critical",
+    "agent_tested": "Agent 4",
+    "scenario": "CSS white-on-white injection (different technique than Vendor_Agreement.pdf)",
+    "has_injection": true,
+    "injection_type": "css_hidden_text"
+  },
+  {
+    "filename": "Employment_Aggressive_NonCompete.pdf",
+    "type": "Employment",
+    "frameworks": [],
+    "expected_risk": "Medium",
+    "agent_tested": "Agent 7",
+    "scenario": "Aggressive 3-year non-compete + no-solicit \u2014 Agent 7 Q&A ground truth",
+    "has_injection": false
+  },
+  {
+    "filename": "GDPR_CCPA_Dual_DPA.pdf",
+    "type": "Data Processing",
+    "frameworks": [
+      "GDPR",
+      "CCPA"
+    ],
+    "expected_risk": "Medium",
+    "agent_tested": "Agent 3",
+    "scenario": "EU + California combined DPA \u2014 Agent 3 must check both frameworks simultaneously",
+    "has_injection": false
+  },
+  {
+    "filename": "Contradictory_Clauses.pdf",
+    "type": "Vendor",
+    "frameworks": [],
+    "expected_risk": "High",
+    "agent_tested": "Agent 2",
+    "scenario": "Section 4 says \"unlimited liability\", Section 12 says \"capped at $100\" \u2014 risk agent edge case",
+    "has_injection": false
+  },
+  {
+    "filename": "IP_Assignment_Heavy.pdf",
+    "type": "IP / Tech",
+    "frameworks": [],
+    "expected_risk": "High",
+    "agent_tested": "Agent 2 + 7",
+    "scenario": "All IP assigned to vendor, no license back \u2014 Agent 2 must flag, Agent 7 must answer clause questions",
+    "has_injection": false
+  }
+]

@@ -1,20 +1,23 @@
-"""Contract upload + processing endpoints.
-"""
+"""Contract upload + processing endpoints."""
 import hashlib
 import logging
 import os
+from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any, Optional
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, UploadFile, File, Form, Query, Header
 from fastapi.responses import Response as FileResponse
 from google.cloud import storage as gcs
 from google.oauth2 import service_account
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from datetime import datetime
-
 from backend.db import get_db, SessionLocal
-from backend.models import AgentOutput, AuditLog, Contract, Decision, SecurityEvent
+from backend.models import (
+    AgentOutput, AuditLog, Contract, ContractAssignment, ContractComment,
+    Decision, SecurityEvent, ScoringFeedback,
+)
 from backend import audit
 from backend.extractors import extract_text
 from backend.segmentation import segment_clauses
@@ -25,6 +28,84 @@ from backend.orchestrator import run_pipeline
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+
+# ── Pydantic response schemas ─────────────────────────────────────────────────
+
+class ContractSummary(BaseModel):
+    id: int
+    filename: str
+    status: str
+    uploaded_at: Optional[str]
+    n_clauses: int
+
+
+class ContractListResponse(BaseModel):
+    total: int
+    limit: int
+    offset: int
+    items: list[ContractSummary]
+
+
+class UploadResponse(BaseModel):
+    id: int
+    status: str
+    filename: str
+    n_clauses: Optional[int] = None
+    char_count: Optional[int] = None
+    metadata: Optional[dict] = None
+    security_scan: Optional[dict] = None
+    # Present only for duplicates
+    existing_filename: Optional[str] = None
+    existing_status: Optional[str] = None
+    uploaded_at: Optional[str] = None
+    message: Optional[str] = None
+
+
+class BulkUploadResponse(BaseModel):
+    total: int
+    queued: int
+    duplicates: int
+    quarantined: int
+    errors: int
+    results: list[dict]
+
+
+class DecideResponse(BaseModel):
+    contract_id: int
+    decision: str
+    new_status: str
+
+
+class CommentResponse(BaseModel):
+    id: int
+    contract_id: int
+    actor: str
+    role: str
+    comment: str
+    comment_type: str
+    created_at: str
+
+
+class AssignResponse(BaseModel):
+    assignment_id: int
+    contract_id: int
+    assigned_role: str
+    can_approve: bool
+
+
+class RevokeResponse(BaseModel):
+    revoked: bool
+    contract_id: int
+    assigned_role: str
+
+
+class DeleteResponse(BaseModel):
+    deleted: bool
+    contract_id: int
+    filename: str
+    pinecone_vectors_removed: int
+    gcs_deleted: bool
 
 
 def _run_pipeline_background(contract_id: int) -> None:
@@ -52,6 +133,10 @@ def _run_pipeline_background(contract_id: int) -> None:
 GCS_BUCKET_NAME = os.getenv("GCS_BUCKET_NAME", "")
 GCS_SERVICE_ACCOUNT_KEY = os.getenv("GCS_SERVICE_ACCOUNT_KEY", "")  # path to JSON key
 _gcs_client: gcs.Client | None = None
+
+# Maximum file size accepted by the upload endpoints (bytes).
+# Configurable via env var MAX_UPLOAD_BYTES; defaults to 50 MB.
+MAX_UPLOAD_BYTES: int = int(os.getenv("MAX_UPLOAD_BYTES", str(50 * 1024 * 1024)))
 
 
 def _get_bucket() -> gcs.Bucket:
@@ -97,26 +182,53 @@ def _upload_to_gcs(file_bytes: bytes, blob_name: str) -> str:
     return f"gs://{GCS_BUCKET_NAME}/{blob_name}"
 
 
-@router.get("/")
+@router.get("/", response_model=ContractListResponse)
 def list_contracts(
-    status: str | None = None,
+    status: str | None = Query(None, description="Filter by contract status (e.g. 'legal_review')"),
+    assigned_role: str | None = Query(None, description="Include contracts with an active assignment for this role"),
+    limit: int = Query(50, ge=1, le=500, description="Max results to return"),
+    offset: int = Query(0, ge=0, description="Pagination offset"),
     db: Session = Depends(get_db),
 ):
-    """List all contracts. Optional status filter (e.g. 'legal_review')."""
+    """List contracts with optional filtering and pagination.
+
+    Filters:
+      status        — filter by contract status (e.g. 'legal_review')
+      assigned_role — include contracts where this role has an active assignment
+                      (used to surface escalated contracts to Executive / Auditor / etc.)
+    Both filters can be combined — e.g. status=legal_review&assigned_role=Executive.
+    """
     q = db.query(Contract).order_by(Contract.uploaded_at.desc())
+
+    if assigned_role:
+        assigned_ids = (
+            db.query(ContractAssignment.contract_id)
+            .filter_by(assigned_role=assigned_role, active=True)
+            .subquery()
+        )
+        q = q.filter(Contract.id.in_(assigned_ids))
+
     if status:
         q = q.filter(Contract.status == status)
-    rows = q.all()
-    return [
-        {
-            "id": r.id,
-            "filename": r.filename,
-            "status": r.status,
-            "uploaded_at": r.uploaded_at.isoformat() if r.uploaded_at else None,
-            "n_clauses": len(r.clauses) if r.clauses else 0,
-        }
-        for r in rows
-    ]
+
+    total = q.count()
+    rows = q.offset(offset).limit(limit).all()
+
+    return {
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+        "items": [
+            {
+                "id": r.id,
+                "filename": r.filename,
+                "status": r.status,
+                "uploaded_at": r.uploaded_at.isoformat() if r.uploaded_at else None,
+                "n_clauses": len(r.clauses) if r.clauses else 0,
+            }
+            for r in rows
+        ],
+    }
 
 
 @router.get("/{contract_id}")
@@ -144,10 +256,12 @@ def get_contract(contract_id: int, db: Session = Depends(get_db)):
     # Decision history (newest first)
     decisions = [
         {
+            "id": d.id,
             "recommendation": d.recommendation,
             "reasoning": d.reasoning,
             "reviewer_role": d.reviewer_role,
             "decided_at": d.decided_at.isoformat() if d.decided_at else None,
+            "scoring_details": d.scoring_details,  # composite score, sub-scores, rationale
         }
         for d in sorted(contract.decisions or [], key=lambda d: d.decided_at or "", reverse=True)
     ]
@@ -168,6 +282,29 @@ def get_contract(contract_id: int, db: Session = Depends(get_db)):
                 "details": e.details,
             }
             for e in contract.security_events
+        ],
+        "comments": [
+            {
+                "id":           c.id,
+                "actor":        c.actor,
+                "role":         c.role,
+                "comment":      c.comment,
+                "comment_type": c.comment_type,
+                "created_at":   c.created_at.isoformat() if c.created_at else None,
+            }
+            for c in (contract.comments or [])
+        ],
+        "assignments": [
+            {
+                "id":            a.id,
+                "assigned_role": a.assigned_role,
+                "assigned_by":   a.assigned_by,
+                "can_approve":   a.can_approve,
+                "note":          a.note,
+                "active":        a.active,
+                "assigned_at":   a.assigned_at.isoformat() if a.assigned_at else None,
+            }
+            for a in (contract.assignments or [])
         ],
     }
 
@@ -214,7 +351,7 @@ def get_contract_file(contract_id: int, db: Session = Depends(get_db)):
     )
 
 
-@router.delete("/{contract_id}")
+@router.delete("/{contract_id}", response_model=DeleteResponse)
 def delete_contract(
     contract_id: int,
     actor: str = "user:Procurement Analyst",
@@ -362,7 +499,7 @@ def audit_report(contract_id: int, db: Session = Depends(get_db)):
     )
 
     return {
-        "report_generated_at": datetime.utcnow().isoformat() + "Z",
+        "report_generated_at": datetime.now(timezone.utc).isoformat(),
         "report_version": "1.0",
         "contract": {
             "id": contract.id,
@@ -385,10 +522,12 @@ def audit_report(contract_id: int, db: Session = Depends(get_db)):
         ],
         "decisions": [
             {
+                "id": d.id,
                 "recommendation": d.recommendation,
                 "reasoning": d.reasoning,
                 "reviewer_role": d.reviewer_role,
                 "decided_at": d.decided_at.isoformat() if d.decided_at else None,
+                "scoring_details": d.scoring_details,
             }
             for d in contract.decisions
         ],
@@ -423,16 +562,21 @@ HUMAN_DECISION_TO_STATUS = {
 }
 
 
-@router.post("/{contract_id}/decide")
+@router.post("/{contract_id}/decide", response_model=DecideResponse)
 def make_human_decision(
     contract_id: int,
     decision: str = Form(...),
     reasoning: str = Form(...),
     actor: str = Form(...),
+    role: str = Form(""),       # caller's role — used to deactivate their assignment
     db: Session = Depends(get_db),
 ):
     """Record a human approval decision. `decision` is one of
-    APPROVED | REJECTED | ESCALATED_LEGAL."""
+    APPROVED | REJECTED | ESCALATED_LEGAL.
+
+    Permission check: the caller must either hold a role with default approval
+    permission OR have an active ContractAssignment with can_approve=True.
+    """
     if decision not in HUMAN_DECISION_TO_STATUS:
         raise HTTPException(
             status_code=400,
@@ -443,16 +587,79 @@ def make_human_decision(
     if not contract:
         raise HTTPException(status_code=404, detail="Contract not found")
 
-    db.add(Decision(
+    # Deactivate caller's active assignment (if any) — they've acted on it
+    if role:
+        active_assignment = (
+            db.query(ContractAssignment)
+            .filter_by(contract_id=contract_id, assigned_role=role, active=True)
+            .first()
+        )
+        if active_assignment:
+            active_assignment.active = False
+
+    decision_row = Decision(
         contract_id=contract_id,
         recommendation=decision,
         reasoning=reasoning,
         reviewer_role=actor,
-    ))
+    )
+    db.add(decision_row)
 
     new_status = HUMAN_DECISION_TO_STATUS[decision]
     before_status = contract.status
     contract.status = new_status
+    db.flush()  # get decision_row.id before commit
+
+    # ── Auto-create ScoringFeedback so future contracts for this vendor
+    # are aware of the human override and the reason given.
+    # Maps human decision vs prior AI decision → feedback_type.
+    try:
+        ai_decision_row = (
+            db.query(Decision)
+            .filter_by(contract_id=contract_id)
+            .filter(Decision.reviewer_role.like("agent:%"))
+            .order_by(Decision.id.desc())
+            .first()
+        )
+        ai_decision_code = ai_decision_row.recommendation if ai_decision_row else None
+
+        # Determine feedback_type: did the human think the AI was too strict or too lenient?
+        _leniency = {"AUTO_APPROVE": 0, "MANAGER_REVIEW": 1, "LEGAL_REVIEW": 2, "REJECT": 3,
+                     "APPROVED": 0, "REJECTED": 3, "ESCALATED_LEGAL": 2}
+        ai_rank  = _leniency.get(ai_decision_code, 1)
+        hum_rank = _leniency.get(decision, 1)
+        if hum_rank < ai_rank:
+            feedback_type = "too_high"    # AI was stricter than needed
+        elif hum_rank > ai_rank:
+            feedback_type = "too_low"     # AI was too lenient
+        else:
+            feedback_type = "correct"
+
+        # Grab composite score from latest AI decision's scoring_details
+        composite_score = None
+        if ai_decision_row and ai_decision_row.scoring_details:
+            composite_score = ai_decision_row.scoring_details.get("composite_score")
+
+        db.add(ScoringFeedback(
+            contract_id=contract_id,
+            decision_id=decision_row.id,
+            feedback_type=feedback_type,
+            ai_decision=ai_decision_code,
+            human_decision=decision,
+            composite_score=composite_score,
+            notes=reasoning,            # ← reviewer's reason is stored here
+            reviewer_role=actor,
+        ))
+        logger.info(
+            "Human decision recorded for contract %s: %s → %s (feedback_type=%s)",
+            contract_id, ai_decision_code, decision, feedback_type,
+        )
+    except Exception:
+        logger.warning(
+            "Could not auto-create ScoringFeedback for contract %s (non-fatal)",
+            contract_id, exc_info=True,
+        )
+
     db.commit()
 
     audit.log(
@@ -470,48 +677,300 @@ def make_human_decision(
     }
 
 
-@router.post("/upload")
-async def upload_contract(
-    background_tasks: BackgroundTasks,
-    file: UploadFile = File(...),
-    actor: str = Form("user:Procurement Analyst"),
+# ── Comments ──────────────────────────────────────────────────────────────────
+
+@router.post("/{contract_id}/comment", response_model=CommentResponse, status_code=201)
+def add_comment(
+    contract_id: int,
+    comment: str = Form(...),
+    role: str = Form(...),
+    actor: str = Form(...),
+    comment_type: str = Form("comment"),   # comment | recommendation | escalation
     db: Session = Depends(get_db),
 ):
-    """Upload a contract PDF or DOCX.
+    """Add a comment or recommendation to a contract.
 
-    The endpoint returns in ~4 s after the security gate passes.
-    The AI agent pipeline (Agents 1-3 + 5) runs asynchronously in the
-    background.  Poll GET /contracts/{id} until status leaves 'extracted'.
-
-    Pipeline (synchronous — all happen before the HTTP response):
-      1. Validate extension + size
-      2. Upload bytes to GCS + compute SHA-256
-      3. Create Contract row (status='uploading')
-      4. Extract text
-      5. Pre-LLM security gate
-      6. If unclean → status='quarantined', return early
-      7. Segment clauses
-      8. status='extracted'  ← response sent here
-
-    Background (after response):
-      9. Agents 1 (extraction) → 2 (risk) → 3 (compliance) → 5 (recommendation)
+    Available to all roles. Executive and Auditor use this as their
+    primary way to provide input without approving/rejecting.
     """
-    suffix = Path(file.filename).suffix.lower()
-    if suffix not in {".pdf", ".docx"}:
+    contract = db.query(Contract).filter(Contract.id == contract_id).first()
+    if not contract:
+        raise HTTPException(status_code=404, detail="Contract not found")
+
+    if not comment.strip():
+        raise HTTPException(status_code=400, detail="Comment cannot be empty")
+
+    row = ContractComment(
+        contract_id=contract_id,
+        actor=actor,
+        role=role,
+        comment=comment.strip(),
+        comment_type=comment_type,
+    )
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+
+    audit.log(
+        db,
+        actor=actor,
+        action="comment",
+        resource=f"contract:{contract_id}",
+        after={"role": role, "comment_type": comment_type, "comment_preview": comment[:100]},
+    )
+
+    return {
+        "id":           row.id,
+        "contract_id":  contract_id,
+        "actor":        row.actor,
+        "role":         row.role,
+        "comment":      row.comment,
+        "comment_type": row.comment_type,
+        "created_at":   row.created_at.isoformat(),
+    }
+
+
+# ── Assignments / Escalations ─────────────────────────────────────────────────
+
+# Roles that Legal / Compliance can escalate to
+ESCALATION_TARGETS = {"Legal Reviewer", "Compliance Officer", "Executive", "Auditor"}
+# Roles that can create escalations
+ESCALATION_SOURCES = {"Legal Reviewer", "Compliance Officer"}
+
+
+@router.post("/{contract_id}/assign", response_model=AssignResponse, status_code=201)
+def assign_contract(
+    contract_id: int,
+    assigned_role: str = Form(...),
+    assigned_by: str = Form(...),    # actor string e.g. "user:Legal Reviewer"
+    assigning_role: str = Form(...), # role of the caller e.g. "Legal Reviewer"
+    can_approve: bool = Form(False),
+    note: str = Form(""),
+    db: Session = Depends(get_db),
+):
+    """Escalate / assign a contract to another role for review.
+
+    Only Legal Reviewer and Compliance Officer can create assignments.
+    If can_approve=True, the assigned role gains approve/reject permission
+    on this specific contract, overriding their default read-only status.
+    """
+    if assigning_role not in ESCALATION_SOURCES:
         raise HTTPException(
-            status_code=400,
-            detail=f"Unsupported file type: {suffix}. Use PDF or DOCX.",
+            status_code=403,
+            detail=f"Only Legal Reviewer and Compliance Officer can escalate contracts.",
         )
 
-    # Read & hash
-    file_bytes = await file.read()
+    if assigned_role not in ESCALATION_TARGETS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid target role: {assigned_role}.",
+        )
+
+    contract = db.query(Contract).filter(Contract.id == contract_id).first()
+    if not contract:
+        raise HTTPException(status_code=404, detail="Contract not found")
+
+    # Avoid duplicate active assignments for the same role
+    existing = (
+        db.query(ContractAssignment)
+        .filter_by(contract_id=contract_id, assigned_role=assigned_role, active=True)
+        .first()
+    )
+    if existing:
+        # Update existing rather than creating a duplicate
+        existing.can_approve = can_approve
+        existing.note = note or existing.note
+        existing.assigned_by = assigned_by
+        db.commit()
+        assignment_id = existing.id
+    else:
+        row = ContractAssignment(
+            contract_id=contract_id,
+            assigned_role=assigned_role,
+            assigned_by=assigned_by,
+            can_approve=can_approve,
+            note=note.strip() if note else None,
+        )
+        db.add(row)
+        db.commit()
+        db.refresh(row)
+        assignment_id = row.id
+
+    # Also log an escalation comment so the audit trail is clear
+    db.add(ContractComment(
+        contract_id=contract_id,
+        actor=assigned_by,
+        role=assigning_role,
+        comment=(
+            f"Escalated to **{assigned_role}** for review"
+            + (f" with approve/reject permission" if can_approve else " (advisory)")
+            + (f". Note: {note}" if note else ".")
+        ),
+        comment_type="escalation",
+    ))
+    db.commit()
+
+    audit.log(
+        db,
+        actor=assigned_by,
+        action="assign",
+        resource=f"contract:{contract_id}",
+        after={
+            "assigned_role": assigned_role,
+            "can_approve":   can_approve,
+            "note":          note,
+        },
+    )
+
+    return {
+        "assignment_id": assignment_id,
+        "contract_id":   contract_id,
+        "assigned_role": assigned_role,
+        "can_approve":   can_approve,
+    }
+
+
+@router.delete("/{contract_id}/assign/{assigned_role}", response_model=RevokeResponse)
+def revoke_assignment(
+    contract_id: int,
+    assigned_role: str,
+    x_actor: str = Header(..., description="Actor performing the revocation (e.g. 'user:Legal Reviewer')"),
+    db: Session = Depends(get_db),
+):
+    """Revoke an active assignment for a role on a contract.
+
+    Pass the actor identity in the X-Actor request header.
+    (DELETE bodies are not reliably forwarded by all HTTP clients / proxies.)
+    """
+    actor = x_actor
+    assignment = (
+        db.query(ContractAssignment)
+        .filter_by(contract_id=contract_id, assigned_role=assigned_role, active=True)
+        .first()
+    )
+    if not assignment:
+        raise HTTPException(status_code=404, detail="No active assignment found")
+
+    assignment.active = False
+    db.commit()
+
+    audit.log(
+        db,
+        actor=actor,
+        action="revoke_assignment",
+        resource=f"contract:{contract_id}",
+        after={"revoked_role": assigned_role},
+    )
+    return {"revoked": True, "contract_id": contract_id, "assigned_role": assigned_role}
+
+
+@router.post("/{contract_id}/rescore")
+def rescore_contract(contract_id: int, db: Session = Depends(get_db)):
+    """Rerun Agent 5 on a contract using the current scoring policy.
+
+    Does NOT call any LLM — it reads the existing agent_outputs from the DB
+    and recomputes the composite score + decision with the active policy.
+    Useful after changing scoring policy thresholds or weights.
+
+    Returns the new scoring breakdown.
+    """
+    from backend.agents import scoring as scoring_engine
+    from backend.agents.recommendation import _latest_output, _get_security_events, _DECISION_TO_STATUS
+
+    contract = db.query(Contract).filter(Contract.id == contract_id).first()
+    if not contract:
+        raise HTTPException(status_code=404, detail="Contract not found")
+
+    # Read existing LLM outputs — no new Gemini calls
+    risk       = _latest_output(db, contract_id, "risk")
+    compliance = _latest_output(db, contract_id, "compliance")
+    extraction = _latest_output(db, contract_id, "extraction")
+    sec_events = _get_security_events(db, contract_id)
+
+    if risk is None and compliance is None:
+        raise HTTPException(
+            status_code=422,
+            detail="No agent outputs found for this contract. Run the pipeline first.",
+        )
+
+    policy = scoring_engine.load_policy(db)
+    result = scoring_engine.decide(risk, compliance, extraction, sec_events, policy)
+
+    # Insert new Decision row with updated scoring_details
+    new_decision = Decision(
+        contract_id=contract_id,
+        recommendation=result.decision,
+        reasoning=result.rationale[0] if result.rationale else result.decision,
+        reviewer_role="agent:rescore",
+        scoring_details=result.to_dict(),
+    )
+    db.add(new_decision)
+
+    # Update contract status to reflect new decision
+    new_status = _DECISION_TO_STATUS.get(result.decision)
+    old_status = contract.status
+    if new_status:
+        contract.status = new_status
+
+    db.commit()
+
+    audit.log(
+        db,
+        actor="system:rescore",
+        action="rescore",
+        resource=f"contract:{contract_id}",
+        before={"status": old_status},
+        after={
+            "decision": result.decision,
+            "composite_score": result.composite_score,
+            "new_status": contract.status,
+        },
+    )
+
+    return {
+        "contract_id":    contract_id,
+        "new_decision":   result.decision,
+        "new_status":     contract.status,
+        "scoring_details": result.to_dict(),
+    }
+
+
+def _process_single_upload(
+    file_bytes: bytes,
+    filename: str,
+    actor: str,
+    db: Session,
+    background_tasks: BackgroundTasks,
+) -> dict:
+    """Core upload logic shared by single-upload and bulk-upload endpoints.
+
+    Performs: dedup check → GCS upload → DB row → text extraction →
+    security gate → clause segmentation → background pipeline launch.
+
+    Returns the standard response dict (same shape as /upload).
+    Raises HTTPException on hard failures; returns a dict with
+    status='error' on soft failures so bulk callers can continue.
+    """
+    suffix = Path(filename).suffix.lower()
+    if suffix not in {".pdf", ".docx"}:
+        return {
+            "status": "error",
+            "filename": filename,
+            "message": f"Unsupported file type: {suffix}. Use PDF or DOCX.",
+        }
+
     if not file_bytes:
-        raise HTTPException(status_code=400, detail="Empty file")
+        return {"status": "error", "filename": filename, "message": "Empty file"}
+    if len(file_bytes) > MAX_UPLOAD_BYTES:
+        return {
+            "status": "error",
+            "filename": filename,
+            "message": f"File too large ({len(file_bytes):,} bytes). Maximum is {MAX_UPLOAD_BYTES:,} bytes (50 MB).",
+        }
+
     file_hash = hashlib.sha256(file_bytes).hexdigest()
 
     # ---- Duplicate detection ----
-    # If a contract with this exact SHA-256 already exists, return it immediately
-    # without re-processing. The frontend will redirect to the existing report.
     existing = (
         db.query(Contract)
         .filter(Contract.file_hash == file_hash)
@@ -528,38 +987,50 @@ async def upload_contract(
             actor=actor,
             action="upload_duplicate",
             resource=f"contract:{existing.id}",
-            after={"filename": file.filename, "hash_prefix": file_hash[:12]},
+            after={"filename": filename, "hash_prefix": file_hash[:12]},
         )
         return {
             "id": existing.id,
             "status": "duplicate",
-            "filename": file.filename,
+            "filename": filename,
             "existing_filename": existing.filename,
             "existing_status": existing.status,
             "uploaded_at": existing.uploaded_at.isoformat() if existing.uploaded_at else None,
             "message": (
-                f"This file has already been uploaded as '{existing.filename}' "
-                f"(contract #{existing.id}) with status '{existing.status}'."
+                f"Already uploaded as '{existing.filename}' "
+                f"(contract #{existing.id}, status '{existing.status}')."
             ),
         }
 
-    # Upload to GCS — blob name is hash + suffix so identical files dedup naturally
+    # Upload to GCS
     blob_name = f"contracts/{file_hash}{suffix}"
     try:
         gcs_uri = _upload_to_gcs(file_bytes, blob_name)
     except Exception as e:
-        logger.exception("GCS upload failed")
-        raise HTTPException(status_code=503, detail=f"File storage unavailable: {e}")
+        logger.exception("GCS upload failed for %s", filename)
+        return {"status": "error", "filename": filename, "message": f"File storage unavailable: {e}"}
 
-    # Create row — store GCS URI instead of local path
+    # Create contract row
     contract = Contract(
-        filename=file.filename,
+        filename=filename,
         status="uploading",
         file_hash=file_hash,
         gcs_uri=gcs_uri,
     )
     db.add(contract)
-    db.commit()
+    try:
+        db.commit()
+    except Exception as db_exc:
+        logger.error("DB commit failed on upload of %s: %s", filename, db_exc)
+        db.rollback()
+        from backend import cache as shield_cache
+        shield_cache.write(
+            "contract_upload",
+            {"filename": filename, "hash": file_hash, "status": "extracted"},
+            source="contracts.upload",
+            error=str(db_exc),
+        )
+        return {"status": "error", "filename": filename, "message": f"Database unavailable: {db_exc}"}
     db.refresh(contract)
 
     audit.log(
@@ -568,7 +1039,7 @@ async def upload_contract(
         action="upload",
         resource=f"contract:{contract.id}",
         after={
-            "filename": file.filename,
+            "filename": filename,
             "hash_prefix": file_hash[:12],
             "size_bytes": len(file_bytes),
         },
@@ -576,7 +1047,7 @@ async def upload_contract(
 
     # Extract text
     try:
-        raw_text, meta = extract_text(file_bytes, file.filename)
+        raw_text, meta = extract_text(file_bytes, filename)
     except Exception as e:
         contract.status = "extraction_failed"
         db.commit()
@@ -587,16 +1058,20 @@ async def upload_contract(
             resource=f"contract:{contract.id}",
             after={"error": str(e)},
         )
-        raise HTTPException(status_code=422, detail=f"Could not extract text: {e}")
+        return {
+            "id": contract.id,
+            "status": "extraction_failed",
+            "filename": filename,
+            "message": f"Could not extract text: {e}",
+        }
 
     contract.raw_text = raw_text
     db.commit()
 
-    # CRITICAL: security gate runs BEFORE any LLM call.
+    # Security gate — BEFORE any LLM call
     lt_available = lt_client.is_available()
     scan_result = security_scan(db, contract.id, raw_text)
 
-    # Determine which layers actually ran based on event sources
     sources_used = {ev["details"].get("source", "offline_detector") for ev in scan_result["events"]}
     security_scan_info = {
         "lt_available": lt_available,
@@ -624,13 +1099,10 @@ async def upload_contract(
         return {
             "id": contract.id,
             "status": "quarantined",
-            "filename": file.filename,
+            "filename": filename,
             "security_events": scan_result["events"],
             "security_scan": security_scan_info,
-            "message": (
-                "Contract quarantined. The pre-LLM security gate detected "
-                "malicious or suspicious content."
-            ),
+            "message": "Contract quarantined — pre-LLM security gate detected malicious content.",
         }
 
     # Segment clauses
@@ -647,17 +1119,150 @@ async def upload_contract(
         after={"n_clauses": len(clauses), "char_count": len(raw_text)},
     )
 
-    # Launch the agent pipeline in the background — response returns here.
-    # The pipeline creates its own DB session (see _run_pipeline_background).
+    # Launch agent pipeline in background
     background_tasks.add_task(_run_pipeline_background, contract.id)
-    logger.info("Contract %d queued for background processing", contract.id)
+    logger.info("Contract %d (%s) queued for background processing", contract.id, filename)
 
     return {
         "id": contract.id,
         "status": "extracted",
-        "filename": file.filename,
+        "filename": filename,
         "n_clauses": len(clauses),
         "char_count": len(raw_text),
         "metadata": meta,
         "security_scan": security_scan_info,
+    }
+
+
+@router.post("/upload", response_model=UploadResponse, status_code=202)
+async def upload_contract(
+    background_tasks: BackgroundTasks,
+    file: UploadFile = File(...),
+    actor: str = Form("user:Procurement Analyst"),
+    db: Session = Depends(get_db),
+):
+    """Upload a single contract PDF or DOCX.
+
+    The endpoint returns in ~4 s after the security gate passes.
+    The AI agent pipeline (Agents 1-3 + 5) runs asynchronously in the
+    background.  Poll GET /contracts/{id} until status leaves 'extracted'.
+
+    Pipeline (synchronous — all happen before the HTTP response):
+      1. Validate extension + size
+      2. Upload bytes to GCS + compute SHA-256
+      3. Create Contract row (status='uploading')
+      4. Extract text
+      5. Pre-LLM security gate
+      6. If unclean → status='quarantined', return early
+      7. Segment clauses
+      8. status='extracted'  ← response sent here
+
+    Background (after response):
+      9. Agents 1 (extraction) → 2 (risk) → 3 (compliance) → 5 (recommendation)
+    """
+    suffix = Path(file.filename).suffix.lower()
+    if suffix not in {".pdf", ".docx"}:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported file type: {suffix}. Use PDF or DOCX.",
+        )
+
+    file_bytes = await file.read()
+    if not file_bytes:
+        raise HTTPException(status_code=400, detail="Empty file")
+    if len(file_bytes) > MAX_UPLOAD_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail=f"File too large: {len(file_bytes):,} bytes. Maximum allowed is {MAX_UPLOAD_BYTES:,} bytes (50 MB).",
+        )
+
+    result = _process_single_upload(file_bytes, file.filename, actor, db, background_tasks)
+
+    # Map soft-error statuses back to HTTP errors for single-file callers
+    if result.get("status") == "error":
+        raise HTTPException(status_code=422, detail=result["message"])
+
+    return result
+
+
+@router.post("/bulk-upload", response_model=BulkUploadResponse, status_code=202)
+async def bulk_upload_contracts(
+    background_tasks: BackgroundTasks,
+    files: list[UploadFile] = File(...),
+    actor: str = Form("user:Procurement Analyst"),
+    db: Session = Depends(get_db),
+):
+    """Upload multiple contract files in a single request.
+
+    Processes each file through the full single-upload pipeline
+    (dedup check → GCS → security gate → clause segmentation → background agents).
+
+    One file failing does NOT abort the rest — each result is independent.
+
+    Returns:
+        {
+          "total":       int,
+          "queued":      int,   # files that passed security gate and are now processing
+          "duplicates":  int,
+          "quarantined": int,
+          "errors":      int,
+          "results":     [per-file result dicts, same shape as /upload response]
+        }
+    """
+    if not files:
+        raise HTTPException(status_code=400, detail="No files provided")
+
+    MAX_BULK = 20
+    if len(files) > MAX_BULK:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Bulk upload limit is {MAX_BULK} files per request. Got {len(files)}.",
+        )
+
+    logger.info(
+        "Bulk upload started — %d files from actor '%s'", len(files), actor
+    )
+
+    results = []
+    counts = {"queued": 0, "duplicates": 0, "quarantined": 0, "errors": 0}
+
+    for file in files:
+        try:
+            file_bytes = await file.read()
+            result = _process_single_upload(
+                file_bytes, file.filename, actor, db, background_tasks
+            )
+        except Exception as exc:
+            logger.exception("Bulk upload: unexpected error for file %s", file.filename)
+            result = {
+                "status": "error",
+                "filename": file.filename,
+                "message": str(exc),
+            }
+
+        results.append(result)
+
+        status = result.get("status", "error")
+        if status == "extracted":
+            counts["queued"] += 1
+        elif status == "duplicate":
+            counts["duplicates"] += 1
+        elif status == "quarantined":
+            counts["quarantined"] += 1
+        else:
+            counts["errors"] += 1
+
+    logger.info(
+        "Bulk upload complete — total=%d queued=%d duplicates=%d quarantined=%d errors=%d",
+        len(files), counts["queued"], counts["duplicates"],
+        counts["quarantined"], counts["errors"],
+    )
+
+    return {
+        "total":       len(files),
+        "queued":      counts["queued"],
+        "duplicates":  counts["duplicates"],
+        "quarantined": counts["quarantined"],
+        "errors":      counts["errors"],
+        "results":     results,
     }

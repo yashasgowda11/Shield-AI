@@ -1,0 +1,162 @@
+[
+  {
+    "filename": "TubeMediaCorp_20060310_8-K_EX-10.1_513921_EX-10.1_Affiliate Agreement.pdf",
+    "inferred_type": "Other / Mixed",
+    "clauses_present": 40,
+    "priority_score": 7,
+    "shield_ai_score": 71.0,
+    "key_clauses": {}
+  },
+  {
+    "filename": "ScansourceInc_20190822_10-K_EX-10.38_11793958_EX-10.38_Distributor Agreement1.pdf",
+    "inferred_type": "Distribution",
+    "clauses_present": 40,
+    "priority_score": 7,
+    "shield_ai_score": 71.0,
+    "key_clauses": {}
+  },
+  {
+    "filename": "ENTERTAINMENTGAMINGASIAINC_02_15_2005-EX-10.5-DISTRIBUTOR AGREEMENT.PDF",
+    "inferred_type": "Distribution",
+    "clauses_present": 40,
+    "priority_score": 7,
+    "shield_ai_score": 71.0,
+    "key_clauses": {}
+  },
+  {
+    "filename": "StampscomInc_20001114_10-Q_EX-10.47_2631630_EX-10.47_Co-Branding Agreement.pdf",
+    "inferred_type": "Other / Mixed",
+    "clauses_present": 40,
+    "priority_score": 7,
+    "shield_ai_score": 71.0,
+    "key_clauses": {}
+  },
+  {
+    "filename": "ETELOS,INC_03_09_2004-EX-10.8-DISTRIBUTOR AGREEMENT.PDF",
+    "inferred_type": "Distribution",
+    "clauses_present": 40,
+    "priority_score": 7,
+    "shield_ai_score": 71.0,
+    "key_clauses": {}
+  },
+  {
+    "filename": "RandWorldwideInc_20010402_8-KA_EX-10.2_2102464_EX-10.2_Co-Branding Agreement.pdf",
+    "inferred_type": "Other / Mixed",
+    "clauses_present": 40,
+    "priority_score": 7,
+    "shield_ai_score": 71.0,
+    "key_clauses": {}
+  },
+  {
+    "filename": "RaeSystemsInc_20001114_10-Q_EX-10.57_2631790_EX-10.57_Co-Branding Agreement.pdf",
+    "inferred_type": "Other / Mixed",
+    "clauses_present": 40,
+    "priority_score": 7,
+    "shield_ai_score": 71.0,
+    "key_clauses": {}
+  },
+  {
+    "filename": "EUROPEANMICROHOLDINGSINC_03_06_1998-EX-10.6-DISTRIBUTOR AGREEMENT.PDF",
+    "inferred_type": "Distribution",
+    "clauses_present": 40,
+    "priority_score": 7,
+    "shield_ai_score": 71.0,
+    "key_clauses": {}
+  },
+  {
+    "filename": "NeoformaInc_19991202_S-1A_EX-10.26_5224521_EX-10.26_Co-Branding Agreement.pdf",
+    "inferred_type": "Other / Mixed",
+    "clauses_present": 40,
+    "priority_score": 7,
+    "shield_ai_score": 71.0,
+    "key_clauses": {}
+  },
+  {
+    "filename": "LeadersonlineInc_20000427_S-1A_EX-10.8_4991089_EX-10.8_Co-Branding Agreement.pdf",
+    "inferred_type": "Other / Mixed",
+    "clauses_present": 40,
+    "priority_score": 7,
+    "shield_ai_score": 71.0,
+    "key_clauses": {}
+  },
+  {
+    "filename": "HYPERIONSOFTWARECORP_09_28_1994-EX-10.47-EXCLUSIVE DISTRIBUTOR AGREEMENT.PDF",
+    "inferred_type": "Software / SaaS License",
+    "clauses_present": 40,
+    "priority_score": 7,
+    "shield_ai_score": 71.0,
+    "key_clauses": {}
+  },
+  {
+    "filename": "LEGACYTECHNOLOGYHOLDINGS,INC_12_09_2005-EX-10.2-DISTRIBUTOR AGREEMENT.PDF",
+    "inferred_type": "Distribution",
+    "clauses_present": 40,
+    "priority_score": 7,
+    "shield_ai_score": 71.0,
+    "key_clauses": {}
+  },
+  {
+    "filename": "NEOMEDIATECHNOLOGIESINC_12_15_2005-EX-16.1-DISTRIBUTOR AGREEMENT.PDF",
+    "inferred_type": "Distribution",
+    "clauses_present": 40,
+    "priority_score": 7,
+    "shield_ai_score": 71.0,
+    "key_clauses": {}
+  },
+  {
+    "filename": "VISIUMTECHNOLOGIES,INC_10_20_2004-EX-10.20-DISTRIBUTOR AGREEMENT.PDF",
+    "inferred_type": "Distribution",
+    "clauses_present": 40,
+    "priority_score": 7,
+    "shield_ai_score": 71.0,
+    "key_clauses": {}
+  },
+  {
+    "filename": "ENERGYXXILTD_05_08_2015-EX-10.13-Transportation AGREEMENT.PDF",
+    "inferred_type": "Other / Mixed",
+    "clauses_present": 40,
+    "priority_score": 7,
+    "shield_ai_score": 71.0,
+    "key_clauses": {}
+  },
+  {
+    "filename": "2ThemartComInc_19990826_10-12G_EX-10.10_6700288_EX-10.10_Co-Branding Agreement_ Agency Agreement.pdf",
+    "inferred_type": "Other / Mixed",
+    "clauses_present": 40,
+    "priority_score": 7,
+    "shield_ai_score": 71.0,
+    "key_clauses": {}
+  },
+  {
+    "filename": "ENTERPRISEPRODUCTSPARTNERSLP_07_08_1998-EX-10.3-TRANSPORTATION CONTRACT.PDF",
+    "inferred_type": "Partnership / JV",
+    "clauses_present": 40,
+    "priority_score": 7,
+    "shield_ai_score": 71.0,
+    "key_clauses": {}
+  },
+  {
+    "filename": "MARTINMIDSTREAMPARTNERSLP_01_23_2004-EX-10.3-TRANSPORTATION SERVICES AGREEMENT.PDF",
+    "inferred_type": "Service Agreement",
+    "clauses_present": 40,
+    "priority_score": 7,
+    "shield_ai_score": 71.0,
+    "key_clauses": {}
+  },
+  {
+    "filename": "RangeResourcesLouisianaInc_20150417_8-K_EX-10.5_9045501_EX-10.5_Transportation Agreement.pdf",
+    "inferred_type": "Other / Mixed",
+    "clauses_present": 40,
+    "priority_score": 7,
+    "shield_ai_score": 71.0,
+    "key_clauses": {}
+  },
+  {
+    "filename": "MPLXLP_06_17_2015-EX-10.1-TRANSPORTATION SERVICES AGREEMENT.PDF",
+    "inferred_type": "Service Agreement",
+    "clauses_present": 40,
+    "priority_score": 7,
+    "shield_ai_score": 71.0,
+    "key_clauses": {}
+  }
+]

@@ -66,15 +66,70 @@ def get_db():
 
 
 def init_db():
-    """Create all tables on startup.
+    """Create all tables on startup and apply any additive schema patches.
 
-    For SQLite / fresh PostgreSQL databases this is sufficient.
-    For existing PostgreSQL databases use Alembic migrations instead:
-        alembic upgrade head
+    For fresh databases `create_all` is sufficient.
+    For existing databases we also run idempotent ALTER TABLE statements so
+    new nullable columns land without a full Alembic migration.
     """
     from backend import models  # noqa: F401 — registers models on Base
     Base.metadata.create_all(bind=engine)
+    _patch_schema()
+    _seed_default_scoring_policy()
     logger.info("Database tables initialised")
+
+
+def _patch_schema() -> None:
+    """Idempotent DDL patches — safe to run on every startup."""
+    if not _is_postgres:
+        return  # SQLite handles new columns automatically via create_all
+    patches = [
+        # decisions.scoring_details — added for hybrid scoring engine
+        "ALTER TABLE decisions ADD COLUMN IF NOT EXISTS scoring_details JSONB",
+        # scoring_feedback — human reinforcement signals
+        """CREATE TABLE IF NOT EXISTS scoring_feedback (
+            id              SERIAL PRIMARY KEY,
+            contract_id     INTEGER REFERENCES contracts(id),
+            decision_id     INTEGER REFERENCES decisions(id),
+            feedback_type   VARCHAR(20) NOT NULL,
+            ai_decision     VARCHAR(30),
+            human_decision  VARCHAR(30),
+            composite_score FLOAT,
+            notes           TEXT,
+            reviewer_role   VARCHAR(100),
+            created_at      TIMESTAMP DEFAULT NOW()
+        )""",
+    ]
+    try:
+        with engine.begin() as conn:
+            for sql in patches:
+                conn.execute(text(sql))
+        logger.info("Schema patches applied (%d statements)", len(patches))
+    except Exception:
+        logger.exception("Schema patch failed (non-fatal — existing columns are fine)")
+
+
+def _seed_default_scoring_policy() -> None:
+    """Insert the default scoring policy if no active policy exists yet."""
+    try:
+        from backend.models import ScoringPolicy
+        from backend.agents.scoring import DEFAULT_POLICY
+        db = SessionLocal()
+        try:
+            exists = db.query(ScoringPolicy).filter_by(is_active=True).first()
+            if not exists:
+                db.add(ScoringPolicy(
+                    name="default",
+                    is_active=True,
+                    config=DEFAULT_POLICY,
+                    updated_by="system",
+                ))
+                db.commit()
+                logger.info("Seeded default scoring policy into scoring_policies table")
+        finally:
+            db.close()
+    except Exception:
+        logger.exception("Failed to seed default scoring policy (non-fatal)")
 
 
 def check_db_connection() -> bool:

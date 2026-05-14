@@ -1,0 +1,183 @@
+DATA PROCESSING AGREEMENT
+
+This Data Processing Agreement (the "Agreement") is made and entered into as of January 1, 2025 (the "Effective Date"), by and between:
+
+Company A, a Delaware corporation, with its principal place of business at [Client's Address], hereinafter referred to as "Client";
+
+and
+
+Vendor B, a California Limited Liability Company, with its principal place of business at [Vendor's Address], hereinafter referred to as "Vendor".
+
+RECITALS
+
+WHEREAS, Client is engaged in the business of [Client's Business Description];
+
+WHEREAS, Client desires to engage Vendor to provide certain services involving the processing of personal data, as more fully described herein;
+
+WHEREAS, Vendor has the expertise and resources to provide such services;
+
+WHEREAS, both parties intend to comply with applicable data protection laws and regulations, including the General Data Protection Regulation (EU) 2016/679 ("GDPR") and the California Consumer Privacy Act of 2018, as amended by the California Privacy Rights Act of 2020 ("CCPA");
+
+NOW, THEREFORE, in consideration of the mutual covenants and agreements hereinafter set forth, and for other good and valuable consideration, the receipt and sufficiency of which are hereby acknowledged, the parties agree as follows:
+
+1. DEFINITIONS
+
+1.1. "Agreement" means this Data Processing Agreement, including all exhibits and schedules attached hereto, as may be amended from time to time.
+
+1.2. "Affiliate" means, with respect to a party, any entity that directly or indirectly controls, is controlled by, or is under common control with such party. For purposes of this definition, "control" means the possession, directly or indirectly, of more than fifty percent (50%) of the voting securities or other ownership interests of an entity.
+
+1.3. "Applicable Data Protection Laws" means all applicable laws, regulations, and other binding requirements relating to data privacy and security, including but not limited to GDPR and CCPA.
+
+1.4. "Confidential Information" means any non-public information of a party, whether disclosed orally or in writing, that is designated as confidential or that reasonably should be understood to be confidential given the nature of the information and the circumstances of disclosure.
+
+1.5. "Data Subject" means an identified or identifiable natural person to whom Personal Data relates.
+
+1.6. "Personal Data" means any information that relates to an identified or identifiable natural person. For the purposes of GDPR, this includes "Personal Data" as defined in Article 4(1) of GDPR. For the purposes of CCPA, this includes "Personal Information" as defined in California Civil Code Section 1798.140(o).
+
+1.7. "Processing" means any operation or set of operations which is performed on Personal Data or on sets of Personal Data, whether or not by automated means, such as collection, recording, organization, structuring, storage, adaptation or alteration, retrieval, consultation, use, disclosure by transmission, dissemination or otherwise making available, alignment or combination, restriction, erasure or destruction.
+
+1.8. "Services" means the services to be provided by Vendor to Client as described in Exhibit A.
+
+1.9. "Sub-processor" means any third party engaged by Vendor to assist Vendor in fulfilling its obligations under this Agreement, which may involve the Processing of Personal Data.
+
+2. TERM AND RENEWAL
+
+2.1. This Agreement shall commence on the Effective Date and shall continue for an initial term of two (2) years (the "Initial Term").
+
+2.2. Following the Initial Term, this Agreement shall automatically renew for successive periods of one (1) year each (each, a "Renewal Term"), unless either party provides written notice of its intent not to renew at least ninety (90) days prior to the end of the then-current term. The Initial Term and any Renewal Terms are collectively referred to as the "Term".
+
+3. SERVICES / SCOPE OF WORK
+
+3.1. Vendor shall provide the Services to Client as set forth in Exhibit A, attached hereto and incorporated herein by reference.
+
+3.2. Vendor shall perform the Services in a professional and workmanlike manner, consistent with industry standards and best practices.
+
+3.3. Client shall provide Vendor with all necessary information, access, and cooperation reasonably required for Vendor to perform the Services.
+
+4. PAYMENT TERMS
+
+4.1. In consideration for the Services, Client shall pay Vendor the fees set forth in Exhibit B, attached hereto and incorporated herein by reference.
+
+4.2. Invoices shall be submitted by Vendor to Client on a [e.g., monthly, quarterly] basis.
+
+4.3. Payment shall be due within thirty (30) days of the date of invoice.
+
+4.4. All fees are exclusive of any taxes, duties, or similar governmental assessments, and Client shall be responsible for paying all such taxes, except for taxes based on Vendor's net income.
+
+5. LIABILITY AND INDEMNIFICATION
+
+5.1. LIMITATION OF LIABILITY. EXCEPT FOR LIABILITY ARISING FROM A PARTY'S GROSS NEGLIGENCE, WILLFUL MISCONDUCT, BREACH OF CONFIDENTIALITY OBLIGATIONS, OR INDEMNIFICATION OBLIGATIONS HEREUNDER, NEITHER PARTY SHALL BE LIABLE TO THE OTHER PARTY FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING LOST PROFITS OR LOST REVENUE, ARISING OUT OF OR RELATED TO THIS AGREEMENT, EVEN IF SUCH PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES. IN NO EVENT SHALL EITHER PARTY'S AGGREGATE LIABILITY ARISING OUT OF OR RELATED TO THIS AGREEMENT, WHETHER IN CONTRACT, TORT, OR OTHERWISE, EXCEED THE TOTAL FEES PAID OR PAYABLE BY CLIENT TO VENDOR UNDER THIS AGREEMENT DURING THE TWELVE (12) MONTH PERIOD IMMEDIATELY PRECEDING THE EVENT GIVING RISE TO THE CLAIM.
+
+5.2. INDEMNIFICATION.
+    5.2.1. Client shall indemnify, defend, and hold harmless Vendor, its Affiliates, and their respective officers, directors, employees, and agents from and against any and all claims, liabilities, damages, losses, costs, expenses, and fees (including reasonable attorneys' fees) arising out of or relating to (a) Client's breach of this Agreement, or (b) Client's negligence or willful misconduct in connection with its obligations under this Agreement.
+
+    5.2.2. Vendor shall indemnify, defend, and hold harmless Client, its Affiliates, and their respective officers, directors, employees, and agents from and against any and all claims, liabilities, damages, losses, costs, expenses, and fees (including reasonable attorneys' fees) arising out of or relating to (a) Vendor's breach of this Agreement, (b) Vendor's negligence or willful misconduct in connection with its obligations under this Agreement, or (c) any claim that the Services infringe or misappropriate any intellectual property rights of a third party.
+
+6. CONFIDENTIALITY
+
+6.1. Each party (the "Receiving Party") agrees to hold in strict confidence all Confidential Information disclosed by the other party (the "Disclosing Party") and to protect such Confidential Information from unauthorized use or disclosure.
+
+6.2. The Receiving Party shall use the Disclosing Party's Confidential Information solely for the purpose of performing its obligations or exercising its rights under this Agreement.
+
+6.3. The Receiving Party shall not disclose the Disclosing Party's Confidential Information to any third party without the Disclosing Party's prior written consent, except to its employees, contractors, and agents who have a need to know such information for the purposes of this Agreement and who are bound by confidentiality obligations at least as protective as those set forth herein.
+
+6.4. The obligations of confidentiality shall not apply to information that: (a) is or becomes publicly available through no fault of the Receiving Party; (b) was already in the Receiving Party's possession prior to disclosure by the Disclosing Party, free of any obligation of confidence; (c) is rightfully received by the Receiving Party from a third party without restriction on disclosure and without breach of any confidentiality obligation; or (d) is independently developed by the Receiving Party without use of or reference to the Disclosing Party's Confidential Information.
+
+6.5. The Receiving Party may disclose Confidential Information if required by law, regulation, or court order, provided that the Receiving Party gives the Disclosing Party prompt written notice of such requirement and cooperates with the Disclosing Party's efforts to seek a protective order or other appropriate remedy.
+
+6.6. The obligations of confidentiality shall survive the termination of this Agreement for a period of five (5) years.
+
+7. TERMINATION
+
+7.1. This Agreement may be terminated:
+    7.1.1. By either party upon thirty (30) days' written notice to the other party if the other party materially breaches any provision of this Agreement and fails to cure such breach within such thirty (30) day period.
+    7.1.2. By either party immediately upon written notice to the other party if the other party becomes insolvent, files a petition for bankruptcy, makes an assignment for the benefit of creditors, or has a receiver or trustee appointed for its assets.
+    7.1.3. By Client upon thirty (30) days' written notice to Vendor for any reason.
+
+7.2. Upon termination or expiration of this Agreement, Vendor shall promptly cease all Processing of Client's Personal Data and shall, at Client's election, return or securely destroy all Personal Data and any copies thereof in its possession or control, except to the extent that Vendor is required by Applicable Data Protection Laws to retain such Personal Data.
+
+7.3. Termination or expiration of this Agreement shall not affect any rights or obligations of the parties that have accrued prior to the effective date of termination or expiration, including any payment obligations.
+
+8. GOVERNING LAW AND DISPUTE RESOLUTION
+
+8.1. GOVERNING LAW. This Agreement shall be governed by and construed in accordance with the laws of the State of Delaware, without regard to its conflict of laws principles.
+
+8.2. DISPUTE RESOLUTION. Any dispute, controversy, or claim arising out of or relating to this Agreement, or the breach, termination, or validity thereof, shall be settled by arbitration administered by the American Arbitration Association under its Commercial Arbitration Rules. The arbitration shall take place in Wilmington, Delaware. The award rendered by the arbitrator(s) shall be final and binding upon the parties. Judgment on the award rendered by the arbitrator(s) may be entered in any court having jurisdiction thereof. Notwithstanding the foregoing, either party may seek equitable relief, including injunctive relief, from any court of competent jurisdiction.
+
+9. GENERAL PROVISIONS
+
+9.1. NOTICES. All notices, requests, demands, and other communications under this Agreement shall be in writing and shall be deemed to have been duly given: (a) when delivered personally; (b) when sent by confirmed facsimile or email; (c) when delivered by courier or overnight delivery service; or (d) three (3) business days after being mailed by certified or registered mail, return receipt requested, postage prepaid. Notices shall be sent to the addresses set forth in the preamble to this Agreement or to such other address as either party may designate by written notice to the other party.
+
+9.2. ENTIRE AGREEMENT. This Agreement constitutes the entire agreement between the parties with respect to the subject matter hereof and supersedes all prior and contemporaneous agreements, understandings, negotiations, and discussions, whether oral or written, of the parties.
+
+9.3. SEVERABILITY. If any provision of this Agreement is held to be invalid, illegal, or unenforceable, the validity, legality, and enforceability of the remaining provisions shall not in any way be affected or impaired thereby.
+
+9.4. WAIVER. No waiver of any provision of this Agreement shall be effective unless in writing and signed by the party waiving such provision. The failure of either party to enforce any right or provision of this Agreement shall not constitute a waiver of future enforcement of that or any other right or provision.
+
+9.5. ASSIGNMENT. Neither party may assign its rights or delegate its duties under this Agreement without the prior written consent of the other party, which consent shall not be unreasonably withheld. Notwithstanding the foregoing, either party may assign this Agreement to an Affiliate or in connection with a merger, acquisition, or sale of all or substantially all of its assets, provided that the assignee agrees in writing to be bound by the terms of this Agreement.
+
+9.6. FORCE MAJEURE. Neither party shall be liable for any failure or delay in performance under this Agreement (other than for delay in the payment of money due and payable hereunder) for causes beyond that party's reasonable control and occurring without that party's fault or negligence, including, but not limited to, acts of God, acts of government, flood, fire, earthquakes, civil unrest, acts of terror, strikes or other labor problems, or internet or utility failures.
+
+9.7. AMENDMENTS. This Agreement may be amended or modified only by a written instrument signed by duly authorized representatives of both parties.
+
+10. DATA PROCESSING ADDENDUM (DPA)
+
+10.1. GDPR COMPLIANCE
+
+10.1.1. LAWFUL BASIS FOR PROCESSING. Client shall ensure that it has a lawful basis for Processing Personal Data that is transferred to Vendor for Processing under this Agreement, in accordance with Article 6 of GDPR. Client shall provide Vendor with appropriate instructions for the Processing of Personal Data.
+
+10.1.2. CONTROLLER-PROCESSOR OBLIGATIONS.
+    (a) Client is the Data Controller and Vendor is the Data Processor.
+    (b) Vendor shall Process Personal Data only on behalf of Client and in accordance with Client's documented instructions, including with regard to transfers of Personal Data to a third country or an international organisation, unless required to do so by Union or Member State law to which Vendor is subject; in such a case, Vendor shall inform Client of that legal requirement before Processing, unless that law prohibits such information on important grounds of public interest.
+    (c) Vendor shall ensure that persons authorised to Process the Personal Data have committed themselves to confidentiality or are under an appropriate statutory obligation of confidentiality.
+    (d) Vendor shall implement appropriate technical and organisational measures to ensure a level of security appropriate to the risk, taking into account the state of the art, the costs of implementation and the nature, scope, context and purposes of Processing as well as the risks of varying likelihood and severity for the rights and freedoms of natural persons.
+    (e) Vendor shall assist Client in fulfilling Client's obligations to respond to requests for exercising Data Subject rights under Chapter III of GDPR (e.g., right of access, rectification, erasure, restriction of processing, data portability, right to object).
+    (f) Vendor shall assist Client in fulfilling Client's obligations pursuant to Articles 32 to 36 of GDPR, taking into account the nature of Processing and the information available to Vendor.
+    (g) Upon termination of the provision of Personal Data Processing services, Vendor shall, at the choice of Client, delete or return all the Personal Data to Client and delete existing copies unless Union or Member State law requires the storage of the Personal Data.
+    (h) Vendor shall make available to Client all information necessary to demonstrate compliance with the obligations laid down in Article 28 of GDPR and allow for and contribute to audits, including inspections, conducted by Client or another auditor mandated by Client.
+
+10.1.3. STANDARD CONTRACTUAL CLAUSES (SCCs). Where Personal Data is transferred from the European Economic Area ("EEA") to a country outside the EEA for which the European Commission has not made an adequacy decision, the parties agree to incorporate by reference the Standard Contractual Clauses for the transfer of personal data from the EU to third countries, as adopted by the European Commission, as they may be amended or replaced from time to time. The specific SCCs applicable shall be set forth in Exhibit C.
+
+10.2. CCPA COMPLIANCE
+
+10.2.1. CONTROLLER-PROCESSOR OBLIGATIONS.
+    (a) Client is the Business and Vendor is the Service Provider, as defined under the CCPA.
+    (b) Vendor shall not sell Personal Information received from Client.
+    (c) Vendor shall not retain, use, or disclose Personal Information received from Client for any purpose other than for the specific purpose of performing the Services for Client as described in this Agreement, and as permitted by the CCPA.
+    (d) Vendor shall not retain, use, or disclose Personal Information outside of the direct business relationship between Client and Vendor.
+    (e) Vendor shall provide the same level of privacy protection to Personal Information as is required of a Business under the CCPA.
+    (f) Vendor shall notify Client promptly if Vendor determines that it can no longer meet this obligation.
+    (g) Vendor shall allow Client to take reasonable steps to remedy any breach of this Agreement by Vendor, and shall provide prompt notice to Client of any legally binding request for Personal Information from law enforcement.
+    (h) Vendor shall cooperate with Client in connection with Client's obligations under the CCPA, including responding to consumer requests and assisting with data protection impact assessments.
+
+10.2.2. CONSUMER RIGHTS AND OPT-OUT RIGHTS. Vendor shall assist Client in responding to consumer requests under the CCPA, including requests for access, deletion, or opt-out of sale, as applicable. Vendor shall not use Personal Information for the purpose of targeted advertising or to create profiles for such purposes, unless explicitly instructed and permitted by Client and in compliance with the CCPA.
+
+10.3. SUB-PROCESSORS. Vendor shall not engage any Sub-processor to Process Personal Data without the prior written consent of Client. If Vendor engages a Sub-processor, Vendor shall ensure that such Sub-processor is bound by contractual obligations that are at least as protective of Personal Data as those set forth in this Agreement. Vendor shall remain fully liable to Client for the performance of the Sub-processor's obligations.
+
+11. SIGNATURES
+
+IN WITNESS WHEREOF, the parties hereto have executed this Data Processing Agreement as of the Effective Date.
+
+COMPANY A
+
+By: _________________________
+Name:
+Title:
+
+VENDOR B
+
+By: _________________________
+Name:
+Title:
+
+EXHIBIT A: SERVICES / SCOPE OF WORK
+
+[Detailed description of services to be provided by Vendor]
+
+EXHIBIT B: PAYMENT TERMS
+
+[Detailed breakdown of fees, billing cycles, and payment schedule]
+
+EXHIBIT C: STANDARD CONTRACTUAL CLAUSES (SCCs)
+
+[If applicable, insert the relevant Standard Contractual Clauses adopted by the European Commission]

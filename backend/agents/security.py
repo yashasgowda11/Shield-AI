@@ -86,6 +86,52 @@ def _classify_lobstertrap_event(rule_name: str | None, detected: dict) -> str:
 
 # ---- Public API ----
 
+def scan_text_offline(text: str) -> list[dict]:
+    """Stateless offline scan — no DB, no contract_id required.
+
+    Returns a list of raw event dicts (same shape as the events inside the
+    contract `scan()` result) for any patterns or zero-width chars detected.
+    Callers that need to scan an arbitrary string (e.g. a user's chat question
+    in /query/) should use this instead of the full `scan()` which needs a db.
+    """
+    events: list[dict] = []
+
+    for pattern, event_type in _COMPILED:
+        for match in pattern.finditer(text):
+            window_start = max(0, match.start() - 40)
+            window_end = min(len(text), match.end() + 40)
+            events.append({
+                "event_type": event_type,
+                "severity": "critical",
+                "details": {
+                    "source": "offline_detector",
+                    "matched_text": match.group(0),
+                    "context": text[window_start:window_end].strip(),
+                    "char_offset": match.start(),
+                    "confidence": 0.95,
+                    "description": f"Offline pattern match: {event_type}",
+                },
+            })
+
+    zwc_matches = _SUSPICIOUS_UNICODE.findall(text)
+    if zwc_matches:
+        events.append({
+            "event_type": "suspicious_metadata",
+            "severity": "high",
+            "details": {
+                "source": "offline_detector",
+                "character_count": len(zwc_matches),
+                "description": (
+                    f"{len(zwc_matches)} zero-width or invisible character(s) detected. "
+                    "Common technique for hiding instructions inside seemingly normal text."
+                ),
+                "confidence": 0.99,
+            },
+        })
+
+    return events
+
+
 def scan(db: Session, contract_id: int, raw_text: str) -> dict[str, Any]:
     """Pre-LLM security gate. Returns {"clean": bool, "events": [...]}.
 
@@ -96,28 +142,47 @@ def scan(db: Session, contract_id: int, raw_text: str) -> dict[str, Any]:
     events: list[dict[str, Any]] = []
 
     # --- Layer 1: Lobster Trap (primary) ---
+    # Minimum risk_score to treat a Lobster Trap DENY as a real security event.
+    # Scores below this threshold are likely false positives (e.g. party names /
+    # addresses in a legitimate contract triggering the PII rule at low confidence).
+    LT_MIN_RISK_SCORE = 0.50
+
     lt_verdict = lobstertrap.scan(raw_text)
     if lt_verdict:
-        detected = lt_verdict.get("detected") or {}
-        events.append({
-            "event_type": _classify_lobstertrap_event(
-                lt_verdict.get("rule_name"), detected,
-            ),
-            "severity": "critical",
-            "details": {
-                "source": "lobstertrap",
-                "rule_name": lt_verdict.get("rule_name"),
-                "deny_message": lt_verdict.get("deny_message"),
-                "matched_text": lt_verdict.get("deny_message"),
-                "risk_score": lt_verdict.get("risk_score"),
-                "request_id": lt_verdict.get("request_id"),
-                "detected_flags": [
-                    k for k, v in detected.items()
-                    if isinstance(v, bool) and v
-                ],
-                "confidence": 0.95,
-            },
-        })
+        detected  = lt_verdict.get("detected") or {}
+        lt_risk   = lt_verdict.get("risk_score") or 0.0
+        lt_confidence = float(lt_risk)  # use Lobster Trap's own score, not a hardcoded value
+
+        if lt_confidence < LT_MIN_RISK_SCORE:
+            # Weak signal — log it but don't raise a security event that would
+            # block the contract. Lobster Trap flagged something but wasn't
+            # confident enough; a human reviewer can see this in the audit log.
+            import logging as _logging
+            _logging.getLogger(__name__).info(
+                "Lobster Trap DENY ignored (risk_score=%.2f < threshold=%.2f): %s",
+                lt_confidence, LT_MIN_RISK_SCORE, lt_verdict.get("deny_message"),
+            )
+        else:
+            severity = "critical" if lt_confidence >= 0.75 else "high"
+            events.append({
+                "event_type": _classify_lobstertrap_event(
+                    lt_verdict.get("rule_name"), detected,
+                ),
+                "severity": severity,
+                "details": {
+                    "source": "lobstertrap",
+                    "rule_name": lt_verdict.get("rule_name"),
+                    "deny_message": lt_verdict.get("deny_message"),
+                    "matched_text": lt_verdict.get("deny_message"),
+                    "risk_score": lt_risk,
+                    "request_id": lt_verdict.get("request_id"),
+                    "detected_flags": [
+                        k for k, v in detected.items()
+                        if isinstance(v, bool) and v
+                    ],
+                    "confidence": lt_confidence,
+                },
+            })
 
     # --- Layer 2: Offline pattern detector (always runs) ---
     for pattern, event_type in _COMPILED:

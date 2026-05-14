@@ -30,7 +30,8 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from backend.api import audit_logs, contracts, dashboard, graph, query, rag
+from backend.api import audit_logs, contracts, dashboard, query, rag, scoring
+from backend.api import health as health_api
 from backend.db import init_db
 
 logger = logging.getLogger(__name__)
@@ -76,11 +77,24 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# CORS — restrict origins in production.
+# Set ALLOWED_ORIGINS in the environment as a comma-separated list:
+#   ALLOWED_ORIGINS=https://shield-ai.example.com,https://app.example.com
+# If the variable is absent (local dev) we fall back to ["*"].
+_raw_origins = os.getenv("ALLOWED_ORIGINS", "")
+_allowed_origins: list[str] = (
+    [o.strip() for o in _raw_origins.split(",") if o.strip()]
+    if _raw_origins
+    else ["*"]
+)
+logger.info("CORS allowed origins: %s", _allowed_origins)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
+    allow_origins=_allowed_origins,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    allow_credentials=True,
 )
 
 
@@ -161,9 +175,10 @@ def health():
     }
 
 
+app.include_router(health_api.router, prefix="/health", tags=["health"])
 app.include_router(contracts.router, prefix="/contracts", tags=["contracts"])
 app.include_router(query.router, prefix="/query", tags=["query"])
-app.include_router(graph.router, prefix="/graph", tags=["graph"])
 app.include_router(rag.router, prefix="/rag", tags=["rag"])
 app.include_router(audit_logs.router, prefix="/audit", tags=["audit"])
 app.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
+app.include_router(scoring.router, prefix="/scoring-policy", tags=["scoring"])

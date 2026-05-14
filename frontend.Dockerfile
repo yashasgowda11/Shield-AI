@@ -32,7 +32,7 @@ EXPOSE 8501
 HEALTHCHECK --interval=20s --timeout=5s --start-period=30s --retries=3 \
     CMD curl -fsS http://localhost:${PORT}/_stcore/health || exit 1
 
-CMD streamlit run frontend/app.py \
+CMD streamlit run frontend/Home.py \
     --server.address 0.0.0.0 \
     --server.port ${PORT} \
     --server.headless true \
