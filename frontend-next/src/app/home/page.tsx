@@ -231,7 +231,7 @@ export default function HomePage() {
           <div className="orb-pulse absolute bottom-0 left-0 w-[300px] h-[300px] rounded-full pointer-events-none"
             style={{ background: "#A78BFA", transform: "translate(-40%, 40%)", filter: "blur(80px)", opacity: 0.15, animationDelay: "2s" }} />
 
-          <div className="relative z-10 max-w-4xl mx-auto px-6 py-12 flex flex-col items-center gap-8">
+          <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 flex flex-col items-center gap-6 sm:gap-8">
 
             {/* Centered Shield Logo Card */}
             <div className="w-full max-w-lg">

@@ -35,9 +35,12 @@
 }
 
 html {
-  /* 16px is the universal browser default — all rem values are correct */
-  font-size: 18px;
+  /* Fluid font scale: 15px mobile → 16px tablet → 17px desktop → 18px wide */
+  font-size: 15px;
 }
+@media (min-width: 640px)  { html { font-size: 16px; } }
+@media (min-width: 1024px) { html { font-size: 17px; } }
+@media (min-width: 1280px) { html { font-size: 18px; } }
 
 body {
   background-color: var(--bg-base);
