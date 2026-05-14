@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import {
   Upload, FileText, CheckSquare, BarChart2,
   Shield, MessageSquare, ClipboardList,
-  Settings, Database, Home,
+  Settings, Database, Home, FlaskConical,
 } from "lucide-react";
 
 const NAV = [
@@ -20,6 +20,7 @@ const NAV = [
   { href: "/audit",          label: "Audit Log",       icon: ClipboardList },
   { href: "/scoring",        label: "Scoring Policy",  icon: Settings },
   { href: "/recovery",       label: "Data Recovery",   icon: Database },
+  { href: "/samples",        label: "Sample Data",     icon: FlaskConical },
 ];
 
 export default function Sidebar() {

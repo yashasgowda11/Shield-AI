@@ -203,7 +203,7 @@ export default function SecurityDashboardPage() {
       try {
         const [secRes, contractRes] = await Promise.all([
           fetch(`${BACKEND}/dashboard/security-summary`),
-          fetch(`${BACKEND}/contracts?status=quarantined&limit=50&offset=0`),
+          fetch(`${BACKEND}/contracts/?status=quarantined&limit=50&offset=0`),
         ]);
         if (!secRes.ok) throw new Error(`${secRes.status}: ${await secRes.text()}`);
         setData(await secRes.json());
