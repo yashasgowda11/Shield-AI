@@ -75,6 +75,7 @@ app = FastAPI(
     description="AI Governance Platform for Enterprise Contract Risk Assessment",
     version="0.2.0",
     lifespan=lifespan,
+    redirect_slashes=False
 )
 
 # CORS — restrict origins in production.
