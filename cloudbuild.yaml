@@ -14,12 +14,15 @@
 #   _AR_REPO      — Artifact Registry   (default: shield-ai)
 #   _BACKEND_SVC  — Cloud Run service   (default: shield-backend)
 #   _FRONTEND_SVC — Cloud Run service   (default: shield-frontend)
+#   _BACKEND_URL  — Backend Cloud Run URL baked into the Next.js image at build time.
+#                   Update this if the backend service URL ever changes.
 
 substitutions:
   _REGION: us-central1
   _AR_REPO: shield-ai
   _BACKEND_SVC: shield-backend
   _FRONTEND_SVC: shield-frontend
+  _BACKEND_URL: https://shield-backend-aiffxvrl4q-uc.a.run.app
 
 options:
   logging: CLOUD_LOGGING_ONLY
@@ -71,13 +74,19 @@ steps:
       - --add-cloudsql-instances=gen-lang-client-0285486889:us-central1:free-trial-first-project
     waitFor: [push-backend]
 
-  # ── Frontend ───────────────────────────────────────────────────────────
+  # ── Frontend (Next.js) ─────────────────────────────────────────────────
+  #
+  # NEXT_PUBLIC_BACKEND_URL is passed as a Docker build arg so it gets
+  # inlined into the Next.js bundle at build time (Next.js static optimization).
+  # The image runs on port 3000 (Next.js default).
+  # Frontend build runs in parallel with the backend build.
 
   - id: build-frontend
     name: gcr.io/cloud-builders/docker
     args:
       - build
-      - --file=frontend.Dockerfile
+      - --file=frontend-next.Dockerfile
+      - --build-arg=NEXT_PUBLIC_BACKEND_URL=$_BACKEND_URL
       - --tag=$_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPO/shield-frontend:$SHORT_SHA
       - --tag=$_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPO/shield-frontend:latest
       - --cache-from=$_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPO/shield-frontend:latest
@@ -94,27 +103,23 @@ steps:
 
   - id: deploy-frontend
     name: gcr.io/google.com/cloudsdktool/cloud-sdk
-    entrypoint: bash
+    entrypoint: gcloud
     args:
-      - -c
-      - |
-          BACKEND_URL=$(gcloud run services describe $_BACKEND_SVC \
-            --region=$_REGION --format='value(status.url)')
-          echo "Backend URL: $$BACKEND_URL"
-          gcloud run deploy $_FRONTEND_SVC \
-            --image=$_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPO/shield-frontend:$SHORT_SHA \
-            --region=$_REGION \
-            --platform=managed \
-            --allow-unauthenticated \
-            --port=8501 \
-            --memory=512Mi \
-            --cpu=1 \
-            --min-instances=0 \
-            --max-instances=2 \
-            --concurrency=20 \
-            --timeout=120 \
-            --set-env-vars="BACKEND_URL=$$BACKEND_URL"
-    waitFor: [push-frontend, deploy-backend]
+      - run
+      - deploy
+      - $_FRONTEND_SVC
+      - --image=$_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPO/shield-frontend:$SHORT_SHA
+      - --region=$_REGION
+      - --platform=managed
+      - --allow-unauthenticated
+      - --port=3000
+      - --memory=512Mi
+      - --cpu=1
+      - --min-instances=0
+      - --max-instances=2
+      - --concurrency=80
+      - --timeout=60
+    waitFor: [push-frontend]
 
 images:
   - $_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPO/shield-backend:$SHORT_SHA

@@ -12,17 +12,16 @@ spec:
         autoscaling.knative.dev/maxScale: "2"
         run.googleapis.com/cpu-throttling: "true"
     spec:
-      containerConcurrency: 20
-      timeoutSeconds: 120
+      containerConcurrency: 80
+      timeoutSeconds: 60
       containers:
         - image: us-central1-docker.pkg.dev/gen-lang-client-0285486889/shield-ai/shield-frontend:latest
           ports:
-            - containerPort: 8501
+            - containerPort: 3000
           resources:
             limits:
               memory: 512Mi
               cpu: "1"
-          env:
-            # Set to the Cloud Run backend service URL after first backend deploy
-            - name: BACKEND_URL
-              value: "https://shield-backend-aiffxvrl4q-uc.a.run.app"
+          # NEXT_PUBLIC_BACKEND_URL is baked into the image at build time.
+          # No runtime env vars needed for the frontend itself.
+          # To change the backend URL, rebuild the image with a new --build-arg.

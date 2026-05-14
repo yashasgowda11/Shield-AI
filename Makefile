@@ -31,7 +31,7 @@ backend-only:
 	uvicorn backend.main:app --reload --port 8000
 
 frontend:
-	streamlit run frontend/Home.py
+	cd frontend-next && npm run dev
 
 test:
 	pytest tests/ -v
@@ -150,9 +150,23 @@ gcp-auth:
 
 ## Build all three images locally and tag for Artifact Registry
 ## --platform linux/amd64 required: Cloud Run only supports amd64 (Mac M-series builds arm64 by default)
+## NEXT_PUBLIC_BACKEND_URL is baked into the Next.js image at build time.
+# gcp-build: gcp-auth
+# 	$(eval BACKEND_URL := $(shell gcloud run services describe $(BACKEND_SVC) \
+# 		--region=$(GCP_REGION) --format='value(status.url)' 2>/dev/null || echo "https://shield-backend-aiffxvrl4q-uc.a.run.app"))
+# 	@echo "Building frontend with NEXT_PUBLIC_BACKEND_URL=$(BACKEND_URL)"
+# 	docker build --platform linux/amd64 -t $(IMAGE_BACKEND):latest .
+# 	docker build --platform linux/amd64 -f frontend-next.Dockerfile \
+# 		--build-arg NEXT_PUBLIC_BACKEND_URL=$(BACKEND_URL) \
+# 		-t $(IMAGE_FRONTEND):latest .
+# 	docker build --platform linux/amd64 -f lobstertrap.Dockerfile -t $(IMAGE_LOBSTERTRAP):latest .
 gcp-build: gcp-auth
+	$(eval BACKEND_URL := $(shell gcloud run services describe $(BACKEND_SVC) \
+		--region=$(GCP_REGION) --format='value(status.url)' 2>/dev/null || echo "https://shield-backend-aiffxvrl4q-uc.a.run.app"))
+	@echo "Building frontend (backend URL set at runtime, not build time)"
 	docker build --platform linux/amd64 -t $(IMAGE_BACKEND):latest .
-	docker build --platform linux/amd64 -f frontend.Dockerfile -t $(IMAGE_FRONTEND):latest .
+	docker build --platform linux/amd64 -f frontend-next.Dockerfile \
+		-t $(IMAGE_FRONTEND):latest .
 	docker build --platform linux/amd64 -f lobstertrap.Dockerfile -t $(IMAGE_LOBSTERTRAP):latest .
 
 ## Push images to Artifact Registry
@@ -232,28 +246,43 @@ gcp-deploy-backend:
 	@echo "✅  Backend deployed."
 	@gcloud run services describe $(BACKEND_SVC) --region=$(GCP_REGION) --format='value(status.url)'
 
-## Deploy frontend to Cloud Run (auto-injects backend URL)
+## Deploy Next.js frontend to Cloud Run
+## NEXT_PUBLIC_BACKEND_URL is baked into the image at build time — no runtime env var needed.
+## Ensure you ran gcp-build with the correct backend URL before this step.
+# gcp-deploy-frontend:
+# 	gcloud run deploy $(FRONTEND_SVC) \
+# 		--image=$(IMAGE_FRONTEND):latest \
+# 		--region=$(GCP_REGION) \
+# 		--platform=managed \
+# 		--allow-unauthenticated \
+# 		--port=3000 \
+# 		--memory=512Mi \
+# 		--cpu=1 \
+# 		--min-instances=0 \
+# 		--max-instances=2 \
+# 		--concurrency=80 \
+# 		--timeout=60
+# 	@echo "✅  Frontend (Next.js) deployed."
+# 	@gcloud run services describe $(FRONTEND_SVC) --region=$(GCP_REGION) --format='value(status.url)'
 gcp-deploy-frontend:
 	$(eval BACKEND_URL := $(shell gcloud run services describe $(BACKEND_SVC) \
-		--region=$(GCP_REGION) --format='value(status.url)'))
-	@echo "Backend URL: $(BACKEND_URL)"
+		--region=$(GCP_REGION) --format='value(status.url)' 2>/dev/null || echo "https://shield-backend-aiffxvrl4q-uc.a.run.app"))
 	gcloud run deploy $(FRONTEND_SVC) \
 		--image=$(IMAGE_FRONTEND):latest \
 		--region=$(GCP_REGION) \
 		--platform=managed \
 		--allow-unauthenticated \
-		--port=8501 \
+		--port=3000 \
 		--memory=512Mi \
 		--cpu=1 \
 		--min-instances=0 \
 		--max-instances=2 \
-		--concurrency=20 \
-		--timeout=120 \
-		--service-account=$(SA_EMAIL) \
-		--set-env-vars="BACKEND_URL=$(BACKEND_URL)"
-	@echo "✅  Frontend deployed."
+		--concurrency=80 \
+		--timeout=60 \
+		--set-env-vars=BACKEND_URL=$(BACKEND_URL)
+	@echo "✅  Frontend (Next.js) deployed."
 	@gcloud run services describe $(FRONTEND_SVC) --region=$(GCP_REGION) --format='value(status.url)'
-
+	
 ## Full build → push → migrate → deploy all three services
 gcp-deploy: gcp-build gcp-push gcp-migrate gcp-deploy-lobstertrap gcp-deploy-backend gcp-deploy-frontend
 	@echo ""
