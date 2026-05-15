@@ -1,48 +1,47 @@
-# Shield AI
+# Shield AI — Enterprise Contract Risk Assessment Platform
 
-**AI Governance Platform for Enterprise Contract Risk Assessment & Approval**
-
-Shield AI is a full-stack application that automates the review, risk scoring, compliance checking, and approval routing of enterprise contracts using a multi-agent AI pipeline built on Google Gemini. It enforces a two-layer security gate to block prompt injection attacks before any LLM ever sees a document, and maintains a complete audit trail for every decision.
+Shield AI is a production-grade, AI-powered governance platform that automates the review, risk scoring, compliance checking, and approval routing of enterprise contracts. It combines a multi-agent AI pipeline (Google Gemini), a vector-search RAG layer (Pinecone), and a dedicated security scanning proxy to reduce contract review from days to seconds — while maintaining a complete, immutable audit trail for every decision.
 
 ---
 
 ## Table of Contents
 
-- [Objective](#objective)
+- [Overview](#overview)
 - [Key Features](#key-features)
-- [Architecture Overview](#architecture-overview)
+- [Architecture](#architecture)
 - [Agent Pipeline](#agent-pipeline)
 - [Tech Stack](#tech-stack)
-- [File Structure](#file-structure)
-- [Frontend Pages](#frontend-pages)
+- [Project Structure](#project-structure)
+- [Application Pages](#application-pages)
 - [Backend API](#backend-api)
-- [Database Models](#database-models)
-- [Role-Based Access Control](#role-based-access-control)
+- [Database Schema](#database-schema)
+- [Roles & Permissions](#roles--permissions)
+- [Scoring Policy](#scoring-policy)
 - [Prerequisites](#prerequisites)
-- [Local Development Setup](#local-development-setup)
-- [Docker (Local Production Stack)](#docker-local-production-stack)
-- [Google Cloud Run Deployment](#google-cloud-run-deployment)
 - [Environment Variables](#environment-variables)
+- [Local Development](#local-development)
+- [Docker — Local Production Stack](#docker--local-production-stack)
+- [Deployment — Google Cloud Run](#deployment--google-cloud-run)
 - [Running Tests](#running-tests)
 - [Sample Contracts](#sample-contracts)
 - [Makefile Reference](#makefile-reference)
 
 ---
 
-## Objective
+## Overview
 
 Enterprise legal teams process hundreds of contracts monthly — NDAs, vendor agreements, employment contracts, data processing addenda — each requiring expert review for risk, compliance violations, and adversarial content. This is slow, expensive, and error-prone.
 
 Shield AI solves this by:
 
-1. **Extracting** structured metadata (parties, dates, clauses, obligations) from raw PDFs
-2. **Scoring** contracts against a configurable risk policy
-3. **Checking** regulatory compliance (HIPAA, GDPR, PCI-DSS, SOC 2) using RAG over a proprietary policy corpus
-4. **Blocking** adversarial documents before they reach any LLM — prompt injection, hidden text, CSS-based attacks
-5. **Routing** contracts to the right human reviewer based on risk score
-6. **Logging** every agent decision and human action to an immutable audit trail
+1. **Extracting** structured metadata (parties, dates, clauses, obligations) from raw PDFs and DOCX files.
+2. **Scoring** contracts against a configurable risk policy with per-clause weighting.
+3. **Checking** regulatory compliance (HIPAA, GDPR, CCPA, PCI-DSS, SOC 2) using RAG over a proprietary policy corpus.
+4. **Blocking** adversarial documents before they reach any LLM — prompt injection, hidden text, CSS-based attacks.
+5. **Routing** contracts to the right human reviewer based on risk score and violation severity.
+6. **Logging** every agent decision and human action to an immutable, append-only audit trail.
 
-Contracts that should be auto-approved clear in ~15 seconds. High-risk contracts get routed to the right reviewer with a full AI-generated rationale. Adversarial contracts never reach any AI model.
+Low-risk contracts auto-approve in ~15 seconds. High-risk contracts are routed to the right reviewer with AI-generated rationale and clause-level findings. Adversarial contracts are quarantined before any LLM ever sees them.
 
 ---
 
@@ -62,15 +61,15 @@ Contracts that should be auto-approved clear in ~15 seconds. High-risk contracts
 
 ---
 
-## Architecture Overview
+## Architecture
 
 ```
 Browser (Next.js 16)
         │
         │  HTTPS — same-origin requests only
         ▼
-/api/backend/[...path]         Next.js API proxy route (eliminates CORS)
-        │
+/api/backend/[...path]         Next.js API proxy route (eliminates CORS,
+        │                      keeps backend URL private from the browser)
         │  Server-to-server HTTP
         ▼
 FastAPI (port 8000)
@@ -79,23 +78,31 @@ FastAPI (port 8000)
         │   (runs BEFORE any LLM)           + offline pattern matcher
         │
         ├── Agent Pipeline ─────────────►  Google Gemini 2.5 Flash-Lite
-        │   (Orchestrator)                  (1.5 Flash fallback)
+        │   (Orchestrator)                  (1.5 Flash fallback on error)
         │
         ├── RAG Layer ──────────────────►  Pinecone (vector store, prod)
-        │                                   FAISS (in-memory, corpus)
+        │                                   FAISS (in-memory corpus, dev)
         │
         ├── Storage ────────────────────►  PostgreSQL / Cloud SQL (prod)
-        │                                   SQLite (local dev)
+        │                                   SQLite (local dev, default)
         │                                   Google Cloud Storage (files)
         │
         └── Audit Log ──────────────────►  audit_logs table (append-only)
 ```
 
+**Three deployed services** (local Docker or Google Cloud Run):
+
+| Service | Port | Purpose |
+|---|---|---|
+| `shield-backend` | 8000 | FastAPI REST API, agent pipeline, database |
+| `shield-frontend` | 3000 | Next.js UI — proxies all API calls server-side |
+| `shield-lobstertrap` | 8080 | Veea DPI security proxy (internal-only) |
+
 ---
 
 ## Agent Pipeline
 
-Each uploaded contract passes through a sequential pipeline. The Security Gate runs synchronously at upload time; all other agents run in a background task.
+Each uploaded contract passes through a sequential pipeline. The Security Gate runs synchronously at upload time; all remaining agents run in a background task and stream progress to the UI.
 
 | # | Agent | Model | Description |
 |---|---|---|---|
@@ -107,6 +114,18 @@ Each uploaded contract passes through a sequential pipeline. The Security Gate r
 | **5** | **Approval Routing** | Rules-based (no LLM) | Converts risk score + compliance violations + scoring policy into a deterministic recommendation: `AUTO_APPROVE`, `MANAGER_REVIEW`, `LEGAL_REVIEW`, or `REJECT`. Writes a templated rationale. |
 
 > **Fallback**: If Gemini 2.5 Flash-Lite is unavailable, agents automatically retry with Gemini 1.5 Flash.
+
+Two additional agents handle on-demand queries from the **Ask Shield AI** page:
+
+| Agent | Trigger | Purpose |
+|---|---|---|
+| **Contract Q&A** | Query with a `contract_id` | Answers natural language questions about a specific contract with clause-level citations |
+| **Analytics** | Query without a `contract_id` | Text-to-SQL — translates natural language questions into SQL and runs them against the full contract corpus |
+
+**Pipeline guarantees:**
+- All agent outputs are **Pydantic-validated JSON** — no free-form strings flow downstream.
+- RAG context (past contracts + policy snippets) is injected at agents 2, 3, and 4.
+- A single agent failure does not abort the pipeline; the contract is only marked `pipeline_failed` if all agents fail.
 
 ---
 
@@ -149,7 +168,7 @@ Each uploaded contract passes through a sequential pipeline. The Security Gate r
 
 ---
 
-## File Structure
+## Project Structure
 
 ```
 Shield-AI/
@@ -295,7 +314,7 @@ Shield-AI/
 
 ---
 
-## Frontend Pages
+## Application Pages
 
 | Route | Page | Description |
 |---|---|---|
@@ -375,7 +394,7 @@ All endpoints served at `http://localhost:8000`. Interactive docs at `/docs`.
 
 ---
 
-## Database Models
+## Database Schema
 
 | Table | Description |
 |---|---|
@@ -388,9 +407,22 @@ All endpoints served at `http://localhost:8000`. Interactive docs at `/docs`.
 | `contract_comments` | Comments left by any role on a contract |
 | `contract_assignments` | Role-to-role assignment records with notes and can_approve flag |
 
+**Contract lifecycle statuses:**
+
+```
+uploaded ──► quarantined          (security gate blocked — no LLM call made)
+         └─► processing
+               └─► processed ──► decided
+                              ├─► auto_approved
+                              ├─► manager_review
+                              ├─► legal_review
+                              └─► rejected
+               └─► pipeline_failed
+```
+
 ---
 
-## Role-Based Access Control
+## Roles & Permissions
 
 Five roles control which contracts appear in the Review Queue and what actions each user can take.
 
@@ -402,7 +434,26 @@ Five roles control which contracts appear in the Review Queue and what actions e
 | **Executive** | `manager_review`, `legal_review` | — | — | Read-only + commenting |
 | **Auditor** | `manager_review`, `legal_review` | — | — | Read-only + commenting |
 
-Role is selected from a dropdown in the Review Queue page header. No authentication is implemented — this is a simulation.
+Role is selected from a dropdown in the Review Queue page header. No authentication is required — role selection is a simulation for demonstration purposes.
+
+---
+
+## Scoring Policy
+
+Risk weights and routing thresholds are stored in the database and editable at runtime from the `/scoring` page — no code changes or redeploys required.
+
+**Default routing thresholds:**
+
+| Score Range | Routing Decision |
+|---|---|
+| 0 – 30 | `AUTO_APPROVE` |
+| 31 – 60 | `MANAGER_REVIEW` |
+| 61 – 80 | `LEGAL_REVIEW` |
+| 81 – 100 | `REJECT` |
+
+Specific compliance violations (e.g., missing HIPAA BAA, absent GDPR DPA) can be configured to force `REJECT` regardless of the numeric score. A built-in **risk simulator** on the scoring page lets you test hypothetical clause combinations before committing a new policy version.
+
+All historical policy versions are retained and queryable — every past decision can be replayed against the policy that was active at that time.
 
 ---
 
@@ -420,7 +471,30 @@ Role is selected from a dropdown in the Review Queue page header. No authenticat
 
 ---
 
-## Local Development Setup
+## Environment Variables
+
+Copy `.env.example` to `.env` and fill in the values. **Never commit `.env`.**
+
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `GEMINI_API_KEY` | **Yes** | — | Google AI Studio API key. [Get one free.](https://aistudio.google.com/app/apikey) |
+| `PINECONE_API_KEY` | **Yes** | — | Pinecone API key |
+| `PINECONE_INDEX_NAME` | **Yes** | — | Pinecone index name (metric: `cosine`, dimensions: `3072`) |
+| `DATABASE_URL` | Prod only | `sqlite:///./shield.db` | SQLAlchemy URL — leave unset for local SQLite; use `postgresql://...` for production |
+| `GCS_BUCKET_NAME` | Prod only | — | GCS bucket for uploaded contracts |
+| `GCS_SERVICE_ACCOUNT_KEY` | Local+GCS | — | Path to service account JSON key (not needed on Cloud Run via Workload Identity) |
+| `BACKEND_URL` | Frontend | `http://localhost:8000` | Backend URL used by the Next.js proxy route; injected at Cloud Run deploy time in production |
+| `LOBSTERTRAP_URL` | Optional | `http://localhost:8080` | Lobster Trap DPI proxy URL; falls back to offline pattern detection if unreachable |
+| `LOBSTERTRAP_TIMEOUT_SEC` | Optional | `5` | Seconds before security proxy calls time out |
+| `SKIP_RAG_INIT` | Optional | `false` | Set `true` to skip corpus embedding on startup for faster iteration |
+| `SHIELD_LOG_LEVEL` | Optional | `INFO` | Root log level: `DEBUG`, `INFO`, or `WARNING` |
+| `ALLOWED_ORIGINS` | Optional | `*` | Comma-separated CORS origins — restrict explicitly in production |
+
+> In production all sensitive variables must be stored in **Google Secret Manager** and referenced in `cloudrun-backend.yaml` — never committed to the repository.
+
+---
+
+## Local Development
 
 ### 1. Clone and configure
 
@@ -491,7 +565,7 @@ Then open `http://localhost:3000/home` to see the live health indicators.
 
 ---
 
-## Docker (Local Production Stack)
+## Docker — Local Production Stack
 
 Runs the backend and Lobster Trap in containers with persistent volumes. Run the frontend with `npm run dev` for hot-reload.
 
@@ -530,7 +604,7 @@ Persistent data is stored in three named Docker volumes:
 
 ---
 
-## Google Cloud Run Deployment
+## Deployment — Google Cloud Run
 
 The full production stack runs three Cloud Run services: `shield-backend`, `shield-frontend`, and `shield-lobstertrap`.
 
@@ -594,27 +668,6 @@ gcloud builds triggers create github \
 | `shield-lobstertrap` | 512 Mi | 20 | DPI proxy — internal only |
 
 The `BACKEND_URL` env var is injected into the frontend container at deploy time. The browser never calls the backend directly — all API traffic goes through the Next.js server-side proxy, so no CORS configuration is needed on the backend.
-
----
-
-## Environment Variables
-
-Copy `.env.example` to `.env` and fill in the values. Never commit `.env`.
-
-| Variable | Required | Default | Description |
-|---|---|---|---|
-| `GEMINI_API_KEY` | ✓ | — | Google AI Studio API key. [Get one free.](https://aistudio.google.com/app/apikey) |
-| `DATABASE_URL` | Prod only | `sqlite:///./shield.db` | SQLAlchemy connection string. SQLite for local dev; PostgreSQL for production. |
-| `PINECONE_API_KEY` | ✓ | — | Pinecone API key |
-| `PINECONE_INDEX_NAME` | ✓ | — | Name of your Pinecone index (metric: `cosine`, dimensions: `3072`) |
-| `GCS_BUCKET_NAME` | Prod only | — | GCS bucket for uploaded contracts |
-| `GCS_SERVICE_ACCOUNT_KEY` | Local only | — | Path to GCS service account JSON key. Not needed on Cloud Run (uses Workload Identity). |
-| `BACKEND_URL` | Frontend | `http://localhost:8000` | Backend URL used by the Next.js proxy route. Set as a Cloud Run env var in production. |
-| `LOBSTERTRAP_URL` | Optional | `http://localhost:8080` | Lobster Trap DPI proxy URL. Falls back to offline pattern detection if unreachable. |
-| `LOBSTERTRAP_TIMEOUT_SEC` | Optional | `5` | Timeout in seconds for Lobster Trap requests |
-| `SKIP_RAG_INIT` | Optional | `false` | Set to `true` to skip corpus embedding on startup (faster iteration) |
-| `SHIELD_LOG_LEVEL` | Optional | `INFO` | Root log level: `DEBUG`, `INFO`, or `WARNING` |
-| `ALLOWED_ORIGINS` | Optional | `*` | Comma-separated CORS origins. Defaults to wildcard. Set explicitly in production. |
 
 ---
 
