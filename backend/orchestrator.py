@@ -285,23 +285,34 @@ def run_pipeline(db: Session, contract_id: int) -> dict[str, Any]:
         )
 
     # Pipeline ordering matters: Agent 5 reads outputs from Agents 0-3.
-    pipeline: list[tuple[str, Callable[[], Any]]] = [
-        ("extraction", lambda: extraction_agent.run(
+    # Each tuple: (agent_name, running_status, fn)
+    # running_status is written to the DB *before* the agent runs so the
+    # frontend polling sees real per-step progress instead of a black box.
+    pipeline: list[tuple[str, str, Callable[[], Any]]] = [
+        ("extraction",     "running_extraction",     lambda: extraction_agent.run(
             db, contract_id, contract.raw_text, contract.clauses or [],
         )),
-        ("risk", lambda: risk_agent.run(
+        ("risk",           "running_risk",           lambda: risk_agent.run(
             db, contract_id, contract.clauses or [],
         )),
-        ("compliance", lambda: compliance_agent.run(
+        ("compliance",     "running_compliance",     lambda: compliance_agent.run(
             db, contract_id, contract.raw_text,
             classification=classification,   # ← gates which frameworks run
         )),
-        ("recommendation", lambda: recommendation_agent.run(
+        ("recommendation", "running_recommendation", lambda: recommendation_agent.run(
             db, contract_id,
         )),
     ]
 
-    for name, fn in pipeline:
+    for name, running_status, fn in pipeline:
+        # Broadcast that this agent is now running so the frontend can show
+        # the correct step as active in real time.
+        try:
+            contract.status = running_status
+            db.commit()
+        except Exception:
+            db.rollback()   # non-fatal — pipeline still runs
+
         t0 = time.perf_counter()
         try:
             fn()

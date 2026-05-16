@@ -1,5 +1,7 @@
 """Contract upload + processing endpoints."""
+import asyncio
 import hashlib
+import json
 import logging
 import os
 from datetime import datetime, timezone
@@ -7,7 +9,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, UploadFile, File, Form, Query, Header
-from fastapi.responses import Response as FileResponse
+from fastapi.responses import Response as FileResponse, StreamingResponse
 from google.cloud import storage as gcs
 from google.oauth2 import service_account
 from pydantic import BaseModel
@@ -351,6 +353,70 @@ def get_contract_file(contract_id: int, db: Session = Depends(get_db)):
     )
 
 
+_SSE_FINAL_STATUSES = frozenset({
+    "auto_approved", "manager_review", "legal_review", "rejected",
+    "approved", "quarantined", "extraction_failed", "pipeline_failed", "processed",
+})
+
+
+@router.get("/{contract_id}/stream")
+async def stream_contract_status(contract_id: int):
+    """Server-Sent Events (SSE) endpoint for live pipeline status updates.
+
+    Emits ``data: {"status": "...", "contract_id": N}`` every 500 ms until a
+    terminal status is reached, then emits a final event with ``"done": true``
+    and closes the stream.
+
+    The frontend should open this with ``EventSource`` — no polling needed.
+
+    Notes on DB isolation: a fresh ``SessionLocal()`` session is opened on
+    every poll iteration and closed immediately after.  This guarantees each
+    poll starts a new transaction at READ COMMITTED, so the SSE consumer always
+    sees the latest commits from the background orchestrator thread without
+    needing ``expire_all()`` or fighting open-transaction snapshot isolation.
+    """
+    async def _generate():
+        last_status: str | None = None
+        while True:
+            # Open a brand-new session for every poll so we always read at
+            # READ COMMITTED (no stale open-transaction snapshot).
+            db_poll = SessionLocal()
+            try:
+                contract = db_poll.query(Contract).filter(Contract.id == contract_id).first()
+                status: str | None = contract.status if contract else None
+            finally:
+                db_poll.close()
+
+            if status is None:
+                yield f"data: {json.dumps({'error': 'not_found', 'contract_id': contract_id})}\n\n"
+                return
+
+            status = status or "uploading"
+
+            # Only push an event when the status actually changes
+            if status != last_status:
+                last_status = status
+                payload = {"status": status, "contract_id": contract_id}
+                if status in _SSE_FINAL_STATUSES:
+                    payload["done"] = True  # type: ignore[assignment]
+                yield f"data: {json.dumps(payload)}\n\n"
+
+            if status in _SSE_FINAL_STATUSES:
+                return  # generator exhausted → FastAPI closes the stream
+
+            await asyncio.sleep(0.5)
+
+    return StreamingResponse(
+        _generate(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache, no-transform",
+            "X-Accel-Buffering": "no",   # disable nginx / Cloud Run buffering
+            "Connection": "keep-alive",
+        },
+    )
+
+
 @router.delete("/{contract_id}", response_model=DeleteResponse)
 def delete_contract(
     contract_id: int,
@@ -396,8 +462,15 @@ def delete_contract(
     except Exception:
         logger.exception("Audit log failed before deleting contract %d (continuing)", contract_id)
 
-    # Delete child rows (audit_logs are kept)
+    # Delete child rows in FK-safe order (audit_logs are intentionally kept).
+    # Rules:
+    #   scoring_feedback.decision_id → decisions.id   → must go before decisions
+    #   scoring_feedback.contract_id → contracts.id   → must go before contracts
+    #   everything else              → contracts.id   → must go before contracts
     try:
+        db.query(ScoringFeedback).filter(ScoringFeedback.contract_id == contract_id).delete()
+        db.query(ContractComment).filter(ContractComment.contract_id == contract_id).delete()
+        db.query(ContractAssignment).filter(ContractAssignment.contract_id == contract_id).delete()
         db.query(AgentOutput).filter(AgentOutput.contract_id == contract_id).delete()
         db.query(Decision).filter(Decision.contract_id == contract_id).delete()
         db.query(SecurityEvent).filter(SecurityEvent.contract_id == contract_id).delete()

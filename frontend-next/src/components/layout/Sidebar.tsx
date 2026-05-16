@@ -7,7 +7,7 @@ import { useSidebar } from "@/lib/SidebarContext";
 import {
   Upload, FileText, CheckSquare, BarChart2,
   Shield, MessageSquare, ClipboardList,
-  Settings, Database, Home, FlaskConical, X,
+  Settings, Database, Home, FlaskConical, X, Users2,
 } from "lucide-react";
 
 const NAV = [
@@ -22,6 +22,7 @@ const NAV = [
   { href: "/scoring",            label: "Scoring Policy",  icon: Settings },
   { href: "/recovery",           label: "Data Recovery",   icon: Database },
   { href: "/samples",            label: "Sample Data",     icon: FlaskConical },
+  { href: "/team",               label: "Meet the Team",   icon: Users2 },
 ];
 
 export default function Sidebar() {

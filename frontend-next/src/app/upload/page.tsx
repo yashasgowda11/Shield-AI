@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import Topbar from "@/components/layout/Topbar";
 import { useRole } from "@/hooks/useRole";
 import { api } from "@/lib/api";
@@ -19,25 +19,51 @@ type FileResult = {
 /* ─── Pipeline progress ─────────────────────────────────────────────────────── */
 const STEPS = [
   { id: "security",    label: "Security Gate",       icon: "🛡️", desc: "Scanning for threats & injections",              agent: "Agent 4" },
-  { id: "extraction",  label: "Document Extraction",  icon: "📄", desc: "Gemini 1.5 Flash · Parsing clauses & obligations", agent: "Agent 1" },
-  { id: "risk",        label: "Risk Assessment",      icon: "🔍", desc: "Gemini 1.5 Pro + Pinecone RAG",                   agent: "Agent 2" },
+  { id: "extraction",  label: "Document Extraction",  icon: "📄", desc: "Gemini 2.5 Flash · Parsing clauses & obligations", agent: "Agent 1" },
+  { id: "risk",        label: "Risk Assessment",      icon: "🔍", desc: "Gemini 2.5 Pro + Pinecone RAG",                   agent: "Agent 2" },
   { id: "compliance",  label: "Compliance Check",     icon: "✅", desc: "HIPAA · SOC 2 · GDPR verification",               agent: "Agent 3" },
   { id: "scoring",     label: "Approval Scoring",     icon: "🎯", desc: "Policy engine · No LLM in the loop",              agent: "Agent 5" },
 ];
 
 type StepState = "done" | "active" | "pending" | "failed";
 
+// Monotonic rank — used to ensure polls never move the UI backward.
+// A later-arriving slow poll with a stale/earlier status is discarded.
+// Ranks match the real backend pipeline order emitted by orchestrator.py.
+const STATUS_RANK: Record<string, number> = {
+  uploading:              0,  // security gate running
+  quarantined:            1,  // terminal — security failed
+  extraction_failed:      1,  // terminal — extraction failed
+  running_extraction:     1,  // extraction agent started
+  extracted:              2,  // extraction done
+  running_risk:           2,  // risk agent started
+  running_compliance:     3,  // compliance agent started
+  running_recommendation: 4,  // recommendation (scoring) agent started
+  processed:              5,  // pipeline done (recommendation skipped)
+  pipeline_failed:        5,  // terminal — all agents failed
+  auto_approved:          5,
+  manager_review:         5,
+  legal_review:           5,
+  rejected:               5,
+};
+
 function getStepsDone(status: string): number {
   switch (status) {
-    case "uploaded":      return 0;
-    case "processing":    return 1;   // security done, extraction running
-    case "extracted":     return 4;   // extraction+risk+compliance done, scoring next
+    case "uploading":              return 0;  // step 0 (Security) active
+    case "running_extraction":     return 1;  // step 1 (Extraction) active
+    case "extracted":              return 2;  // step 2 (Risk) active
+    case "running_risk":           return 2;  // step 2 (Risk) active
+    case "running_compliance":     return 3;  // step 3 (Compliance) active
+    case "running_recommendation": return 4;  // step 4 (Scoring) active
     case "auto_approved":
     case "manager_review":
     case "legal_review":
-    case "rejected":      return 5;   // all done
-    case "quarantined":   return -1;  // failed at security
-    default:              return 0;
+    case "rejected":
+    case "processed":              return 5;  // all done
+    case "quarantined":
+    case "extraction_failed":
+    case "pipeline_failed":        return -1; // failed
+    default:                       return 1;  // unknown — show extraction, never jump back
   }
 }
 
@@ -48,43 +74,84 @@ function stepState(stepIndex: number, stepsDone: number): StepState {
   return "pending";
 }
 
-const FINAL_STATUSES = ["auto_approved", "manager_review", "legal_review", "rejected", "quarantined"];
+const FINAL_STATUSES = [
+  "auto_approved", "manager_review", "legal_review", "rejected",
+  "quarantined", "extraction_failed", "pipeline_failed", "processed",
+];
 
 function finalLabel(status: string): { text: string; color: string; emoji: string } {
   switch (status) {
-    case "auto_approved":   return { text: "Auto-Approved",    color: "#22C55E", emoji: "✅" };
-    case "manager_review":  return { text: "Manager Review",   color: "#F59E0B", emoji: "👔" };
-    case "legal_review":    return { text: "Legal Review",     color: "#38BDF8", emoji: "⚖️" };
-    case "rejected":        return { text: "Rejected",         color: "#EF4444", emoji: "❌" };
-    case "quarantined":     return { text: "Quarantined",      color: "#F97316", emoji: "🚫" };
-    default:                return { text: status,             color: "#7E89AC", emoji: "⏳" };
+    case "auto_approved":     return { text: "Auto-Approved",      color: "#22C55E", emoji: "✅" };
+    case "manager_review":    return { text: "Manager Review",     color: "#F59E0B", emoji: "👔" };
+    case "legal_review":      return { text: "Legal Review",       color: "#38BDF8", emoji: "⚖️" };
+    case "rejected":          return { text: "Rejected",           color: "#EF4444", emoji: "❌" };
+    case "quarantined":       return { text: "Quarantined",        color: "#F97316", emoji: "🚫" };
+    case "extraction_failed": return { text: "Extraction Failed",  color: "#EF4444", emoji: "❌" };
+    case "pipeline_failed":   return { text: "Pipeline Failed",    color: "#EF4444", emoji: "❌" };
+    case "processed":         return { text: "Processed",          color: "#22C55E", emoji: "✅" };
+    default:                  return { text: status,               color: "#7E89AC", emoji: "⏳" };
   }
 }
 
 function PipelineProgress({ contractId, filename }: { contractId: number; filename: string }) {
-  const [status, setStatus] = useState("processing");
+  const [status, setStatus] = useState("uploading");
   const [done, setDone] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const poll = useCallback(async () => {
-    try {
-      const res = await fetch(`${BACKEND}/contracts/${contractId}`);
-      if (!res.ok) return;
-      const data = await res.json();
-      const s = data.status ?? "processing";
-      setStatus(s);
-      if (FINAL_STATUSES.includes(s)) {
-        setDone(true);
-        if (intervalRef.current) clearInterval(intervalRef.current);
-      }
-    } catch { /* ignore */ }
-  }, [contractId]);
+  // Monotonic rank — prevents SSE events that arrive out-of-order from moving
+  // the UI backward (shouldn't happen with SSE, but guards against reconnects).
+  const highestRankRef = useRef<number>(STATUS_RANK["uploading"] ?? 0);
+  // Ref so the onerror / onmessage handlers can check without a stale closure.
+  const isDoneRef = useRef(false);
+  const esRef = useRef<EventSource | null>(null);
 
   useEffect(() => {
-    poll();
-    intervalRef.current = setInterval(poll, 2000);
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-  }, [poll]);
+    // Reset state when a new contractId arrives (parallel bulk uploads each
+    // get their own PipelineProgress instance, so this fires on mount only).
+    highestRankRef.current = STATUS_RANK["uploading"] ?? 0;
+    isDoneRef.current = false;
+    setStatus("uploading");
+    setDone(false);
+
+    // Open the SSE stream.  The server pushes an event every 500 ms whenever
+    // the status changes, and closes the stream on final status.
+    const es = new EventSource(`${BACKEND}/contracts/${contractId}/stream`);
+    esRef.current = es;
+
+    es.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data as string);
+        if (data.error) { es.close(); return; }
+
+        const s: string = data.status ?? "uploading";
+        const rank = STATUS_RANK[s] ?? 1;
+
+        if (rank >= highestRankRef.current) {
+          highestRankRef.current = rank;
+          setStatus(s);
+          if (FINAL_STATUSES.includes(s)) {
+            isDoneRef.current = true;
+            setDone(true);
+            es.close();
+            esRef.current = null;
+          }
+        }
+      } catch { /* ignore malformed events */ }
+    };
+
+    es.onerror = () => {
+      // EventSource automatically reconnects on transient network errors.
+      // If the pipeline is already done we don't want it to reconnect.
+      if (isDoneRef.current) {
+        es.close();
+        esRef.current = null;
+      }
+    };
+
+    return () => {
+      isDoneRef.current = true;
+      es.close();
+      esRef.current = null;
+    };
+  }, [contractId]);
 
   const stepsDone = getStepsDone(status);
   const label = done ? finalLabel(status) : null;
