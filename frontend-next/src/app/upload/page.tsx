@@ -234,14 +234,14 @@ export default function UploadPage() {
           message: x.message, n_clauses: x.n_clauses,
         }));
         setResults(newResults);
-        // Start pipeline tracking for successfully queued contracts
-        const newPipes = newResults.filter(x => x.id && x.status !== "quarantined" && x.status !== "error")
+        // Start pipeline tracking for successfully queued contracts (not duplicates)
+        const newPipes = newResults.filter(x => x.id && x.status !== "quarantined" && x.status !== "error" && x.status !== "duplicate")
           .map(x => ({ id: x.id!, filename: x.filename }));
         setPipelines(newPipes);
       } else {
         const r = await api.contracts.upload(files[0], actor);
-        setResults([{ filename: files[0].name, status: r.status, id: r.id, n_clauses: r.n_clauses }]);
-        if (r.id && r.status !== "quarantined") {
+        setResults([{ filename: files[0].name, status: r.status, id: r.id, message: (r as any).message, n_clauses: r.n_clauses }]);
+        if (r.id && r.status !== "quarantined" && r.status !== "duplicate") {
           setPipelines([{ id: r.id, filename: files[0].name }]);
         }
       }
@@ -376,7 +376,7 @@ export default function UploadPage() {
             </div>
           )}
 
-          {/* Upload summary (for bulk) */}
+          {/* Upload summary — quarantined / errors / duplicates */}
           {results.length > 0 && results.some(r => ["quarantined", "error", "duplicate"].includes(r.status)) && (
             <div className="flex flex-col gap-2">
               <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
@@ -392,13 +392,22 @@ export default function UploadPage() {
                     <p className="text-sm font-medium text-white truncate">{r.filename}</p>
                     {r.message && <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>{r.message}</p>}
                   </div>
-                  <span className="text-xs px-2 py-1 rounded-full font-medium capitalize flex-shrink-0"
-                    style={{
-                      background: r.status === "quarantined" ? "#F9731620" : r.status === "error" ? "#EF444420" : "#3B82F620",
-                      color: r.status === "quarantined" ? "#F97316" : r.status === "error" ? "#EF4444" : "#38BDF8",
-                    }}>
-                    {r.status}
-                  </span>
+                  {/* For duplicates, show a direct link to the existing contract */}
+                  {r.status === "duplicate" && r.id ? (
+                    <a href={`/contracts/${r.id}`}
+                      className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg flex-shrink-0 transition-opacity hover:opacity-80"
+                      style={{ background: "var(--accent)", color: "#fff" }}>
+                      View contract <ArrowUpRight size={11} />
+                    </a>
+                  ) : (
+                    <span className="text-xs px-2 py-1 rounded-full font-medium capitalize flex-shrink-0"
+                      style={{
+                        background: r.status === "quarantined" ? "#F9731620" : "#EF444420",
+                        color: r.status === "quarantined" ? "#F97316" : "#EF4444",
+                      }}>
+                      {r.status}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
