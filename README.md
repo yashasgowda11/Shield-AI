@@ -1,4 +1,4 @@
-# Shield AI — Enterprise Contract Risk Assessment Platform
+# <img src="./frontend-next/public/shield-ai-icon.svg" alt="Logo" width="23">  Shield AI — Enterprise Contract Risk Assessment Platform
 
 Shield AI is a production-grade, AI-powered governance platform that automates the review, risk scoring, compliance checking, and approval routing of enterprise contracts. It combines a multi-agent AI pipeline (Google Gemini), a vector-search RAG layer (Pinecone), and a dedicated security scanning proxy to reduce contract review from days to seconds — while maintaining a complete, immutable audit trail for every decision.
 
