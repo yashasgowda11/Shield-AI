@@ -1,12 +1,46 @@
-# Shield AI — Enterprise Contract Risk Assessment Platform
+# <img src="./frontend-next/public/shield-ai-icon.svg" alt="Logo" width="23"> Shield AI — Enterprise Contract Risk Assessment Platform
 
-Shield AI is a production-grade, AI-powered governance platform that automates the review, risk scoring, compliance checking, and approval routing of enterprise contracts. It combines a multi-agent AI pipeline (Google Gemini), a vector-search RAG layer (Pinecone), and a dedicated security scanning proxy to reduce contract review from days to seconds — while maintaining a complete, immutable audit trail for every decision.
+<div align="center">
+
+<img src="public/shield_ai_cover_16x9_v2.svg" alt="Shield AI Cover" width="100%"/>
+
+**AI-powered contract governance · From upload to decision in under 90 seconds**
+
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-shield--frontend-6C72FF?style=for-the-badge&logo=googlechrome&logoColor=white)](https://shield-frontend-aiffxvrl4q-uc.a.run.app)
+[![Backend API](https://img.shields.io/badge/Backend%20API-FastAPI%20Docs-0D9488?style=for-the-badge&logo=fastapi&logoColor=white)](https://shield-backend-aiffxvrl4q-uc.a.run.app/docs)
+[![Presentation](https://img.shields.io/badge/Presentation-View%20PDF-EF4444?style=for-the-badge&logo=adobeacrobatreader&logoColor=white)](public/Shield_AI_latest.pdf)
+
+</div>
+
+---
+
+## 🎬 Video Demo
+
+> **Demo video coming soon.**
+>
+> <!-- TODO: Replace this block with the actual video embed once recorded -->
+>
+> [![Watch the Demo](https://img.shields.io/badge/▶%20Watch%20Demo-YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](#)
+>
+> _Full walkthrough of the upload pipeline, security gate, risk assessment, compliance check, review queue, and Ask Shield AI — ~5 minutes._
+
+---
+
+## 📊 Presentation
+
+The full pitch deck is available in this repository:
+
+| Format            | Link                                                           |
+| ----------------- | -------------------------------------------------------------- |
+| 📄 **PDF**        | [`public/Shield_AI_latest.pdf`](public/Shield_AI_latest.pdf)   |
+| 📑 **PowerPoint** | [`public/Shield_AI_latest.pptx`](public/Shield_AI_latest.pptx) |
 
 ---
 
 ## Table of Contents
 
 - [Overview](#overview)
+- [Screenshots](#screenshots)
 - [Key Features](#key-features)
 - [Architecture](#architecture)
 - [Agent Pipeline](#agent-pipeline)
@@ -25,6 +59,7 @@ Shield AI is a production-grade, AI-powered governance platform that automates t
 - [Running Tests](#running-tests)
 - [Sample Contracts](#sample-contracts)
 - [Makefile Reference](#makefile-reference)
+- [Team](#team)
 
 ---
 
@@ -37,27 +72,136 @@ Shield AI solves this by:
 1. **Extracting** structured metadata (parties, dates, clauses, obligations) from raw PDFs and DOCX files.
 2. **Scoring** contracts against a configurable risk policy with per-clause weighting.
 3. **Checking** regulatory compliance (HIPAA, GDPR, CCPA, PCI-DSS, SOC 2) using RAG over a proprietary policy corpus.
-4. **Blocking** adversarial documents before they reach any LLM — prompt injection, hidden text, CSS-based attacks.
+4. **Blocking** adversarial documents before they reach any LLM — prompt injection, hidden text, CSS-based attacks via Lobster Trap.
 5. **Routing** contracts to the right human reviewer based on risk score and violation severity.
 6. **Logging** every agent decision and human action to an immutable, append-only audit trail.
 
-Low-risk contracts auto-approve in ~15 seconds. High-risk contracts are routed to the right reviewer with AI-generated rationale and clause-level findings. Adversarial contracts are quarantined before any LLM ever sees them.
+Low-risk contracts auto-approve in ~60 seconds. High-risk contracts are routed to the right reviewer with AI-generated rationale and clause-level findings. Adversarial contracts are quarantined before any LLM ever sees them.
+
+---
+
+## Screenshots
+
+### 🏠 Home Page
+
+<img src="public/images/HomePage.png" alt="Home Page" width="100%"/>
+
+> System health indicators (PostgreSQL, Pinecone, Lobster Trap), live contract stats, and pipeline overview.
+
+---
+
+### 📤 Upload Page
+
+<img src="public/images/UploadPage.png" alt="Upload Page" width="100%"/>
+
+> Drag-and-drop PDF/DOCX upload with a **real-time 5-step pipeline tracker** — streams live from the backend via Server-Sent Events. No polling, no page refresh.
+
+---
+
+### 📋 Recent Uploads
+
+<img src="public/images/RecentUploads.png" alt="Recent Uploads" width="100%"/>
+
+> Filterable and sortable contract table with status chips, risk scores, and one-click delete.
+
+---
+
+### 🔍 Contract Details
+
+<img src="public/images/ContractDetails.png" alt="Contract Details" width="100%"/>
+
+> Full extraction output, clause-level risk breakdown, compliance report (framework by framework), scoring breakdown with composite score, and complete decision history.
+
+---
+
+### ✅ Review Queue
+
+<img src="public/images/Review%20Queue.png" alt="Review Queue" width="100%"/>
+
+> Role-gated review queue — Legal Reviewers, Compliance Officers, and Managers each see only what requires their attention. Supports approve, reject, escalate, assign, and comment.
+
+---
+
+### 📊 Risk Dashboard
+
+<img src="public/images/RiskDashboard.png" alt="Risk Dashboard" width="100%"/>
+
+> Portfolio-level risk view — score distribution chart, high-risk contract list, status breakdown, and trend analytics.
+
+---
+
+### 🛡️ Security Dashboard
+
+<img src="public/images/Security%20Dashboard.png" alt="Security Dashboard" width="100%"/>
+
+> Security event timeline, threat type breakdown, and quarantine history with the specific reason each contract was blocked.
+
+---
+
+### 💬 Ask Shield AI
+
+<img src="public/images/Ask%20Shield%20AI.png" alt="Ask Shield AI" width="100%"/>
+
+> Natural language queries across the full contract library — powered by Gemini 2.5 and Pinecone semantic search. Ask anything: _"Which contracts have uncapped liability?"_, _"Show all GDPR compliance failures."_
+
+---
+
+### 📁 Audit Log
+
+<img src="public/images/Audit%20log.png" alt="Audit Log" width="100%"/>
+
+> Immutable, filterable, paginated audit trail of every action — every agent run, every human decision, every upload, every assignment. Exactly what regulators want to see.
+
+---
+
+### ⚙️ Scoring Policy
+
+<img src="public/images/ScoringPolicy.png" alt="Scoring Policy" width="100%"/>
+
+> Live policy editor — adjust risk weights, routing thresholds, and framework rejection rules at runtime with no code changes or redeploys needed. Includes a built-in risk simulator.
+
+---
+
+### 📚 Sample Data
+
+<img src="public/images/Sample%20Data.png" alt="Sample Data" width="100%"/>
+
+> 21 ready-to-use contracts (synthetic + SEC real-world filings) with in-browser PDF preview, direct download, and one-click upload to the pipeline.
+
+---
+
+### 🔄 Data Recovery
+
+<img src="public/images/DataRecovery.png" alt="Data Recovery" width="100%"/>
+
+> System health details, cache management, and database status — for diagnosing and recovering from infrastructure issues.
+
+---
+
+### 👥 Meet the Team
+
+<img src="public/images/Meet%20the%20Team.png" alt="Meet the Team" width="100%"/>
+
+> The Byte Theory team page with animated glassmorphism cards.
 
 ---
 
 ## Key Features
 
-| Feature | Description |
-|---|---|
-| **Multi-Agent Pipeline** | 5 specialised agents (Classification → Extraction → Risk → Compliance → Approval) running in sequence with structured Pydantic output |
-| **Two-Layer Security Gate** | Veea Lobster Trap DPI proxy + offline pattern detector runs before any LLM; quarantines injections, adversarial payloads, and hidden text |
-| **RAG** | Gemini `embedding-001` embeddings over past contracts, HIPAA/GDPR/SOC2 policies, and regulatory frameworks; retrieved at risk and compliance agents |
-| **Configurable Scoring** | Weighted policy (clause weights, thresholds, framework rejection rules) editable at runtime without code changes |
-| **Role-Based Review Queue** | Five roles with separate queues, assignment flow, and commenting — Legal Reviewer and Compliance Officer can assign contracts; Executives and Auditors have read-only access |
-| **Ask Shield AI** | Natural language queries answered by Agent 6 (contract Q&A with citations) or Agent 7 (text-to-SQL across the full corpus) |
-| **Audit Log** | Every agent call, human decision, upload, and assignment is logged with actor, action, timestamp, and full context |
-| **Dashboards** | Live risk dashboard (score distribution, high-risk contracts) and security dashboard (event timeline, quarantine history with reasons) |
-| **Sample Data** | 21 synthetic and real-world contracts (SEC filings) with in-browser PDF preview and direct upload to the pipeline |
+| Feature                            | Description                                                                                                                                                                 |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Multi-Agent Pipeline**           | 5 specialised agents (Classification → Extraction → Risk → Compliance → Approval) running in sequence with structured Pydantic output                                       |
+| **Lobster Trap Security Gate**     | Veea Lobster Trap DPI proxy + offline pattern detector runs before any LLM; quarantines prompt injections, adversarial payloads, hidden text, and CSS-based attacks         |
+| **Live Pipeline Streaming**        | Server-Sent Events push real-time agent status to the browser — no polling, no page refresh                                                                                 |
+| **RAG**                            | Gemini `embedding-001` embeddings over past contracts, HIPAA/GDPR/SOC2 policies, and regulatory frameworks; retrieved at risk and compliance agents                         |
+| **Configurable Scoring**           | Weighted policy (clause weights, thresholds, framework rejection rules) editable at runtime without code changes                                                            |
+| **Role-Based Review Queue**        | Six roles with separate queues, assignment flow, and commenting — Legal Reviewer and Compliance Officer can assign contracts; Executives and Auditors have read-only access |
+| **Auto Multi-Reviewer Assignment** | Compliance failures auto-assign the Compliance Officer; Critical risk findings auto-assign the Legal Reviewer — no manual handoffs                                          |
+| **Ask Shield AI**                  | Natural language queries answered by Agent 6 (contract Q&A with citations) or Agent 7 (text-to-SQL across the full corpus)                                                  |
+| **Audit Log**                      | Every agent call, human decision, upload, and assignment is logged with actor, action, timestamp, and full context                                                          |
+| **Dashboards**                     | Live risk dashboard (score distribution, high-risk contracts) and security dashboard (event timeline, quarantine history with reasons)                                      |
+| **Duplicate Detection**            | SHA-256 file hash deduplication — re-uploading an existing contract shows a direct link to the existing review instead of re-processing                                     |
+| **Sample Data**                    | 21 synthetic and real-world contracts (SEC filings) with in-browser PDF preview and direct upload to the pipeline                                                           |
 
 ---
 
@@ -77,8 +221,8 @@ FastAPI (port 8000)
         ├── Security Gate ──────────────►  Veea Lobster Trap DPI proxy
         │   (runs BEFORE any LLM)           + offline pattern matcher
         │
-        ├── Agent Pipeline ─────────────►  Google Gemini 2.5 Flash-Lite
-        │   (Orchestrator)                  (1.5 Flash fallback on error)
+        ├── Agent Pipeline ─────────────►  Google Gemini 2.5 Flash / Pro
+        │   (Orchestrator)
         │
         ├── RAG Layer ──────────────────►  Pinecone (vector store, prod)
         │                                   FAISS (in-memory corpus, dev)
@@ -92,79 +236,83 @@ FastAPI (port 8000)
 
 **Three deployed services** (local Docker or Google Cloud Run):
 
-| Service | Port | Purpose |
-|---|---|---|
-| `shield-backend` | 8000 | FastAPI REST API, agent pipeline, database |
-| `shield-frontend` | 3000 | Next.js UI — proxies all API calls server-side |
-| `shield-lobstertrap` | 8080 | Veea DPI security proxy (internal-only) |
+| Service              | Port | Purpose                                        |
+| -------------------- | ---- | ---------------------------------------------- |
+| `shield-backend`     | 8000 | FastAPI REST API, agent pipeline, database     |
+| `shield-frontend`    | 3000 | Next.js UI — proxies all API calls server-side |
+| `shield-lobstertrap` | 8080 | Veea DPI security proxy (internal-only)        |
 
 ---
 
 ## Agent Pipeline
 
-Each uploaded contract passes through a sequential pipeline. The Security Gate runs synchronously at upload time; all remaining agents run in a background task and stream progress to the UI.
+Each uploaded contract passes through a sequential pipeline. The Security Gate runs synchronously at upload time; all remaining agents run in a background task and stream progress to the UI via Server-Sent Events.
 
-| # | Agent | Model | Description |
-|---|---|---|---|
-| **0** | **Security Gate** | Lobster Trap + regex | Runs first, before any LLM. Scans for prompt injection, hidden text (white-on-white, CSS-invisible), adversarial payloads. Quarantines on match — the LLM never sees the document. |
-| **1** | **Classification** | Gemini 2.5 Flash-Lite | Identifies contract type (NDA, Vendor, Employment, DPA, SaaS…), governing jurisdiction, and parties involved. |
-| **2** | **Extraction** | Gemini 2.5 Flash-Lite | Structured extraction of all clauses with title, full text, page number, and clause type. RAG retrieves similar past contracts for context. |
-| **3** | **Risk Assessment** | Gemini 2.5 Flash-Lite | Scores each clause for risk. Produces an overall risk score 0–100. RAG retrieves prior risk findings. |
-| **4** | **Compliance** | Gemini 2.5 Flash-Lite | Checks against HIPAA, GDPR, CCPA, SOC 2, PCI-DSS requirements using RAG over the policy corpus. Returns a violation list with severity. |
-| **5** | **Approval Routing** | Rules-based (no LLM) | Converts risk score + compliance violations + scoring policy into a deterministic recommendation: `AUTO_APPROVE`, `MANAGER_REVIEW`, `LEGAL_REVIEW`, or `REJECT`. Writes a templated rationale. |
-
-> **Fallback**: If Gemini 2.5 Flash-Lite is unavailable, agents automatically retry with Gemini 1.5 Flash.
+| #     | Agent                | Model                | Description                                                                                                                                                                                                     |
+| ----- | -------------------- | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **0** | **Security Gate**    | Lobster Trap + regex | Runs first, before any LLM. Scans for prompt injection, hidden text (white-on-white, CSS-invisible), adversarial payloads. Quarantines on match — the LLM never sees the document.                              |
+| **1** | **Classification**   | Gemini 2.5 Flash     | Identifies contract type (NDA, Vendor, Employment, DPA, SaaS…), governing jurisdiction, sector, and applicable compliance frameworks.                                                                           |
+| **2** | **Extraction**       | Gemini 2.5 Flash     | Structured extraction of all clauses with title, full text, page number, and clause type. RAG retrieves similar past contracts for context.                                                                     |
+| **3** | **Risk Assessment**  | Gemini 2.5 Pro       | Scores each clause for risk. Produces an overall risk score 0–100. RAG retrieves prior risk findings for context-aware scoring.                                                                                 |
+| **4** | **Compliance**       | Gemini 2.5 Flash     | Checks against HIPAA, GDPR, CCPA, SOC 2, PCI-DSS, FERPA, CMMC requirements using RAG over the policy corpus. Returns a violation list with severity.                                                            |
+| **5** | **Approval Routing** | Rules-based (no LLM) | Converts risk score + compliance violations + scoring policy into a deterministic recommendation: `AUTO_APPROVE`, `MANAGER_REVIEW`, `LEGAL_REVIEW`, or `REJECT`. Writes a templated rationale. Fully auditable. |
 
 Two additional agents handle on-demand queries from the **Ask Shield AI** page:
 
-| Agent | Trigger | Purpose |
-|---|---|---|
-| **Contract Q&A** | Query with a `contract_id` | Answers natural language questions about a specific contract with clause-level citations |
-| **Analytics** | Query without a `contract_id` | Text-to-SQL — translates natural language questions into SQL and runs them against the full contract corpus |
+| Agent            | Trigger                       | Purpose                                                                                                     |
+| ---------------- | ----------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| **Contract Q&A** | Query with a `contract_id`    | Answers natural language questions about a specific contract with clause-level citations                    |
+| **Analytics**    | Query without a `contract_id` | Text-to-SQL — translates natural language questions into SQL and runs them against the full contract corpus |
 
 **Pipeline guarantees:**
+
 - All agent outputs are **Pydantic-validated JSON** — no free-form strings flow downstream.
 - RAG context (past contracts + policy snippets) is injected at agents 2, 3, and 4.
 - A single agent failure does not abort the pipeline; the contract is only marked `pipeline_failed` if all agents fail.
+- Per-step status is written to the DB before each agent runs, so the frontend tracker reflects true progress.
 
 ---
 
 ## Tech Stack
 
 ### Backend
-| Component | Technology |
-|---|---|
-| API framework | FastAPI 0.110+ |
-| ORM | SQLAlchemy 2.0 |
-| Database (dev) | SQLite |
-| Database (prod) | PostgreSQL (Cloud SQL) |
-| Migrations | Alembic |
-| LLM | Google Gemini 2.5 Flash-Lite / 1.5 Flash |
-| Embeddings | Gemini `embedding-001` |
-| Vector store | Pinecone (production) + FAISS (in-memory) |
-| File storage | Google Cloud Storage |
-| Security proxy | Veea Lobster Trap |
-| PDF parsing | pdfplumber |
-| DOCX parsing | python-docx |
+
+| Component       | Technology                                |
+| --------------- | ----------------------------------------- |
+| API framework   | FastAPI 0.110+                            |
+| ORM             | SQLAlchemy 2.0                            |
+| Database (dev)  | SQLite                                    |
+| Database (prod) | PostgreSQL (Cloud SQL)                    |
+| Migrations      | Alembic                                   |
+| LLM             | Google Gemini 2.5 Flash / Pro             |
+| Embeddings      | Gemini `embedding-001`                    |
+| Vector store    | Pinecone (production) + FAISS (in-memory) |
+| File storage    | Google Cloud Storage                      |
+| Security proxy  | Veea Lobster Trap                         |
+| PDF parsing     | pdfplumber                                |
+| DOCX parsing    | python-docx                               |
 
 ### Frontend
-| Component | Technology |
-|---|---|
-| Framework | Next.js 16.2 (App Router) |
-| Language | TypeScript 5 |
-| Styling | Tailwind CSS 4 |
-| Charts | Recharts |
-| Icons | Lucide React |
-| HTTP | Native `fetch` via Next.js API proxy route |
+
+| Component    | Technology                                 |
+| ------------ | ------------------------------------------ |
+| Framework    | Next.js 16.2 (App Router)                  |
+| Language     | TypeScript 5                               |
+| Styling      | Tailwind CSS 4                             |
+| Charts       | Recharts                                   |
+| Icons        | Lucide React                               |
+| Live updates | Server-Sent Events (EventSource)           |
+| HTTP         | Native `fetch` via Next.js API proxy route |
 
 ### Infrastructure
-| Component | Technology |
-|---|---|
-| Containers | Docker |
-| CI/CD | Google Cloud Build |
-| Hosting | Google Cloud Run |
+
+| Component      | Technology               |
+| -------------- | ------------------------ |
+| Containers     | Docker                   |
+| CI/CD          | Google Cloud Build       |
+| Hosting        | Google Cloud Run         |
 | Image registry | Google Artifact Registry |
-| Secrets | Google Secret Manager |
+| Secrets        | Google Secret Manager    |
 
 ---
 
@@ -172,6 +320,25 @@ Two additional agents handle on-demand queries from the **Ask Shield AI** page:
 
 ```
 Shield-AI/
+│
+├── public/                            # Static assets & presentations
+│   ├── Shield_AI_latest.pdf           # Pitch deck (PDF)
+│   ├── Shield_AI_latest.pptx          # Pitch deck (PowerPoint)
+│   ├── shield_ai_cover_16x9_v2.svg    # Cover image
+│   └── images/                        # Application screenshots
+│       ├── HomePage.png
+│       ├── UploadPage.png
+│       ├── ContractDetails.png
+│       ├── RecentUploads.png
+│       ├── Review Queue.png
+│       ├── RiskDashboard.png
+│       ├── Security Dashboard.png
+│       ├── Ask Shield AI.png
+│       ├── Audit log.png
+│       ├── ScoringPolicy.png
+│       ├── Sample Data.png
+│       ├── DataRecovery.png
+│       └── Meet the Team.png
 │
 ├── backend/                           # FastAPI application
 │   ├── main.py                        # App entry point, CORS, lifespan (RAG init)
@@ -188,7 +355,7 @@ Shield-AI/
 │   ├── logging_config.py              # Daily rotating log setup
 │   │
 │   ├── api/                           # FastAPI routers (one file per domain)
-│   │   ├── contracts.py               # Upload, list, detail, decide, assign, delete
+│   │   ├── contracts.py               # Upload, list, detail, decide, assign, delete, SSE stream
 │   │   ├── dashboard.py               # Risk & security summary aggregation
 │   │   ├── audit_logs.py              # Filterable, paginated audit log
 │   │   ├── query.py                   # Natural language query (Ask Shield AI)
@@ -230,9 +397,9 @@ Shield-AI/
 │   │   │   ├── layout.tsx             # Root layout (Sidebar + main area)
 │   │   │   ├── api/backend/
 │   │   │   │   └── [...path]/
-│   │   │   │       └── route.ts       # Proxy: /api/backend/* → FastAPI
+│   │   │   │       └── route.ts       # Proxy: /api/backend/* → FastAPI (+ SSE passthrough)
 │   │   │   ├── home/page.tsx          # Dashboard home (health, stats, pipeline)
-│   │   │   ├── upload/page.tsx        # Upload with real-time pipeline progress
+│   │   │   ├── upload/page.tsx        # Upload with real-time SSE pipeline progress
 │   │   │   ├── contracts/
 │   │   │   │   ├── page.tsx           # Recent uploads (filter, sort, delete)
 │   │   │   │   └── [id]/page.tsx      # Contract detail (clauses, risk, decisions)
@@ -244,7 +411,8 @@ Shield-AI/
 │   │   │   ├── audit/page.tsx         # Audit log (filterable, paginated)
 │   │   │   ├── scoring/page.tsx       # Scoring policy editor + live simulator
 │   │   │   ├── recovery/page.tsx      # Data recovery (health, cache, DB status)
-│   │   │   └── samples/page.tsx       # Sample contracts (preview + download)
+│   │   │   ├── samples/page.tsx       # Sample contracts (preview + download)
+│   │   │   └── team/page.tsx          # Meet the Team — Byte Theory
 │   │   │
 │   │   ├── components/
 │   │   │   ├── layout/
@@ -261,6 +429,7 @@ Shield-AI/
 │   │
 │   ├── public/
 │   │   ├── shield-ai-icon.svg         # Two-colour shield logo (SVG)
+│   │   ├── byte-theory-logo.svg       # Byte Theory team logo (SVG)
 │   │   └── samples/                   # 21 sample PDFs served as static assets
 │   │
 │   ├── next.config.ts                 # output: standalone (required for Docker)
@@ -300,7 +469,6 @@ Shield-AI/
 ├── Dockerfile                         # Backend image (Python 3.11, Cloud Run)
 ├── frontend-next.Dockerfile           # Next.js image (multi-stage Alpine, Cloud Run)
 ├── lobstertrap.Dockerfile             # Lobster Trap DPI proxy image
-├── frontend.Dockerfile                # Legacy Streamlit image (deprecated)
 ├── docker-compose.yml                 # Local 3-container stack
 │
 ├── cloudbuild.yaml                    # Cloud Build CI/CD pipeline
@@ -316,20 +484,21 @@ Shield-AI/
 
 ## Application Pages
 
-| Route | Page | Description |
-|---|---|---|
-| `/home` | Home | System health (PostgreSQL, Pinecone, Security Gate), live stats, pipeline overview |
-| `/upload` | Upload | Drag-and-drop PDF upload with real-time agent progress tracker |
-| `/contracts` | Recent Uploads | Filterable / sortable contract table with status chips and delete |
-| `/contracts/[id]` | Contract Detail | Full clause list, risk breakdown, agent outputs, decision history |
-| `/queue` | Review Queue | Role-gated review queue with assignment, commenting, and approve/reject |
-| `/dashboard/risk` | Risk Dashboard | Score distribution chart, high-risk contracts, status breakdown |
-| `/dashboard/security` | Security Dashboard | Security event timeline, threat type breakdown, quarantine history with reasons |
-| `/ask` | Ask Shield AI | Natural language query — contract Q&A or corpus-wide analytics |
-| `/audit` | Audit Log | Filterable, paginated audit trail of every action |
-| `/scoring` | Scoring Policy | Live policy editor (weights, thresholds, rejection rules) + risk simulator |
-| `/recovery` | Data Recovery | System health details, cache flush, database status |
-| `/samples` | Sample Data | 21 sample contracts with in-browser PDF preview, download, and upload-to-pipeline |
+| Route                 | Page               | Description                                                                        |
+| --------------------- | ------------------ | ---------------------------------------------------------------------------------- |
+| `/home`               | Home               | System health (PostgreSQL, Pinecone, Security Gate), live stats, pipeline overview |
+| `/upload`             | Upload             | Drag-and-drop PDF upload with real-time SSE agent progress tracker                 |
+| `/contracts`          | Recent Uploads     | Filterable / sortable contract table with status chips and delete                  |
+| `/contracts/[id]`     | Contract Detail    | Full clause list, risk breakdown, agent outputs, decision history                  |
+| `/queue`              | Review Queue       | Role-gated review queue with assignment, commenting, and approve/reject            |
+| `/dashboard/risk`     | Risk Dashboard     | Score distribution chart, high-risk contracts, status breakdown                    |
+| `/dashboard/security` | Security Dashboard | Security event timeline, threat type breakdown, quarantine history with reasons    |
+| `/ask`                | Ask Shield AI      | Natural language query — contract Q&A or corpus-wide analytics                     |
+| `/audit`              | Audit Log          | Filterable, paginated audit trail of every action                                  |
+| `/scoring`            | Scoring Policy     | Live policy editor (weights, thresholds, rejection rules) + risk simulator         |
+| `/recovery`           | Data Recovery      | System health details, cache flush, database status                                |
+| `/samples`            | Sample Data        | 21 sample contracts with in-browser PDF preview, download, and upload-to-pipeline  |
+| `/team`               | Meet the Team      | Byte Theory team profiles with contact details                                     |
 
 ---
 
@@ -339,102 +508,108 @@ All endpoints served at `http://localhost:8000`. Interactive docs at `/docs`.
 
 ### Contracts — `/contracts`
 
-| Method | Path | Description |
-|---|---|---|
-| `POST` | `/contracts/upload` | Upload a single PDF/DOCX; triggers the 5-agent pipeline |
-| `POST` | `/contracts/bulk-upload` | Upload multiple files in one request |
-| `GET` | `/contracts/` | List contracts (filter by status, paginated) |
-| `GET` | `/contracts/{id}` | Full contract detail with agent outputs and decisions |
-| `POST` | `/contracts/{id}/decide` | Submit a human approve/reject decision |
-| `POST` | `/contracts/{id}/assign` | Assign to another role (Legal Reviewer / Compliance Officer only) |
-| `POST` | `/contracts/{id}/comment` | Post a comment on a contract |
-| `DELETE` | `/contracts/{id}` | Delete contract + clauses + Pinecone vectors + GCS file |
+| Method   | Path                      | Description                                                                           |
+| -------- | ------------------------- | ------------------------------------------------------------------------------------- |
+| `POST`   | `/contracts/upload`       | Upload a single PDF/DOCX; triggers the 5-agent pipeline                               |
+| `POST`   | `/contracts/bulk-upload`  | Upload multiple files in one request                                                  |
+| `GET`    | `/contracts/`             | List contracts (filter by status, paginated)                                          |
+| `GET`    | `/contracts/{id}`         | Full contract detail with agent outputs and decisions                                 |
+| `GET`    | `/contracts/{id}/stream`  | **SSE stream** — pushes `{"status": "..."}` events every 500 ms until terminal status |
+| `POST`   | `/contracts/{id}/decide`  | Submit a human approve/reject decision                                                |
+| `POST`   | `/contracts/{id}/assign`  | Assign to another role (Legal Reviewer / Compliance Officer only)                     |
+| `POST`   | `/contracts/{id}/comment` | Post a comment on a contract                                                          |
+| `DELETE` | `/contracts/{id}`         | Delete contract + clauses + Pinecone vectors + GCS file                               |
 
 ### Dashboard — `/dashboard`
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/dashboard/risk-summary` | Risk score distribution, high-risk list, status counts |
-| `GET` | `/dashboard/security-summary` | Security event counts, threat breakdown, quarantine stats |
+| Method | Path                          | Description                                               |
+| ------ | ----------------------------- | --------------------------------------------------------- |
+| `GET`  | `/dashboard/risk-summary`     | Risk score distribution, high-risk list, status counts    |
+| `GET`  | `/dashboard/security-summary` | Security event counts, threat breakdown, quarantine stats |
 
 ### Query — `/query`
 
-| Method | Path | Description |
-|---|---|---|
+| Method | Path      | Description                                                                     |
+| ------ | --------- | ------------------------------------------------------------------------------- |
 | `POST` | `/query/` | NL query — routes to contract Q&A (with `contract_id`) or text-to-SQL (without) |
 
 ### Scoring Policy — `/scoring-policy`
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/scoring-policy/` | Current active policy with metadata |
-| `PUT` | `/scoring-policy/` | Replace active policy |
-| `GET` | `/scoring-policy/history` | All historical policy versions |
-| `GET` | `/scoring-policy/defaults` | The built-in default policy constant |
+| Method | Path                       | Description                          |
+| ------ | -------------------------- | ------------------------------------ |
+| `GET`  | `/scoring-policy/`         | Current active policy with metadata  |
+| `PUT`  | `/scoring-policy/`         | Replace active policy                |
+| `GET`  | `/scoring-policy/history`  | All historical policy versions       |
+| `GET`  | `/scoring-policy/defaults` | The built-in default policy constant |
 
 ### Audit Log — `/audit-logs`
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/audit-logs/` | Filterable, paginated audit log (actor, action, contract_id, date range) |
+| Method | Path           | Description                                                              |
+| ------ | -------------- | ------------------------------------------------------------------------ |
+| `GET`  | `/audit-logs/` | Filterable, paginated audit log (actor, action, contract_id, date range) |
 
 ### Health & Recovery — `/health`
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/health` | Database, Pinecone, Lobster Trap, and cache status |
-| `POST` | `/health/flush-cache` | Clear the embedding cache |
+| Method | Path                  | Description                                        |
+| ------ | --------------------- | -------------------------------------------------- |
+| `GET`  | `/health`             | Database, Pinecone, Lobster Trap, and cache status |
+| `POST` | `/health/flush-cache` | Clear the embedding cache                          |
 
 ### RAG Debug — `/rag`
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/rag/status` | Loaded indices and entry counts |
-| `GET` | `/rag/search?q=...` | Top-k retrieval results with scores |
+| Method | Path                | Description                         |
+| ------ | ------------------- | ----------------------------------- |
+| `GET`  | `/rag/status`       | Loaded indices and entry counts     |
+| `GET`  | `/rag/search?q=...` | Top-k retrieval results with scores |
 
 ---
 
 ## Database Schema
 
-| Table | Description |
-|---|---|
-| `contracts` | Core contract record — filename, status, raw text, clauses (JSON array), GCS URI, file hash |
-| `agent_outputs` | One row per agent per contract — agent name, structured JSON output, confidence, prompt hash |
-| `decisions` | AI recommendations and human decisions — recommendation type, reasoning, reviewer role, scoring details |
-| `security_events` | Lobster Trap findings — event type, details object (matched text, source, description), severity |
-| `audit_logs` | Immutable append-only log — actor, action, contract_id, details (JSON), timestamp |
-| `scoring_policies` | Versioned scoring policy records with weights, thresholds, and framework rejection rules |
-| `contract_comments` | Comments left by any role on a contract |
-| `contract_assignments` | Role-to-role assignment records with notes and can_approve flag |
+| Table                  | Description                                                                                             |
+| ---------------------- | ------------------------------------------------------------------------------------------------------- |
+| `contracts`            | Core contract record — filename, status, raw text, clauses (JSON array), GCS URI, file hash             |
+| `agent_outputs`        | One row per agent per contract — agent name, structured JSON output, confidence, prompt hash            |
+| `decisions`            | AI recommendations and human decisions — recommendation type, reasoning, reviewer role, scoring details |
+| `security_events`      | Lobster Trap findings — event type, details object (matched text, source, description), severity        |
+| `audit_logs`           | Immutable append-only log — actor, action, contract_id, details (JSON), timestamp                       |
+| `scoring_policies`     | Versioned scoring policy records with weights, thresholds, and framework rejection rules                |
+| `contract_comments`    | Comments left by any role on a contract                                                                 |
+| `contract_assignments` | Role-to-role assignment records with notes and can_approve flag                                         |
+| `scoring_feedback`     | Human override feedback — tracks AI decision vs human decision for model improvement                    |
 
 **Contract lifecycle statuses:**
 
 ```
-uploaded ──► quarantined          (security gate blocked — no LLM call made)
-         └─► processing
-               └─► processed ──► decided
-                              ├─► auto_approved
-                              ├─► manager_review
-                              ├─► legal_review
-                              └─► rejected
-               └─► pipeline_failed
+uploading ──► quarantined              (security gate blocked — no LLM call made)
+          └─► running_extraction
+                └─► extracted / extraction_failed
+                      └─► running_risk
+                            └─► running_compliance
+                                  └─► running_recommendation
+                                        └─► auto_approved
+                                        ├─► manager_review
+                                        ├─► legal_review
+                                        ├─► rejected
+                                        └─► pipeline_failed
 ```
 
 ---
 
 ## Roles & Permissions
 
-Five roles control which contracts appear in the Review Queue and what actions each user can take.
+Six roles control which contracts appear in the Review Queue and what actions each user can take.
 
-| Role | Queue Statuses Visible | Can Approve | Can Assign | Notes |
-|---|---|---|---|---|
-| **Procurement Analyst** | `uploaded`, `processing` | — | — | Upload only |
-| **Legal Reviewer** | `legal_review` | ✓ | ✓ | Can assign to any role |
-| **Compliance Officer** | `manager_review` | ✓ | ✓ | Can assign to any role |
-| **Executive** | `manager_review`, `legal_review` | — | — | Read-only + commenting |
-| **Auditor** | `manager_review`, `legal_review` | — | — | Read-only + commenting |
+| Role                    | Queue Statuses Visible           | Can Approve | Can Assign | Notes                                   |
+| ----------------------- | -------------------------------- | ----------- | ---------- | --------------------------------------- |
+| **Procurement Analyst** | `uploading`, `extracted`         | —           | —          | Upload only                             |
+| **Legal Reviewer**      | `legal_review`                   | ✓           | ✓          | Can assign to any role                  |
+| **Compliance Officer**  | `manager_review`                 | ✓           | ✓          | Can assign to any role                  |
+| **Manager**             | `manager_review`                 | ✓           | —          | Approve/reject manager-review contracts |
+| **Executive**           | `manager_review`, `legal_review` | —           | —          | Read-only + commenting                  |
+| **Auditor**             | `manager_review`, `legal_review` | —           | —          | Read-only + commenting                  |
 
-Role is selected from a dropdown in the Review Queue page header. No authentication is required — role selection is a simulation for demonstration purposes.
+Role is selected from a dropdown in the top bar. No authentication is required — role selection is a simulation for demonstration purposes.
 
 ---
 
@@ -445,11 +620,11 @@ Risk weights and routing thresholds are stored in the database and editable at r
 **Default routing thresholds:**
 
 | Score Range | Routing Decision |
-|---|---|
-| 0 – 30 | `AUTO_APPROVE` |
-| 31 – 60 | `MANAGER_REVIEW` |
-| 61 – 80 | `LEGAL_REVIEW` |
-| 81 – 100 | `REJECT` |
+| ----------- | ---------------- |
+| 0 – 30      | `AUTO_APPROVE`   |
+| 31 – 60     | `MANAGER_REVIEW` |
+| 61 – 80     | `LEGAL_REVIEW`   |
+| 81 – 100    | `REJECT`         |
 
 Specific compliance violations (e.g., missing HIPAA BAA, absent GDPR DPA) can be configured to force `REJECT` regardless of the numeric score. A built-in **risk simulator** on the scoring page lets you test hypothetical clause combinations before committing a new policy version.
 
@@ -459,15 +634,15 @@ All historical policy versions are retained and queryable — every past decisio
 
 ## Prerequisites
 
-| Requirement | Version | Notes |
-|---|---|---|
-| Python | 3.11+ | 3.12 works; 3.10 is untested |
-| Node.js | 20+ | For the Next.js frontend |
-| npm | 9+ | Bundled with Node 20 |
-| Docker Desktop | Latest | For the local container stack |
-| Google Gemini API key | — | [Get one free](https://aistudio.google.com/app/apikey) |
-| Pinecone account | Free tier | Create an index: metric `cosine`, dimensions `3072` |
-| Google Cloud account | — | For GCS file storage and Cloud Run deployment |
+| Requirement           | Version   | Notes                                                  |
+| --------------------- | --------- | ------------------------------------------------------ |
+| Python                | 3.11+     | 3.12 works; 3.10 is untested                           |
+| Node.js               | 20+       | For the Next.js frontend                               |
+| npm                   | 9+        | Bundled with Node 20                                   |
+| Docker Desktop        | Latest    | For the local container stack                          |
+| Google Gemini API key | —         | [Get one free](https://aistudio.google.com/app/apikey) |
+| Pinecone account      | Free tier | Create an index: metric `cosine`, dimensions `3072`    |
+| Google Cloud account  | —         | For GCS file storage and Cloud Run deployment          |
 
 ---
 
@@ -475,20 +650,20 @@ All historical policy versions are retained and queryable — every past decisio
 
 Copy `.env.example` to `.env` and fill in the values. **Never commit `.env`.**
 
-| Variable | Required | Default | Description |
-|---|---|---|---|
-| `GEMINI_API_KEY` | **Yes** | — | Google AI Studio API key. [Get one free.](https://aistudio.google.com/app/apikey) |
-| `PINECONE_API_KEY` | **Yes** | — | Pinecone API key |
-| `PINECONE_INDEX_NAME` | **Yes** | — | Pinecone index name (metric: `cosine`, dimensions: `3072`) |
-| `DATABASE_URL` | Prod only | `sqlite:///./shield.db` | SQLAlchemy URL — leave unset for local SQLite; use `postgresql://...` for production |
-| `GCS_BUCKET_NAME` | Prod only | — | GCS bucket for uploaded contracts |
-| `GCS_SERVICE_ACCOUNT_KEY` | Local+GCS | — | Path to service account JSON key (not needed on Cloud Run via Workload Identity) |
-| `BACKEND_URL` | Frontend | `http://localhost:8000` | Backend URL used by the Next.js proxy route; injected at Cloud Run deploy time in production |
-| `LOBSTERTRAP_URL` | Optional | `http://localhost:8080` | Lobster Trap DPI proxy URL; falls back to offline pattern detection if unreachable |
-| `LOBSTERTRAP_TIMEOUT_SEC` | Optional | `5` | Seconds before security proxy calls time out |
-| `SKIP_RAG_INIT` | Optional | `false` | Set `true` to skip corpus embedding on startup for faster iteration |
-| `SHIELD_LOG_LEVEL` | Optional | `INFO` | Root log level: `DEBUG`, `INFO`, or `WARNING` |
-| `ALLOWED_ORIGINS` | Optional | `*` | Comma-separated CORS origins — restrict explicitly in production |
+| Variable                  | Required  | Default                 | Description                                                                          |
+| ------------------------- | --------- | ----------------------- | ------------------------------------------------------------------------------------ |
+| `GEMINI_API_KEY`          | **Yes**   | —                       | Google AI Studio API key. [Get one free.](https://aistudio.google.com/app/apikey)    |
+| `PINECONE_API_KEY`        | **Yes**   | —                       | Pinecone API key                                                                     |
+| `PINECONE_INDEX_NAME`     | **Yes**   | —                       | Pinecone index name (metric: `cosine`, dimensions: `3072`)                           |
+| `DATABASE_URL`            | Prod only | `sqlite:///./shield.db` | SQLAlchemy URL — leave unset for local SQLite; use `postgresql://...` for production |
+| `GCS_BUCKET_NAME`         | Prod only | —                       | GCS bucket for uploaded contracts                                                    |
+| `GCS_SERVICE_ACCOUNT_KEY` | Local+GCS | —                       | Path to service account JSON key (not needed on Cloud Run via Workload Identity)     |
+| `BACKEND_URL`             | Frontend  | `http://localhost:8000` | Backend URL used by the Next.js proxy route; injected at Cloud Run deploy time       |
+| `LOBSTERTRAP_URL`         | Optional  | `http://localhost:8080` | Lobster Trap DPI proxy URL; falls back to offline pattern detection if unreachable   |
+| `LOBSTERTRAP_TIMEOUT_SEC` | Optional  | `5`                     | Seconds before security proxy calls time out                                         |
+| `SKIP_RAG_INIT`           | Optional  | `false`                 | Set `true` to skip corpus embedding on startup for faster iteration                  |
+| `SHIELD_LOG_LEVEL`        | Optional  | `INFO`                  | Root log level: `DEBUG`, `INFO`, or `WARNING`                                        |
+| `ALLOWED_ORIGINS`         | Optional  | `*`                     | Comma-separated CORS origins — restrict explicitly in production                     |
 
 > In production all sensitive variables must be stored in **Google Secret Manager** and referenced in `cloudrun-backend.yaml` — never committed to the repository.
 
@@ -512,27 +687,20 @@ cp .env.example .env
 ### 2. Backend
 
 ```bash
-# Create and activate a virtual environment
 python3.11 -m venv venv
 source venv/bin/activate       # Windows: venv\Scripts\activate
 
-# Install all Python dependencies
 pip install -r requirements.txt
 
-# Initialise the database and run all migrations
 alembic upgrade head
 
-# Start the backend API server (port 8000)
 make backend-only
 # Or start with Lobster Trap DPI proxy: make backend
 ```
 
-The API is now live at `http://localhost:8000`.
-Interactive Swagger docs: `http://localhost:8000/docs`
+The API is live at `http://localhost:8000`. Interactive Swagger docs: `http://localhost:8000/docs`
 
 ### 3. Frontend
-
-Open a second terminal:
 
 ```bash
 cd frontend-next
@@ -544,21 +712,10 @@ The frontend is live at `http://localhost:3000`.
 
 > All API calls go through the Next.js proxy route at `/api/backend/*` → `http://localhost:8000`. No CORS configuration is needed.
 
-### 4. Verify everything is running
+### 4. Verify
 
 ```bash
 curl http://localhost:8000/health
-```
-
-Expected response:
-
-```json
-{
-  "db": { "connected": true },
-  "pinecone": { "available": true },
-  "lobstertrap": { "reachable": false },
-  "cache_pending": 0
-}
 ```
 
 Then open `http://localhost:3000/home` to see the live health indicators.
@@ -567,142 +724,76 @@ Then open `http://localhost:3000/home` to see the live health indicators.
 
 ## Docker — Local Production Stack
 
-Runs the backend and Lobster Trap in containers with persistent volumes. Run the frontend with `npm run dev` for hot-reload.
-
 ```bash
-# Build all images
 make docker-build
-
-# Start the stack (requires a populated .env)
 make docker-up
-
-# Watch combined logs
 make docker-logs
-
-# Stop and remove containers
 make docker-down
 ```
 
-| Service | Host Port | URL |
-|---|---|---|
-| Backend API | 8000 | http://localhost:8000 |
-| Lobster Trap | 8080 | http://localhost:8080/_lobstertrap/ |
+| Service      | Host Port | URL                                  |
+| ------------ | --------- | ------------------------------------ |
+| Backend API  | 8000      | http://localhost:8000                |
+| Lobster Trap | 8080      | http://localhost:8080/\_lobstertrap/ |
 
-Then start the frontend in a separate terminal:
+Then start the frontend separately:
 
 ```bash
 cd frontend-next && npm run dev    # http://localhost:3000
 ```
 
-Persistent data is stored in three named Docker volumes:
-
-| Volume | Contents |
-|---|---|
-| `shield_data` | SQLite database |
-| `shield_uploads` | Uploaded PDF files |
-| `shield_rag_cache` | Embedding cache |
-
 ---
 
 ## Deployment — Google Cloud Run
 
-The full production stack runs three Cloud Run services: `shield-backend`, `shield-frontend`, and `shield-lobstertrap`.
-
 ### One-time setup
 
 ```bash
-# Log in and set the project
 gcloud auth login
 gcloud config set project YOUR_PROJECT_ID
-
-# Enable APIs, create Artifact Registry repo, grant IAM roles
 make gcp-setup
-
-# Push all secrets from .env to Secret Manager
 make gcp-secrets
 ```
 
-### Manual deploy
+### Deploy
 
 ```bash
-# Authenticate Docker with Artifact Registry
-make gcp-auth
-
-# Build all images for linux/amd64 (required — Cloud Run does not support arm64)
-make gcp-build
-
-# Push to Artifact Registry
-make gcp-push
-
-# Run database migrations as a Cloud Run Job
-make gcp-migrate
-
-# Deploy each service
-make gcp-deploy-lobstertrap
-make gcp-deploy-backend
-make gcp-deploy-frontend
-
-# Or run the full pipeline in one command:
-make gcp-deploy
+make gcp-build          # Build linux/amd64 images
+make gcp-push           # Push to Artifact Registry
+make gcp-migrate        # Run Alembic migrations
+make gcp-deploy         # Deploy all three services
 ```
 
-### Automatic CI/CD on push
-
-Cloud Build triggers on push to `main` or `testing`. Backend and frontend images are built in parallel.
-
-```bash
-# Create the GitHub trigger (one-time)
-gcloud builds triggers create github \
-  --repo-name=Shield-AI \
-  --repo-owner=yashasgowda11 \
-  --branch-pattern="^(main|testing)$" \
-  --build-config=cloudbuild.yaml
-```
-
-### Cloud Run services
-
-| Service | Memory | Concurrency | Notes |
-|---|---|---|---|
-| `shield-backend` | 1 Gi | 10 | FastAPI + all agents + RAG |
-| `shield-frontend` | 512 Mi | 80 | Next.js standalone — proxies API calls server-side |
-| `shield-lobstertrap` | 512 Mi | 20 | DPI proxy — internal only |
-
-The `BACKEND_URL` env var is injected into the frontend container at deploy time. The browser never calls the backend directly — all API traffic goes through the Next.js server-side proxy, so no CORS configuration is needed on the backend.
+| Service              | Memory | Concurrency |
+| -------------------- | ------ | ----------- |
+| `shield-backend`     | 1 Gi   | 10          |
+| `shield-frontend`    | 512 Mi | 80          |
+| `shield-lobstertrap` | 512 Mi | 20          |
 
 ---
 
 ## Running Tests
 
 ```bash
-# Activate your virtual environment first
 source venv/bin/activate
-
-# Run the full test suite
-make test
-# or: pytest tests/ -v
-
-# Run a specific test file
-pytest tests/test_pipeline.py -v
-
-# Run pipeline regression against demo contracts (requires backend running on :8000)
-make demo-test
+make test                          # Full test suite
+pytest tests/test_pipeline.py -v   # Single file
+make demo-test                     # Pipeline regression (requires backend on :8000)
 ```
-
-The test suite uses a mocked Gemini client defined in `conftest.py`, so all tests run without real API calls. Coverage includes all agents, the RAG layer, dashboard aggregation, audit logging, and health endpoints.
 
 ---
 
 ## Sample Contracts
 
-21 ready-to-use contracts are available in `demo_contracts/` and served statically from the **Sample Data** page (`/samples`). Each has in-browser PDF preview, direct download, and a one-click link to upload it through the pipeline.
+21 ready-to-use contracts in `demo_contracts/` and the **Sample Data** page (`/samples`):
 
-| Category | Count | What it tests |
-|---|---|---|
-| **Security Threats** | 2 | CSS hidden injection, white-on-white prompt injection |
-| **High Risk** | 5 | Zero liability cap, missing HIPAA BAA, aggressive non-compete, heavy IP assignment, risky vendor |
-| **Medium Risk** | 5 | Standard procurement, contradictory clauses, expired termination date, multi-party (4 parties), moderate vendor |
-| **Low Risk / Clean** | 4 | Clean NDA, SaaS standard, PCI-DSS finance, GDPR & CCPA dual DPA |
-| **Real-World (SEC filings)** | 5 | NETGEAR distributor amendment, Scansource distributor agreement, Martin Midstream transport services, Entertainment Gaming Asia distributor, Energy Transportation agreement |
+| Category                     | Count | What it tests                                                                           |
+| ---------------------------- | ----- | --------------------------------------------------------------------------------------- |
+| **Security Threats**         | 2     | CSS hidden injection, white-on-white prompt injection                                   |
+| **High Risk**                | 5     | Zero liability cap, missing HIPAA BAA, aggressive non-compete, heavy IP assignment      |
+| **Medium Risk**              | 5     | Standard procurement, contradictory clauses, expired termination date                   |
+| **Low Risk / Clean**         | 4     | Clean NDA, SaaS standard, PCI-DSS finance, GDPR & CCPA dual DPA                         |
+| **Real-World (SEC filings)** | 5     | NETGEAR, Scansource, Martin Midstream, Entertainment Gaming Asia, Energy Transportation |
 
 ---
 
@@ -721,19 +812,47 @@ make docker-build           Build all Docker images
 make docker-up              Start the 3-container stack
 make docker-down            Stop the stack
 make docker-logs            Tail combined logs
-make docker-rebuild         Rebuild images and restart containers
-make docker-status          Show container status
 
 make gcp-setup              One-time GCP API + IAM setup
 make gcp-secrets            Push .env secrets to Secret Manager
-make gcp-auth               Configure Docker for Artifact Registry
 make gcp-build              Build linux/amd64 images for Cloud Run
 make gcp-push               Push images to Artifact Registry
 make gcp-migrate            Run Alembic migrations as a Cloud Run Job
-make gcp-deploy-lobstertrap Deploy Lobster Trap to Cloud Run
-make gcp-deploy-backend     Deploy backend to Cloud Run
-make gcp-deploy-frontend    Deploy Next.js frontend to Cloud Run
 make gcp-deploy             Full pipeline: build → push → migrate → deploy all
 make gcp-logs-backend       Tail backend Cloud Run logs
 make gcp-logs-frontend      Tail frontend Cloud Run logs
 ```
+
+---
+
+## Team
+
+<div align="center">
+
+<img src="public/images/Meet%20the%20Team.png" alt="Team Byte Theory" width="80%"/>
+
+### 🔷 Team Byte Theory
+
+_byte by byte, we turn theory into reality_
+
+</div>
+
+|                                                      | Name                    | Role                     | LinkedIn                                                  | Email                    | Phone             |
+| ---------------------------------------------------- | ----------------------- | ------------------------ | --------------------------------------------------------- | ------------------------ | ----------------- |
+| ![Yashas](https://unavatar.io/linkedin/yashasngowda) | **Yashas Nagesh Gowda** | Co-Founder & AI Engineer | [yashasngowda](https://www.linkedin.com/in/yashasngowda/) | yashasgowdanov@gmail.com | +1 (850) 900-6288 |
+| ![Sumith](https://unavatar.io/linkedin/sumithgs)     | **Sumith G.S**          | Co-Founder & AI Engineer | [sumithgs](https://www.linkedin.com/in/sumithgs/)         | sumithgs2000@gmail.com   | +1 (850) 381-3548 |
+
+```
+while(alive) { think(); build(); break(); repeat(); }
+        — That's the Byte Theory way.
+```
+
+---
+
+<div align="center">
+
+Built with ❤️ using **Next.js · FastAPI · Google Gemini 2.5 · Pinecone · Cloud Run**
+
+**Shield AI** — Smarter contracts. Faster decisions. Zero compromise.
+
+</div>
