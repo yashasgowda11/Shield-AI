@@ -56,6 +56,7 @@ The full pitch deck is available in this repository:
 - [Local Development](#local-development)
 - [Docker — Local Production Stack](#docker--local-production-stack)
 - [Deployment — Google Cloud Run](#deployment--google-cloud-run)
+- [Teardown](#teardown)
 - [Running Tests](#running-tests)
 - [Sample Contracts](#sample-contracts)
 - [Makefile Reference](#makefile-reference)
@@ -443,6 +444,8 @@ Shield-AI/
 │       └── a1b2c3_add_comments_and_assignments.py
 │
 ├── scripts/
+│   ├── setup_and_deploy.py            # 🚀 Full cold-start GCP provisioning + deploy (12 steps)
+│   ├── teardown.py                    # 🧹 Full infrastructure teardown (Cloud Run, AR, GCS, Pinecone, secrets)
 │   ├── dev.py                         # Local dev launcher (uvicorn + Lobster Trap)
 │   ├── build_demo_contracts.py        # Generate synthetic test contracts
 │   ├── demo_smoke_test.py             # Pipeline regression test
@@ -746,29 +749,160 @@ cd frontend-next && npm run dev    # http://localhost:3000
 
 ## Deployment — Google Cloud Run
 
-### One-time setup
+Two paths to deploy: the **automated script** (recommended) does everything in one command; the **manual Makefile** path gives step-by-step control.
+
+---
+
+### Option A — Automated (recommended): `scripts/setup_and_deploy.py`
+
+A single Python script handles the entire cold-start provisioning and deployment — from a blank GCP project to three live Cloud Run services.
+
+#### Prerequisites
+
+```bash
+pip install pinecone-client          # Pinecone SDK (used during setup)
+gcloud auth login                    # Authenticate with GCP
+gcloud config set project YOUR_PROJECT_ID
+```
+
+Make sure your `.env` file is filled out (see [Environment Variables](#environment-variables)) — the script reads it to push secrets to Secret Manager.
+
+#### Steps performed (in order)
+
+| Step | Action |
+|------|--------|
+| 1 | **Preflight** — verify `gcloud`, `docker`, required Python packages |
+| 2 | **Enable GCP APIs** — Cloud Run, Artifact Registry, Cloud Build, Secret Manager, Cloud SQL Admin, Cloud Storage |
+| 3 | **Create Artifact Registry repo** — `shield-ai` (skips if already exists) |
+| 4 | **IAM roles** — grants Cloud Build SA and backend SA the correct permissions |
+| 5 | **Push secrets** — reads `.env`, creates/updates every secret in Secret Manager |
+| 6 | **Docker auth** — `gcloud auth configure-docker` |
+| 7 | **Build images** — `linux/amd64` for backend, frontend, and Lobster Trap |
+| 8 | **Push images** — to Artifact Registry |
+| 9 | **Deploy Lobster Trap** — retrieves its live URL for injection into backend env |
+| 10 | **Run DB migrations** — temporary Cloud Run Job running `alembic upgrade head` |
+| 11 | **Deploy backend** — with all env vars (Gemini, Pinecone, GCS, Lobster Trap URL) |
+| 12 | **Deploy frontend** — with backend URL injected; prints all live URLs on completion |
+
+#### Commands
+
+```bash
+# Dry run first — prints every command, touches nothing
+python scripts/setup_and_deploy.py --dry-run
+
+# Full cold-start deploy (interactive confirmation)
+python scripts/setup_and_deploy.py
+
+# Full deploy, no prompts (CI/CD)
+python scripts/setup_and_deploy.py --yes
+
+# Skip infra setup — just build & deploy (GCP already provisioned)
+python scripts/setup_and_deploy.py --yes --skip-setup
+
+# Skip Docker build/push — redeploy existing images only
+python scripts/setup_and_deploy.py --yes --skip-setup --skip-build
+
+# Skip DB migration (schema already up to date)
+python scripts/setup_and_deploy.py --yes --skip-migrate
+```
+
+On completion, live URLs for all three services are printed:
+
+```
+✓  Lobster Trap  https://shield-lobstertrap-xxxx-uc.a.run.app
+✓  Backend       https://shield-backend-xxxx-uc.a.run.app
+✓  Frontend      https://shield-frontend-xxxx-uc.a.run.app
+```
+
+---
+
+### Option B — Manual: Makefile
+
+For step-by-step control or partial re-deploys:
 
 ```bash
 gcloud auth login
 gcloud config set project YOUR_PROJECT_ID
-make gcp-setup
-make gcp-secrets
-```
 
-### Deploy
+make gcp-setup          # One-time: enable APIs + create AR repo + IAM
+make gcp-secrets        # Push .env secrets to Secret Manager
 
-```bash
 make gcp-build          # Build linux/amd64 images
 make gcp-push           # Push to Artifact Registry
-make gcp-migrate        # Run Alembic migrations
+make gcp-migrate        # Run Alembic migrations as a Cloud Run Job
 make gcp-deploy         # Deploy all three services
 ```
+
+---
+
+### Cloud Run service specs
 
 | Service              | Memory | Concurrency |
 | -------------------- | ------ | ----------- |
 | `shield-backend`     | 1 Gi   | 10          |
 | `shield-frontend`    | 512 Mi | 80          |
 | `shield-lobstertrap` | 512 Mi | 20          |
+
+> **Note:** Docker images are built with `--platform linux/amd64`. This is required for Cloud Run — Mac M-series builds `arm64` by default which will fail at runtime.
+
+---
+
+## Teardown
+
+`scripts/teardown.py` shuts down and permanently removes all Shield AI infrastructure from GCP and Pinecone.
+
+> ⚠️ **Deletions are permanent.** Always do a dry run first.
+
+#### Prerequisites
+
+```bash
+pip install pinecone-client
+gcloud auth login   # must have owner or editor access
+```
+
+#### What gets deleted
+
+| Step | Resource | Details |
+|------|----------|---------|
+| 1 | **Cloud Run Services** | `shield-frontend`, `shield-backend`, `shield-lobstertrap` |
+| 2 | **Cloud Run Jobs** | `shield-migrate-tmp` |
+| 3 | **Artifact Registry** | All 3 Docker images + the `shield-ai` repo |
+| 4 | **Secret Manager** | `GEMINI_API_KEY`, `DATABASE_URL`, `PINECONE_API_KEY`, `PINECONE_INDEX_NAME`, `GCS_BUCKET_NAME` |
+| 5 | **GCS Bucket** | All uploaded contract files (permanent) |
+| 6 | **Pinecone** | All vectors in all namespaces (index shell is preserved) |
+| 7 | **Service Account** | `shield-ai-backend@...` |
+| 8 | **GCP APIs** *(optional)* | Only when `--disable-apis` is passed |
+
+**Not deleted by default:**
+- **Cloud SQL instance** — export your data first. Delete manually with:
+  ```bash
+  gcloud sql instances delete free-trial-first-project --project=YOUR_PROJECT_ID
+  ```
+- **Pinecone index** — data is cleared but the index itself is kept. Delete at [console.pinecone.io](https://console.pinecone.io)
+
+#### Commands
+
+```bash
+# 1. Dry run — shows exactly what would be deleted, touches nothing
+python scripts/teardown.py --dry-run
+
+# 2. Interactive teardown — confirms each step
+python scripts/teardown.py
+
+# 3. Full teardown, no prompts
+python scripts/teardown.py --yes
+
+# 4. Full teardown + disable all GCP APIs (project-wide — use with caution)
+python scripts/teardown.py --yes --disable-apis
+
+# Partial teardown — skip individual resources
+python scripts/teardown.py --skip-pinecone    # keep Pinecone vectors
+python scripts/teardown.py --skip-gcs         # keep GCS bucket & files
+python scripts/teardown.py --skip-secrets     # keep Secret Manager secrets
+python scripts/teardown.py --skip-sa          # keep the service account
+```
+
+> `--disable-apis` disables APIs **project-wide** — if anything else in the GCP project uses Cloud Storage, Secret Manager, or Cloud Build, it will break. Only use this if Shield AI is the only workload in the project.
 
 ---
 
